@@ -1,0 +1,37 @@
+# Blueprint Render — Vinil & Página (site_vo)
+# Plano free: só 1 PostgreSQL por conta. Se já tiver banco, no painel cole o
+# DATABASE_URL existente e não crie outro.
+
+services:
+  - type: web
+    name: site-vo
+    runtime: python
+    plan: free
+    buildCommand: chmod +x build.sh start.sh && ./build.sh
+    startCommand: ./start.sh
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.3"
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com,localhost,127.0.0.1"
+      - key: CSRF_TRUSTED_ORIGINS
+        value: "https://site-vo.onrender.com,https://*.onrender.com"
+      - key: CREATE_GESTOR
+        value: "1"
+      - key: DATABASE_URL
+        sync: false
+      - key: SITE_URL
+        value: "https://site-vo.onrender.com"
+      - key: MERCADOPAGO_ACCESS_TOKEN
+        sync: false
+      - key: MERCADOPAGO_PUBLIC_KEY
+        sync: false
+      - key: MERCADOPAGO_WEBHOOK_SECRET
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false

@@ -6,3 +6,5 @@ psycopg2-binary>=2.9,<3
 Pillow>=10,<12
 openai>=1.40,<3
 scikit-learn>=1.4,<2
+gunicorn>=22.0,<25
+whitenoise>=6.6,<7
