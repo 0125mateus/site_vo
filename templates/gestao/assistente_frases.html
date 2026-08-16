@@ -1,0 +1,111 @@
+{% extends "gestao/base_gestao.html" %}
+
+{% block title %}Assistente IA — Gestão{% endblock %}
+
+{% block content %}
+<div class="gestao-page-head">
+    <div>
+        <h1>Assistente IA — frases de treino</h1>
+        <p class="gestao-page-desc">
+            Ensine o classificador com frases reais dos seus clientes e gestores.
+            Frases padrão do sistema são sempre incluídas.
+        </p>
+    </div>
+</div>
+
+<div class="gestao-tabs">
+    <a href="?audiencia=cliente" class="gestao-tab {% if audiencia == 'cliente' %}is-active{% endif %}">Cliente (loja)</a>
+    <a href="?audiencia=gestor" class="gestao-tab {% if audiencia == 'gestor' %}is-active{% endif %}">Gestor (painel)</a>
+</div>
+
+<div class="gestao-assistente-grid">
+    <section class="gestao-form gestao-form--wide">
+        <h2>Adicionar frase</h2>
+        <p class="gestao-field-hint">Use frases como os usuários realmente perguntam — isso melhora o Naive Bayes.</p>
+        <form method="post" class="gestao-form">
+            {% csrf_token %}
+            <label for="id_intencao">Intenção</label>
+            {{ form.intencao }}
+            <label for="id_texto">Frase de exemplo</label>
+            {{ form.texto }}
+            {{ form.audiencia }}
+            <label class="gestao-checkbox">
+                {{ form.ativo }}
+                <span>Frase ativa</span>
+            </label>
+            <div class="gestao-form-actions">
+                <button type="submit" name="adicionar" class="btn btn-primary">Adicionar frase</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="gestao-form gestao-form--wide">
+        <h2>Testar classificador</h2>
+        <form method="post">
+            {% csrf_token %}
+            <label for="id_teste-audiencia">Audiência</label>
+            {{ teste_form.audiencia }}
+            <label for="id_teste-mensagem">Mensagem</label>
+            {{ teste_form.mensagem }}
+            <div class="gestao-form-actions">
+                <button type="submit" name="testar" class="btn btn-ghost">Testar</button>
+            </div>
+        </form>
+        {% if resultado_teste %}
+        <div class="gestao-teste-resultado">
+            <p><strong>Intenção:</strong> {{ resultado_teste.intent }}
+                <span class="mono">({% widthratio resultado_teste.confidence 1 100 %}% confiança)</span>
+            </p>
+            {% if resultado_teste.hint %}
+            <p class="gestao-field-hint">{{ resultado_teste.hint }}</p>
+            {% endif %}
+        </div>
+        {% endif %}
+    </section>
+</div>
+
+<section class="gestao-table-wrap" style="margin-top: 2rem;">
+    <h2>Frases cadastradas ({{ total_frases }}) — {{ audiencia }}</h2>
+    {% if frases %}
+    <table class="gestao-table">
+        <thead>
+            <tr>
+                <th>Intenção</th>
+                <th>Frase</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for frase in frases %}
+            <tr>
+                <td>{{ frase.get_intencao_label }}</td>
+                <td>{{ frase.texto }}</td>
+                <td>
+                    {% if frase.ativo %}
+                    <span class="gestao-badge gestao-badge--ativo">Ativa</span>
+                    {% else %}
+                    <span class="gestao-badge gestao-badge--inativo">Inativa</span>
+                    {% endif %}
+                </td>
+                <td class="gestao-actions">
+                    <a href="{% url 'gestao_assistente_frase_excluir' frase.pk %}" class="gestao-link-danger">Excluir</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="gestao-empty">Nenhuma frase extra cadastrada. As frases padrão do sistema continuam ativas.</p>
+    {% endif %}
+</section>
+
+<section class="gestao-form gestao-form--wide" style="margin-top: 2rem;">
+    <h2>Intenções disponíveis</h2>
+    <ul class="gestao-intent-list">
+        {% for key, label in intent_labels.items %}
+        <li><span class="mono">{{ key }}</span> — {{ label }}</li>
+        {% endfor %}
+    </ul>
+</section>
+{% endblock %}

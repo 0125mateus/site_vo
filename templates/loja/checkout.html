@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout — Pedido #{{ pedido.id }}{% endblock %}
+
+{% block extra_head %}
+<script src="https://sdk.mercadopago.com/js/v2"></script>
+{% endblock %}
+
+{% block content %}
+<div class="wrap">
+    <section class="page-panel checkout page-panel--checkout">
+        <h1>Finalizar pagamento</h1>
+        <p class="checkout-resumo">Pedido #{{ pedido.id }} — Total: <strong class="mono">R$ {{ pedido.valor_total }}</strong></p>
+
+        <div id="payment-brick-container" class="payment-brick-wrapper"></div>
+        <div id="payment-feedback" class="payment-feedback" hidden></div>
+        <div id="payment-loading" class="payment-loading" hidden>
+            <p>Processando pagamento…</p>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    const pedidoId = {{ pedido.id }};
+    const publicKey = "{{ mercadopago_public_key|escapejs }}";
+    const feedbackEl = document.getElementById('payment-feedback');
+    const loadingEl = document.getElementById('payment-loading');
+    const container = document.getElementById('payment-brick-container');
+
+    function showFeedback(message, isError) {
+        feedbackEl.hidden = false;
+        feedbackEl.textContent = message;
+        feedbackEl.className = 'payment-feedback ' + (isError ? 'is-error' : 'is-info');
+    }
+
+    function getCsrfToken() {
+        const match = document.cookie.match(/csrftoken=([^;]+)/);
+        return match ? decodeURIComponent(match[1]) : '';
+    }
+
+    async function iniciarBrick() {
+        if (!publicKey) {
+            showFeedback('Pagamento indisponível no momento. Tente novamente mais tarde.', true);
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/pedidos/${pedidoId}/pagamento/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken(),
+                },
+                credentials: 'same-origin',
+            });
+
+            if (!response.ok) {
+                const data = await response.json().catch(() => ({}));
+                throw new Error(data.detail || 'Não foi possível iniciar o pagamento.');
+            }
+
+            const data = await response.json();
+            const mp = new MercadoPago(data.public_key, { locale: 'pt-BR' });
+            const bricksBuilder = mp.bricks();
+
+            await bricksBuilder.create('payment', container, {
+                initialization: {
+                    amount: {{ pedido.valor_total }},
+                    preferenceId: data.preference_id,
+                },
+                customization: {
+                    visual: {
+                        style: {
+                            theme: 'default',
+                        },
+                    },
+                },
+                callbacks: {
+                    onReady: () => {
+                        feedbackEl.hidden = true;
+                    },
+                    onSubmit: () => {
+                        loadingEl.hidden = false;
+                        container.setAttribute('aria-busy', 'true');
+                    },
+                    onError: () => {
+                        loadingEl.hidden = true;
+                        container.removeAttribute('aria-busy');
+                        showFeedback('Ocorreu um erro ao processar o pagamento. Verifique os dados e tente novamente.', true);
+                    },
+                },
+            });
+        } catch (error) {
+            showFeedback(error.message || 'Erro ao carregar o formulário de pagamento.', true);
+        }
+    }
+
+    iniciarBrick();
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "gestao/base_gestao.html" %}
+
+{% block title %}Discos — Gestão{% endblock %}
+
+{% block content %}
+<div class="gestao-page-head">
+    <div>
+        <h1>Discos</h1>
+        <p class="gestao-page-desc">{{ discos|length }} título{{ discos|length|pluralize }} cadastrado{{ discos|length|pluralize }}</p>
+    </div>
+    <a href="{% url 'gestao_disco_criar' %}" class="btn btn-primary">+ Novo disco</a>
+</div>
+
+{% if discos %}
+<div class="gestao-table-wrap">
+    <table class="gestao-table">
+        <thead>
+            <tr>
+                <th>Capa</th>
+                <th>Título</th>
+                <th>Artista</th>
+                <th>Preço</th>
+                <th>Estoque</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for disco in discos %}
+            <tr>
+                <td class="gestao-thumb">
+                    {% if disco.imagem %}
+                    <img src="{{ disco.imagem.url }}" alt="">
+                    {% else %}
+                    <span class="gestao-thumb-empty">—</span>
+                    {% endif %}
+                </td>
+                <td><strong>{{ disco.titulo }}</strong></td>
+                <td>{{ disco.artista }}</td>
+                <td class="mono">R$ {{ disco.preco }}</td>
+                <td class="mono">{{ disco.estoque }}</td>
+                <td>
+                    {% if disco.ativo %}
+                    <span class="gestao-badge gestao-badge--ativo">Ativo</span>
+                    {% else %}
+                    <span class="gestao-badge gestao-badge--inativo">Inativo</span>
+                    {% endif %}
+                </td>
+                <td class="gestao-actions">
+                    <a href="{% url 'gestao_disco_editar' disco.pk %}">Editar</a>
+                    <a href="{% url 'gestao_disco_excluir' disco.pk %}" class="gestao-link-danger">Excluir</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="gestao-empty">Nenhum disco cadastrado. <a href="{% url 'gestao_disco_criar' %}">Cadastrar o primeiro</a></p>
+{% endif %}
+{% endblock %}

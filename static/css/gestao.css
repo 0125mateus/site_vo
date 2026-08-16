@@ -1,0 +1,521 @@
+/* Gestão — painel da loja */
+
+.gestao-body {
+    min-height: 100vh;
+}
+
+.gestao-header {
+    padding: 20px 0;
+    border-bottom: 1px solid var(--line);
+    background: var(--card);
+}
+
+.gestao-header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.gestao-nav {
+    display: flex;
+    gap: 24px;
+    font-size: 14px;
+}
+
+.gestao-nav a:hover {
+    color: var(--burgundy);
+}
+
+.gestao-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.gestao-logout-form {
+    margin: 0;
+    padding: 0;
+}
+
+.gestao-logout-btn {
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    padding: 0;
+}
+
+.gestao-logout-btn:hover {
+    color: var(--burgundy);
+}
+
+.gestao-main {
+    padding: 40px 0 60px;
+}
+
+.gestao-messages {
+    margin-bottom: 24px;
+}
+
+.gestao-message {
+    padding: 12px 16px;
+    border-radius: 2px;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.gestao-message--success {
+    background: #e8f5e9;
+    color: #1b5e20;
+    border: 1px solid #a5d6a7;
+}
+
+.gestao-message--error {
+    background: #fdecea;
+    color: #7a1f17;
+    border: 1px solid #f5c6c2;
+}
+
+.gestao-hero h1 {
+    font-size: 36px;
+    margin-bottom: 8px;
+}
+
+.gestao-hero p,
+.gestao-page-desc {
+    color: var(--ink-soft);
+    font-size: 15px;
+}
+
+.gestao-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin: 32px 0;
+}
+
+.gestao-stat-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    padding: 24px;
+    border-radius: 2px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.gestao-stat-num {
+    font-size: 32px;
+    font-weight: 500;
+    color: var(--burgundy);
+}
+
+.gestao-stat-label {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+}
+
+.gestao-quick-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.gestao-page-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+}
+
+.gestao-page-head h1 {
+    font-size: 32px;
+    margin-top: 8px;
+}
+
+.gestao-back {
+    font-size: 13px;
+    color: var(--ink-soft);
+}
+
+.gestao-back:hover {
+    color: var(--burgundy);
+}
+
+.gestao-table-wrap {
+    overflow-x: auto;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+}
+
+.gestao-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.gestao-table th,
+.gestao-table td {
+    padding: 14px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+}
+
+.gestao-table th {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+    font-weight: 500;
+}
+
+.gestao-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.gestao-thumb img {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 2px;
+    border: 1px solid var(--line);
+}
+
+.gestao-thumb-empty {
+    color: var(--ink-soft);
+}
+
+.gestao-badge {
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 2px;
+    font-family: 'IBM Plex Mono', monospace;
+}
+
+.gestao-badge--ativo {
+    background: #e8f5e9;
+    color: #1b5e20;
+}
+
+.gestao-badge--inativo {
+    background: #f5f5f5;
+    color: var(--ink-soft);
+}
+
+.gestao-actions {
+    white-space: nowrap;
+}
+
+.gestao-actions a {
+    margin-right: 12px;
+    font-size: 13px;
+    color: var(--burgundy);
+}
+
+.gestao-link-danger {
+    color: #9b2c2c !important;
+}
+
+.gestao-empty {
+    color: var(--ink-soft);
+    padding: 40px 0;
+}
+
+/* Login */
+.gestao-login {
+    display: flex;
+    justify-content: center;
+    padding: 60px 0;
+}
+
+.gestao-login-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    padding: 40px;
+    border-radius: 2px;
+    width: min(420px, 100%);
+}
+
+.gestao-login-card h1 {
+    font-size: 28px;
+    margin: 12px 0 8px;
+}
+
+.gestao-login-desc {
+    color: var(--ink-soft);
+    font-size: 14px;
+    margin-bottom: 24px;
+}
+
+.gestao-login-hint {
+    margin-top: 20px;
+    font-size: 11px;
+    color: var(--ink-soft);
+}
+
+.gestao-login-hint code {
+    background: var(--parchment);
+    padding: 2px 6px;
+    border-radius: 2px;
+}
+
+/* Forms */
+.gestao-form label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    margin-top: 16px;
+}
+
+.gestao-form label:first-child {
+    margin-top: 0;
+}
+
+.gestao-form input[type="text"],
+.gestao-form input[type="number"],
+.gestao-form input[type="password"],
+.gestao-form textarea,
+.gestao-form select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    background: var(--parchment);
+    font-family: 'Work Sans', sans-serif;
+    font-size: 14px;
+}
+
+.password-field {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-field input {
+    width: 100%;
+    padding-right: 72px;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 8px;
+    border: none;
+    background: transparent;
+    color: var(--burgundy);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: 2px;
+}
+
+.password-toggle:hover {
+    background: rgba(124, 45, 45, 0.08);
+}
+
+.gestao-form input[type="file"] {
+    font-size: 13px;
+    margin-top: 4px;
+}
+
+.gestao-form--wide {
+    background: var(--card);
+    border: 1px solid var(--line);
+    padding: 32px;
+    border-radius: 2px;
+}
+
+.gestao-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 40px;
+}
+
+.gestao-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.gestao-checkbox {
+    display: flex !important;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px !important;
+    cursor: pointer;
+}
+
+.gestao-checkbox input {
+    width: auto;
+}
+
+.label-optional {
+    font-weight: 400;
+    color: var(--ink-soft);
+}
+
+.field-error {
+    display: block;
+    color: #9b2c2c;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.gestao-form-errors {
+    background: #fdecea;
+    color: #7a1f17;
+    padding: 12px;
+    border-radius: 2px;
+    margin-bottom: 16px;
+    font-size: 14px;
+}
+
+.gestao-image-preview {
+    margin-bottom: 12px;
+}
+
+.gestao-image-preview img {
+    width: 100%;
+    max-width: 200px;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 2px;
+    border: 1px solid var(--line);
+    margin-bottom: 8px;
+}
+
+.gestao-image-preview p {
+    font-size: 11px;
+    color: var(--ink-soft);
+}
+
+.gestao-field-hint {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 8px;
+}
+
+.gestao-form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+}
+
+.btn-danger {
+    background: #9b2c2c;
+    color: #fff;
+    border: none;
+    padding: 14px 26px;
+    font-size: 14px;
+    border-radius: 2px;
+    cursor: pointer;
+    font-family: 'Work Sans', sans-serif;
+}
+
+.btn-danger:hover {
+    background: #7a1f1f;
+}
+
+.gestao-confirm {
+    background: var(--card);
+    border: 1px solid var(--line);
+    padding: 36px;
+    border-radius: 2px;
+    max-width: 480px;
+}
+
+.gestao-confirm h1 {
+    font-size: 24px;
+    margin-bottom: 12px;
+}
+
+.gestao-confirm-warn {
+    color: var(--ink-soft);
+    font-size: 14px;
+    margin-bottom: 24px;
+}
+
+.gestao-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.gestao-tab {
+    padding: 8px 16px;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    font-size: 13px;
+    background: var(--card);
+}
+
+.gestao-tab.is-active {
+    background: var(--ink);
+    color: var(--parchment);
+    border-color: var(--ink);
+}
+
+.gestao-assistente-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+.gestao-teste-resultado {
+    margin-top: 16px;
+    padding: 12px;
+    background: var(--parchment);
+    border-radius: 2px;
+    font-size: 14px;
+}
+
+.gestao-intent-list {
+    margin: 0;
+    padding-left: 1.2rem;
+    font-size: 14px;
+    color: var(--ink-soft);
+}
+
+.gestao-intent-list li {
+    margin-bottom: 6px;
+}
+
+.gestao-fieldset {
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 14px 16px;
+    margin: 12px 0;
+}
+
+.gestao-fieldset legend {
+    font-family: 'Fraunces', serif;
+    font-size: 15px;
+    padding: 0 6px;
+    color: var(--ink);
+}
+
+@media (max-width: 768px) {
+    .gestao-assistente-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .gestao-nav {
+        display: none;
+    }
+
+    .gestao-form-grid {
+        grid-template-columns: 1fr;
+    }
+}

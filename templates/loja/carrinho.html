@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Carrinho — Vinil & Página{% endblock %}
+
+{% block content %}
+<div class="wrap">
+    <section class="page-panel page-panel--carrinho">
+        <h1>Seu carrinho</h1>
+
+        {% if itens %}
+        <table class="carrinho-table">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Produto</th>
+                    <th>Modalidade</th>
+                    <th>Qtd</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in itens %}
+                <tr>
+                    <td class="carrinho-imagem">
+                        {% if item.produto.imagem %}
+                        <img src="{{ item.produto.imagem.url }}" alt="">
+                        {% endif %}
+                    </td>
+                    <td>{{ item.produto.titulo }}</td>
+                    <td>
+                        {{ item.modalidade_label }}
+                        {% if item.dias_aluguel %}
+                        <br><small>{{ item.dias_aluguel }} dias</small>
+                        {% endif %}
+                    </td>
+                    <td>{{ item.quantidade }}</td>
+                    <td class="mono">R$ {{ item.subtotal }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <p class="total">Total: <strong class="mono">R$ {{ total }}</strong></p>
+
+        {% if user.is_authenticated %}
+        <form method="post" action="{% url 'finalizar_pedido' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary">Finalizar pedido</button>
+        </form>
+        {% else %}
+        <p><a href="{% url 'login' %}?next={% url 'carrinho' %}">Faça login</a> para finalizar a compra ou o aluguel.</p>
+        {% endif %}
+
+        {% else %}
+        <p>Seu carrinho está vazio. <a href="{% url 'home' %}">Continuar explorando</a></p>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

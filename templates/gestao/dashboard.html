@@ -1,0 +1,39 @@
+{% extends "gestao/base_gestao.html" %}
+
+{% block title %}Gestão — Início{% endblock %}
+
+{% block content %}
+<section class="gestao-hero">
+    <h1>Painel de gestão</h1>
+    <p>Cadastre discos, livros, filmes e DVDs enviando arquivos do seu PC — sem mexer no código.</p>
+</section>
+
+<div class="gestao-stats">
+    <div class="gestao-stat-card">
+        <span class="gestao-stat-num mono">{{ total_discos }}</span>
+        <span class="gestao-stat-label">Discos ({{ discos_ativos }} ativos)</span>
+        <a href="{% url 'gestao_discos_lista' %}" class="btn btn-ghost">Gerenciar</a>
+    </div>
+    <div class="gestao-stat-card">
+        <span class="gestao-stat-num mono">{{ total_livros }}</span>
+        <span class="gestao-stat-label">Livros ({{ livros_ativos }} ativos)</span>
+        <a href="{% url 'gestao_livros_lista' %}" class="btn btn-ghost">Gerenciar</a>
+    </div>
+    <div class="gestao-stat-card">
+        <span class="gestao-stat-num mono">{{ total_midias }}</span>
+        <span class="gestao-stat-label">Filmes/DVDs ({{ midias_ativas }} ativos)</span>
+        <a href="{% url 'gestao_midias_lista' %}" class="btn btn-ghost">Gerenciar</a>
+    </div>
+    <div class="gestao-stat-card">
+        <span class="gestao-stat-num mono">{{ pedidos_pendentes }}</span>
+        <span class="gestao-stat-label">Pedidos pendentes</span>
+    </div>
+</div>
+
+<div class="gestao-quick-actions">
+    <a href="{% url 'gestao_disco_criar' %}" class="btn btn-primary">+ Novo disco</a>
+    <a href="{% url 'gestao_livro_criar' %}" class="btn btn-primary">+ Novo livro</a>
+    <a href="{% url 'gestao_midia_criar' %}" class="btn btn-primary">+ Filme / DVD / vídeo</a>
+    <a href="{% url 'gestao_assistente_frases' %}" class="btn btn-ghost">Assistente IA</a>
+</div>
+{% endblock %}

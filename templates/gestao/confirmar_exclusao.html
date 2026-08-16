@@ -1,0 +1,17 @@
+{% extends "gestao/base_gestao.html" %}
+
+{% block title %}Excluir — Gestão{% endblock %}
+
+{% block content %}
+<section class="gestao-confirm">
+    <h1>Confirmar exclusão</h1>
+    <p>Tem certeza que deseja excluir <strong>{{ objeto.titulo }}</strong>?</p>
+    <p class="gestao-confirm-warn">Esta ação não pode ser desfeita.</p>
+
+    <form method="post" class="gestao-form-actions">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Sim, excluir</button>
+        <a href="{% url voltar_url %}" class="btn btn-ghost">Cancelar</a>
+    </form>
+</section>
+{% endblock %}

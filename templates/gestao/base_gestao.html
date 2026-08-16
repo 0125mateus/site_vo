@@ -1,0 +1,62 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Gestão — Vinil & Página{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v={{ STATIC_VERSION }}">
+    <link rel="stylesheet" href="{% static 'css/gestao.css' %}?v={{ STATIC_VERSION }}">
+    <link rel="stylesheet" href="{% static 'css/assistant.css' %}?v={{ STATIC_VERSION }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="gestao-body">
+    <header class="gestao-header">
+        <div class="wrap gestao-header-inner">
+            <a href="{% url 'gestao_dashboard' %}" class="logo">
+                <span class="mark" aria-hidden="true"></span>
+                Gestão
+            </a>
+            {% if user.is_authenticated and user.is_staff %}
+            <nav class="gestao-nav">
+                <a href="{% url 'gestao_dashboard' %}">Início</a>
+                <a href="{% url 'gestao_discos_lista' %}">Discos</a>
+                <a href="{% url 'gestao_livros_lista' %}">Livros</a>
+                <a href="{% url 'gestao_midias_lista' %}">Filmes / DVDs</a>
+                <a href="{% url 'gestao_assistente_frases' %}">Assistente IA</a>
+                <a href="{% url 'home' %}" target="_blank" rel="noopener">Ver loja ↗</a>
+            </nav>
+            <div class="gestao-header-actions">
+                <span class="user-greeting">{{ user.username }}</span>
+                <form method="post" action="{% url 'gestao_sair' %}" class="gestao-logout-form">
+                    {% csrf_token %}
+                    <button type="submit" class="header-link gestao-logout-btn">Sair</button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    </header>
+
+    <main class="gestao-main">
+        <div class="wrap">
+            {% if messages %}
+            <div class="gestao-messages">
+                {% for message in messages %}
+                <p class="gestao-message gestao-message--{{ message.tags }}">{{ message }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    {% if user.is_authenticated and user.is_staff %}
+    {% include 'includes/assistant_widget.html' with assistant_audience='gestor' %}
+    <script src="{% static 'js/assistant.js' %}?v={{ STATIC_VERSION }}"></script>
+    {% endif %}
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

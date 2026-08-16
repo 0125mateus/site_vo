@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Processando pedido #{{ pedido.id }}{% endblock %}
+
+{% block content %}
+<div class="wrap">
+    <section class="page-panel processando">
+        <h1>Processando seu pedido</h1>
+        <p id="status-message">Aguardando confirmação do pagamento…</p>
+        <p class="status-atual">Status atual: <strong id="status-value">{{ pedido.get_status_display }}</strong></p>
+        <div class="spinner" aria-hidden="true"></div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    const pedidoId = {{ pedido.id }};
+    const statusValue = document.getElementById('status-value');
+    const statusMessage = document.getElementById('status-message');
+    const pendingStatuses = ['aguardando_pagamento', 'em_analise'];
+
+    const statusLabels = {
+        aguardando_pagamento: 'Aguardando pagamento',
+        aprovado: 'Aprovado',
+        recusado: 'Recusado',
+        em_analise: 'Em análise',
+        cancelado: 'Cancelado',
+    };
+
+    async function pollStatus() {
+        try {
+            const response = await fetch(`/api/pedidos/${pedidoId}/status/`, {
+                credentials: 'same-origin',
+            });
+            if (!response.ok) return;
+
+            const data = await response.json();
+            statusValue.textContent = statusLabels[data.status] || data.status;
+
+            if (data.status === 'aprovado') {
+                statusMessage.textContent = 'Pagamento confirmado! Obrigado pela compra.';
+                document.querySelector('.spinner').style.display = 'none';
+                return;
+            }
+
+            if (data.status === 'recusado') {
+                statusMessage.textContent = 'Pagamento recusado. Você pode tentar novamente no checkout.';
+                document.querySelector('.spinner').style.display = 'none';
+                return;
+            }
+
+            if (pendingStatuses.includes(data.status)) {
+                setTimeout(pollStatus, 2000);
+            }
+        } catch (error) {
+            setTimeout(pollStatus, 2000);
+        }
+    }
+
+    pollStatus();
+})();
+</script>
+{% endblock %}

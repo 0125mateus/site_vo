@@ -1,0 +1,171 @@
+{% extends "gestao/base_gestao.html" %}
+
+{% block title %}{{ titulo_pagina }} — Gestão{% endblock %}
+
+{% block content %}
+<div class="gestao-page-head">
+    <div>
+        <a href="{% url voltar_url %}" class="gestao-back">← Voltar</a>
+        <h1>{{ titulo_pagina }}</h1>
+    </div>
+</div>
+
+<form method="post" enctype="multipart/form-data" class="gestao-form gestao-form--wide">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+    <div class="gestao-form-errors">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div class="gestao-form-grid">
+        <div class="gestao-form-col">
+            {% if tipo == 'disco' %}
+            <label for="id_titulo">Título do disco</label>
+            {{ form.titulo }}
+            {% if form.titulo.errors %}<span class="field-error">{{ form.titulo.errors.0 }}</span>{% endif %}
+
+            <label for="id_artista">Artista</label>
+            {{ form.artista }}
+            {% if form.artista.errors %}<span class="field-error">{{ form.artista.errors.0 }}</span>{% endif %}
+
+            <label for="id_formato">Formato</label>
+            {{ form.formato }}
+
+            {% elif tipo == 'midia' %}
+            <label for="id_titulo">Título</label>
+            {{ form.titulo }}
+            {% if form.titulo.errors %}<span class="field-error">{{ form.titulo.errors.0 }}</span>{% endif %}
+
+            <label for="id_tipo">Tipo</label>
+            {{ form.tipo }}
+
+            <label for="id_diretor">Diretor <span class="label-optional">(opcional)</span></label>
+            {{ form.diretor }}
+
+            <div class="gestao-form-row">
+                <div>
+                    <label for="id_ano">Ano</label>
+                    {{ form.ano }}
+                </div>
+                <div>
+                    <label for="id_duracao_min">Duração (min)</label>
+                    {{ form.duracao_min }}
+                </div>
+            </div>
+
+            {% else %}
+            <label for="id_titulo">Título do livro</label>
+            {{ form.titulo }}
+            {% if form.titulo.errors %}<span class="field-error">{{ form.titulo.errors.0 }}</span>{% endif %}
+
+            <label for="id_autor">Autor</label>
+            {{ form.autor }}
+            {% if form.autor.errors %}<span class="field-error">{{ form.autor.errors.0 }}</span>{% endif %}
+
+            <label for="id_isbn">ISBN <span class="label-optional">(opcional)</span></label>
+            {{ form.isbn }}
+            {% endif %}
+
+            <label for="id_descricao">Descrição</label>
+            {{ form.descricao }}
+
+            <fieldset class="gestao-fieldset">
+                <legend>Venda</legend>
+                <label class="gestao-checkbox">
+                    {{ form.disponivel_venda }}
+                    <span>Disponível para venda</span>
+                </label>
+                <div class="gestao-form-row">
+                    <div>
+                        <label for="id_preco">Preço venda (R$)</label>
+                        {{ form.preco }}
+                        {% if form.preco.errors %}<span class="field-error">{{ form.preco.errors.0 }}</span>{% endif %}
+                    </div>
+                    <div>
+                        <label for="id_estoque">Estoque venda</label>
+                        {{ form.estoque }}
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset class="gestao-fieldset">
+                <legend>Aluguel</legend>
+                <label class="gestao-checkbox">
+                    {{ form.disponivel_aluguel }}
+                    <span>Disponível para aluguel</span>
+                </label>
+                <div class="gestao-form-row">
+                    <div>
+                        <label for="id_preco_aluguel">Preço aluguel (R$)</label>
+                        {{ form.preco_aluguel }}
+                    </div>
+                    <div>
+                        <label for="id_dias_aluguel">Dias inclusos</label>
+                        {{ form.dias_aluguel }}
+                    </div>
+                </div>
+                <label for="id_estoque_aluguel">Estoque aluguel</label>
+                {{ form.estoque_aluguel }}
+            </fieldset>
+
+            <label class="gestao-checkbox">
+                {{ form.ativo }}
+                <span>Produto ativo na loja</span>
+            </label>
+        </div>
+
+        <div class="gestao-form-col gestao-form-col--image">
+            <label for="id_imagem">Capa / imagem</label>
+            {% if objeto and objeto.imagem %}
+            <div class="gestao-image-preview">
+                <img src="{{ objeto.imagem.url }}" alt="Capa atual">
+                <p class="mono">Capa atual — envie outra para substituir</p>
+            </div>
+            {% endif %}
+            {{ form.imagem }}
+            <p class="gestao-field-hint">JPG, PNG ou WebP. Envie direto do seu PC.</p>
+
+            {% if tipo == 'midia' %}
+            <label for="id_trailer" style="margin-top:1.25rem;">Trailer / prévia (arquivo)</label>
+            {% if objeto and objeto.trailer %}
+            <p class="gestao-field-hint">
+                Trailer atual:
+                <a href="{{ objeto.trailer.url }}" target="_blank" rel="noopener">abrir</a>
+            </p>
+            {% endif %}
+            {{ form.trailer }}
+            <p class="gestao-field-hint">MP4 ou WebM curto para o cliente assistir antes de comprar/alugar.</p>
+
+            <label for="id_trailer_url">Ou link do YouTube / Vimeo</label>
+            {{ form.trailer_url }}
+            <p class="gestao-field-hint">Se preencher o link, não precisa enviar arquivo de trailer.</p>
+            {% endif %}
+
+            {% if form.arquivo %}
+            <label for="id_arquivo" style="margin-top:1.25rem;">Arquivo completo do PC</label>
+            {% if objeto and objeto.arquivo %}
+            <p class="gestao-field-hint">
+                Arquivo atual:
+                <a href="{{ objeto.arquivo.url }}" target="_blank" rel="noopener">baixar</a>
+            </p>
+            {% endif %}
+            {{ form.arquivo }}
+            <p class="gestao-field-hint">
+                {% if tipo == 'disco' %}
+                MP3, FLAC, WAV… (opcional — versão digital)
+                {% elif tipo == 'midia' %}
+                MP4, MKV, AVI, ISO… (opcional — filme/vídeo completo)
+                {% else %}
+                PDF, EPUB… (opcional — e-book)
+                {% endif %}
+            </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="gestao-form-actions">
+        <button type="submit" class="btn btn-primary">Salvar</button>
+        <a href="{% url voltar_url %}" class="btn btn-ghost">Cancelar</a>
+    </div>
+</form>
+{% endblock %}

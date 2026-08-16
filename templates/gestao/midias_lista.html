@@ -1,0 +1,80 @@
+{% extends "gestao/base_gestao.html" %}
+
+{% block title %}Filmes, DVDs e vídeos — Gestão{% endblock %}
+
+{% block content %}
+<div class="gestao-page-head">
+    <div>
+        <h1>Filmes, DVDs e vídeos</h1>
+        <p class="gestao-page-desc">{{ midias|length }} título{{ midias|length|pluralize }} cadastrado{{ midias|length|pluralize }} — envie capa e arquivo do seu PC</p>
+    </div>
+    <a href="{% url 'gestao_midia_criar' %}" class="btn btn-primary">+ Nova mídia</a>
+</div>
+
+{% if midias %}
+<div class="gestao-table-wrap">
+    <table class="gestao-table">
+        <thead>
+            <tr>
+                <th>Capa</th>
+                <th>Título</th>
+                <th>Tipo</th>
+                <th>Trailer</th>
+                <th>Arquivo</th>
+                <th>Preço</th>
+                <th>Estoque</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for midia in midias %}
+            <tr>
+                <td class="gestao-thumb">
+                    {% if midia.imagem %}
+                    <img src="{{ midia.imagem.url }}" alt="">
+                    {% else %}
+                    <span class="gestao-thumb-empty">—</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <strong>{{ midia.titulo }}</strong>
+                    {% if midia.diretor %}<br><small>{{ midia.diretor }}</small>{% endif %}
+                </td>
+                <td>{{ midia.get_tipo_display }}</td>
+                <td>
+                    {% if midia.trailer or midia.trailer_url %}
+                    <span class="gestao-badge gestao-badge--ativo">Sim</span>
+                    {% else %}
+                    <span class="gestao-badge gestao-badge--inativo">Não</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if midia.arquivo %}
+                    <span class="gestao-badge gestao-badge--ativo">Sim</span>
+                    {% else %}
+                    <span class="gestao-badge gestao-badge--inativo">Não</span>
+                    {% endif %}
+                </td>
+                <td class="mono">R$ {{ midia.preco }}</td>
+                <td class="mono">{{ midia.estoque }}</td>
+                <td>
+                    {% if midia.ativo %}
+                    <span class="gestao-badge gestao-badge--ativo">Ativo</span>
+                    {% else %}
+                    <span class="gestao-badge gestao-badge--inativo">Inativo</span>
+                    {% endif %}
+                </td>
+                <td class="gestao-actions">
+                    <a href="{% url 'gestao_midia_editar' midia.pk %}">Editar</a>
+                    <a href="{% url 'gestao_midia_excluir' midia.pk %}" class="gestao-link-danger">Excluir</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="gestao-empty">Nenhuma mídia cadastrada. <a href="{% url 'gestao_midia_criar' %}">Enviar a primeira do PC</a></p>
+{% endif %}
+{% endblock %}

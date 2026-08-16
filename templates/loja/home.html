@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Vinil & Página — venda e aluguel{% endblock %}
+
+{% block content %}
+<div class="wrap">
+    <section class="hero">
+        <div>
+            <div class="eyebrow mono">Venda e aluguel · discos, livros, filmes e DVDs</div>
+            <h1>Onde a agulha<br>encontra a <em>lombada</em>.</h1>
+            <p>Compre para ficar ou alugue por alguns dias. Catálogo físico e digital, curado por gente — sem algoritmo.</p>
+            <div class="hero-actions">
+                <a class="btn btn-primary" href="#discos">Explorar catálogo</a>
+                <a class="btn btn-ghost" href="#midias">Filmes e DVDs</a>
+            </div>
+        </div>
+        <div class="record-visual">
+            <div class="record">
+                <div class="label">VINIL &amp;<br>PÁGINA</div>
+            </div>
+            <div class="book-lean"><span>Edição rara</span></div>
+        </div>
+    </section>
+
+    <section class="catalog catalog--discos" id="discos">
+        <div class="section-head">
+            <div>
+                <span class="section-eyebrow">Vinil · Disqueira</span>
+                <h2>Na prateleira dos discos</h2>
+            </div>
+            <span class="tag mono">{{ total_musicas }} título{{ total_musicas|pluralize }}</span>
+        </div>
+        <div class="shelf">
+            {% for musica in musicas %}
+            <div class="item-card">
+                <div class="sleeve{% if musica.imagem %} sleeve--image{% endif %}"{% if musica.imagem %} style="background-image: url('{{ musica.imagem.url }}')"{% endif %}>
+                    {% if not musica.imagem %}
+                    <div class="disc-peek"></div>
+                    <div>
+                        <div class="title">{{ musica.titulo }}</div>
+                        <div class="artist">{{ musica.artista }}</div>
+                    </div>
+                    {% else %}
+                    <div class="sleeve-overlay">
+                        <div class="title">{{ musica.titulo }}</div>
+                        <div class="artist">{{ musica.artista }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="item-prices mono">
+                    {% if musica.disponivel_venda %}<span>Venda R$ {{ musica.preco }}</span>{% endif %}
+                    {% if musica.disponivel_aluguel %}<span>Aluguel R$ {{ musica.preco_aluguel }}/{{ musica.dias_aluguel }}d</span>{% endif %}
+                </div>
+                <div class="item-actions">
+                    {% if musica.disponivel_venda and musica.estoque > 0 and musica.preco > 0 %}
+                    <form method="post" action="{% url 'adicionar_carrinho' musica.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="modalidade" value="venda">
+                        <button type="submit" class="btn btn-primary btn-sm">Comprar</button>
+                    </form>
+                    {% endif %}
+                    {% if musica.disponivel_aluguel and musica.estoque_aluguel > 0 and musica.preco_aluguel > 0 %}
+                    <form method="post" action="{% url 'adicionar_carrinho' musica.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="modalidade" value="aluguel">
+                        <button type="submit" class="btn btn-ghost btn-sm">Alugar</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <p class="shelf-empty">Nenhum disco disponível no momento.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="catalog catalog--livros" id="livros">
+        <div class="section-head">
+            <div>
+                <span class="section-eyebrow">Sebo · Lombadas</span>
+                <h2>Na prateleira dos livros</h2>
+            </div>
+            <span class="tag mono">{{ total_livros }} título{{ total_livros|pluralize }}</span>
+        </div>
+        <div class="shelf">
+            {% for livro in livros %}
+            <div class="item-card">
+                <div class="spine {% cycle 'h1' 'h2' 'h3' %}{% if livro.imagem %} spine--image{% endif %}"{% if livro.imagem %} style="background-image: url('{{ livro.imagem.url }}')"{% endif %}>
+                    <span>{{ livro.titulo }}</span>
+                </div>
+                <div class="item-prices mono">
+                    {% if livro.disponivel_venda %}<span>Venda R$ {{ livro.preco }}</span>{% endif %}
+                    {% if livro.disponivel_aluguel %}<span>Aluguel R$ {{ livro.preco_aluguel }}/{{ livro.dias_aluguel }}d</span>{% endif %}
+                </div>
+                <div class="item-actions">
+                    {% if livro.disponivel_venda and livro.estoque > 0 and livro.preco > 0 %}
+                    <form method="post" action="{% url 'adicionar_carrinho' livro.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="modalidade" value="venda">
+                        <button type="submit" class="btn btn-primary btn-sm">Comprar</button>
+                    </form>
+                    {% endif %}
+                    {% if livro.disponivel_aluguel and livro.estoque_aluguel > 0 and livro.preco_aluguel > 0 %}
+                    <form method="post" action="{% url 'adicionar_carrinho' livro.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="modalidade" value="aluguel">
+                        <button type="submit" class="btn btn-ghost btn-sm">Alugar</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <p class="shelf-empty">Nenhum livro disponível no momento.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="catalog catalog--midias" id="midias">
+        <div class="section-head">
+            <div>
+                <span class="section-eyebrow">Cinema · DVD / Blu-ray</span>
+                <h2>Filmes, DVDs e vídeos</h2>
+            </div>
+            <span class="tag mono">{{ total_midias }} título{{ total_midias|pluralize }}</span>
+        </div>
+        <div class="shelf">
+            {% for midia in midias %}
+            <div class="item-card">
+                <div class="sleeve sleeve--midia{% if midia.imagem %} sleeve--image{% endif %}"{% if midia.imagem %} style="background-image: url('{{ midia.imagem.url }}')"{% endif %}>
+                    {% if not midia.imagem %}
+                    <div>
+                        <div class="title">{{ midia.titulo }}</div>
+                        <div class="artist">{{ midia.get_tipo_display }}{% if midia.diretor %} · {{ midia.diretor }}{% endif %}</div>
+                    </div>
+                    {% else %}
+                    <div class="sleeve-overlay">
+                        <div class="title">{{ midia.titulo }}</div>
+                        <div class="artist">{{ midia.get_tipo_display }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="item-prices mono">
+                    {% if midia.disponivel_venda %}<span>Venda R$ {{ midia.preco }}</span>{% endif %}
+                    {% if midia.disponivel_aluguel %}<span>Aluguel R$ {{ midia.preco_aluguel }}/{{ midia.dias_aluguel }}d</span>{% endif %}
+                </div>
+                <div class="item-actions">
+                    {% if midia.tem_trailer %}
+                    <button
+                        type="button"
+                        class="btn btn-ghost btn-sm btn-trailer"
+                        data-trailer-title="{{ midia.titulo|escape }}"
+                        {% if midia.trailer %}data-trailer-file="{{ midia.trailer.url }}"{% endif %}
+                        {% if midia.trailer_embed_url %}data-trailer-embed="{{ midia.trailer_embed_url }}"{% endif %}
+                    >▶ Ver trailer</button>
+                    {% endif %}
+                    {% if midia.disponivel_venda and midia.estoque > 0 and midia.preco > 0 %}
+                    <form method="post" action="{% url 'adicionar_carrinho' midia.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="modalidade" value="venda">
+                        <button type="submit" class="btn btn-primary btn-sm">Comprar</button>
+                    </form>
+                    {% endif %}
+                    {% if midia.disponivel_aluguel and midia.estoque_aluguel > 0 and midia.preco_aluguel > 0 %}
+                    <form method="post" action="{% url 'adicionar_carrinho' midia.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="modalidade" value="aluguel">
+                        <button type="submit" class="btn btn-ghost btn-sm">Alugar</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <p class="shelf-empty">Nenhum filme ou DVD disponível no momento.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <div class="trailer-modal" id="trailer-modal" hidden>
+        <div class="trailer-modal-backdrop" data-trailer-close></div>
+        <div class="trailer-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="trailer-modal-title">
+            <div class="trailer-modal-head">
+                <h3 id="trailer-modal-title">Trailer</h3>
+                <button type="button" class="trailer-modal-close" data-trailer-close aria-label="Fechar">×</button>
+            </div>
+            <div class="trailer-modal-body">
+                <video id="trailer-video" controls playsinline></video>
+                <iframe
+                    id="trailer-iframe"
+                    title="Trailer"
+                    referrerpolicy="strict-origin-when-cross-origin"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowfullscreen
+                ></iframe>
+            </div>
+        </div>
+    </div>
+
+    <section class="featured" id="curadoria">
+        <div class="feat-card" id="destaques">
+            <div class="kicker mono">Como funciona</div>
+            <h3>Comprar ou alugar — você escolhe.</h3>
+            <p>Na venda, o item é seu. No aluguel, você paga o período (ex.: 7 dias) e devolve. Tudo pelo mesmo carrinho e pagamento.</p>
+        </div>
+        <div class="feat-card">
+            <div class="kicker mono">Gestão simples</div>
+            <h3>Cadastre pelo painel, sem código.</h3>
+            <p>O gestor sobe capas e arquivos do PC, define preço de venda, preço de aluguel e estoque de cada modalidade.</p>
+            <a href="{% url 'gestao_entrar' %}" class="btn btn-ghost">Área do gestor</a>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/trailer-preview.js' %}?v={{ STATIC_VERSION }}"></script>
+{% endblock %}

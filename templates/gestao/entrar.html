@@ -1,0 +1,45 @@
+{% extends "gestao/base_gestao.html" %}
+
+{% block title %}Entrar — Gestão{% endblock %}
+
+{% block content %}
+<section class="gestao-login">
+    <div class="gestao-login-card">
+        <p class="eyebrow mono">Área restrita</p>
+        <h1>Gestão da loja</h1>
+        <p class="gestao-login-desc">Cadastre discos, livros e capas sem usar o admin do Django.</p>
+        <form method="post" class="gestao-form">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+            <div class="gestao-form-errors">{{ form.non_field_errors }}</div>
+            {% endif %}
+            <label for="id_username">Usuário</label>
+            {{ form.username }}
+            <label for="id_password">Senha</label>
+            <div class="password-field">
+                {{ form.password }}
+                <button type="button" class="password-toggle" id="toggle-password" aria-label="Mostrar senha">Mostrar</button>
+            </div>
+            <button type="submit" class="btn btn-primary">Entrar</button>
+        </form>
+        <p class="gestao-login-hint mono">Use o usuário criado com <code>criar_gestor</code>.</p>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    const input = document.getElementById('id_password');
+    const btn = document.getElementById('toggle-password');
+    if (!input || !btn) return;
+
+    btn.addEventListener('click', function () {
+        const showing = input.type === 'text';
+        input.type = showing ? 'password' : 'text';
+        btn.textContent = showing ? 'Mostrar' : 'Ocultar';
+        btn.setAttribute('aria-label', showing ? 'Mostrar senha' : 'Ocultar senha');
+    });
+})();
+</script>
+{% endblock %}

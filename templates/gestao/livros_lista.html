@@ -1,0 +1,61 @@
+{% extends "gestao/base_gestao.html" %}
+
+{% block title %}Livros — Gestão{% endblock %}
+
+{% block content %}
+<div class="gestao-page-head">
+    <div>
+        <h1>Livros</h1>
+        <p class="gestao-page-desc">{{ livros|length }} título{{ livros|length|pluralize }} cadastrado{{ livros|length|pluralize }}</p>
+    </div>
+    <a href="{% url 'gestao_livro_criar' %}" class="btn btn-primary">+ Novo livro</a>
+</div>
+
+{% if livros %}
+<div class="gestao-table-wrap">
+    <table class="gestao-table">
+        <thead>
+            <tr>
+                <th>Capa</th>
+                <th>Título</th>
+                <th>Autor</th>
+                <th>Preço</th>
+                <th>Estoque</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for livro in livros %}
+            <tr>
+                <td class="gestao-thumb">
+                    {% if livro.imagem %}
+                    <img src="{{ livro.imagem.url }}" alt="">
+                    {% else %}
+                    <span class="gestao-thumb-empty">—</span>
+                    {% endif %}
+                </td>
+                <td><strong>{{ livro.titulo }}</strong></td>
+                <td>{{ livro.autor }}</td>
+                <td class="mono">R$ {{ livro.preco }}</td>
+                <td class="mono">{{ livro.estoque }}</td>
+                <td>
+                    {% if livro.ativo %}
+                    <span class="gestao-badge gestao-badge--ativo">Ativo</span>
+                    {% else %}
+                    <span class="gestao-badge gestao-badge--inativo">Inativo</span>
+                    {% endif %}
+                </td>
+                <td class="gestao-actions">
+                    <a href="{% url 'gestao_livro_editar' livro.pk %}">Editar</a>
+                    <a href="{% url 'gestao_livro_excluir' livro.pk %}" class="gestao-link-danger">Excluir</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="gestao-empty">Nenhum livro cadastrado. <a href="{% url 'gestao_livro_criar' %}">Cadastrar o primeiro</a></p>
+{% endif %}
+{% endblock %}

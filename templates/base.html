@@ -1,0 +1,61 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Vinil & Página{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v={{ STATIC_VERSION }}">
+    <link rel="stylesheet" href="{% static 'css/assistant.css' %}?v={{ STATIC_VERSION }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <header>
+        <div class="wrap header-inner">
+            <a href="{% url 'home' %}" class="logo">
+                <span class="mark" aria-hidden="true"></span>
+                Vinil &amp; Página
+            </a>
+            <nav>
+                <ul>
+                    <li><a href="{% url 'home' %}#discos">Discos</a></li>
+                    <li><a href="{% url 'home' %}#livros">Livros</a></li>
+                    <li><a href="{% url 'home' %}#midias">Filmes / DVDs</a></li>
+                    <li><a href="{% url 'home' %}#destaques">Lançamentos</a></li>
+                    <li><a href="{% url 'home' %}#curadoria">Curadoria</a></li>
+                </ul>
+            </nav>
+            <div class="header-actions">
+                {% if user.is_authenticated %}
+                    <span class="user-greeting">{{ user.username }}</span>
+                    <form method="post" action="{% url 'logout' %}" class="gestao-logout-form">
+                        {% csrf_token %}
+                        <button type="submit" class="header-link gestao-logout-btn">Sair</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'login' %}" class="header-link">Entrar</a>
+                {% endif %}
+                <a class="cart mono" href="{% url 'carrinho' %}">Carrinho ({{ carrinho_total_itens }})</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <div class="wrap footer-inner">
+            <span>Vinil &amp; Página — discos e livros com curadoria.</span>
+            <span class="mono">Poços de Caldas, MG</span>
+        </div>
+    </footer>
+
+    {% include 'includes/assistant_widget.html' with assistant_audience='cliente' %}
+    <script src="{% static 'js/assistant.js' %}?v={{ STATIC_VERSION }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

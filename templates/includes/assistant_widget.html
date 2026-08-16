@@ -1,0 +1,25 @@
+<div class="assistant-widget" id="assistant-widget" data-audience="{{ assistant_audience|default:'cliente' }}">
+    <button type="button" class="assistant-fab" id="assistant-fab" aria-label="Abrir assistente">
+        <span class="assistant-fab-icon" aria-hidden="true">◉</span>
+        <span class="assistant-fab-label">{% if assistant_audience == 'gestor' %}Ajuda{% else %}Curadoria{% endif %}</span>
+    </button>
+
+    <div class="assistant-panel" id="assistant-panel" hidden>
+        <header class="assistant-header">
+            <div>
+                <strong>{% if assistant_audience == 'gestor' %}Assistente de Gestão{% else %}Assistente da Loja{% endif %}</strong>
+                <span class="assistant-mode" id="assistant-mode">Orientação</span>
+            </div>
+            <button type="button" class="assistant-close" id="assistant-close" aria-label="Fechar">×</button>
+        </header>
+
+        <div class="assistant-messages" id="assistant-messages"></div>
+        <div class="assistant-suggestions" id="assistant-suggestions"></div>
+
+        <form class="assistant-input-row" id="assistant-form">
+            {% csrf_token %}
+            <input type="text" id="assistant-input" placeholder="{% if assistant_audience == 'gestor' %}Pergunte sobre o catálogo...{% else %}O que você procura?{% endif %}" autocomplete="off">
+            <button type="submit" class="assistant-send" id="assistant-send">Enviar</button>
+        </form>
+    </div>
+</div>
