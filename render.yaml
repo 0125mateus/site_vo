@@ -4,7 +4,7 @@
 
 services:
   - type: web
-    name: site-vo
+    name: vinil-e-pagina
     runtime: python
     plan: free
     buildCommand: chmod +x build.sh start.sh && ./build.sh
@@ -20,13 +20,13 @@ services:
       - key: ALLOWED_HOSTS
         value: ".onrender.com,localhost,127.0.0.1"
       - key: CSRF_TRUSTED_ORIGINS
-        value: "https://site-vo.onrender.com,https://*.onrender.com"
+        value: "https://vinil-e-pagina.onrender.com,https://*.onrender.com"
       - key: CREATE_GESTOR
         value: "1"
       - key: DATABASE_URL
         sync: false
       - key: SITE_URL
-        value: "https://site-vo.onrender.com"
+        value: "https://vinil-e-pagina.onrender.com"
       - key: MERCADOPAGO_ACCESS_TOKEN
         sync: false
       - key: MERCADOPAGO_PUBLIC_KEY
