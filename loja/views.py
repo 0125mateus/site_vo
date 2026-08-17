@@ -37,7 +37,7 @@ from .mercadopago_service import (
     sincronizar_pedido_com_mercadopago,
     validar_assinatura_webhook,
 )
-from .models import ItemPedido, Livro, MidiaAudiovisual, ModalidadeComercial, Musica, Pedido, Produto, ProgressoReproducao
+from .models import Favorito, ItemPedido, Livro, MidiaAudiovisual, ModalidadeComercial, Musica, Pedido, Produto, ProgressoReproducao
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +70,59 @@ def _set_carrinho(request, carrinho):
 
 def _carrinho_total_itens(carrinho):
     return sum(item.get('quantidade', 0) for item in carrinho.values())
+
+
+def _wants_json(request):
+    return (
+        request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        or 'application/json' in request.headers.get('Accept', '')
+    )
+
+
+def _montar_itens_carrinho(request):
+    carrinho_data = _get_carrinho(request)
+    itens = []
+    total = Decimal('0.00')
+
+    for key, entry in list(carrinho_data.items()):
+        produto = Produto.objects.filter(pk=entry['produto_id'], ativo=True).first()
+        modalidade = entry.get('modalidade', ModalidadeComercial.VENDA)
+        quantidade = entry.get('quantidade', 1)
+        if not produto or not produto.disponivel_para(modalidade):
+            continue
+        preco = produto.preco_para(modalidade)
+        subtotal = preco * quantidade
+        itens.append({
+            'key': key,
+            'produto': produto,
+            'modalidade': modalidade,
+            'modalidade_label': dict(ModalidadeComercial.choices).get(modalidade, modalidade),
+            'quantidade': quantidade,
+            'preco_unitario': preco,
+            'dias_aluguel': produto.dias_aluguel if modalidade == ModalidadeComercial.ALUGUEL else None,
+            'subtotal': subtotal,
+        })
+        total += subtotal
+
+    return itens, total
+
+
+def _carrinho_resumo_json(itens, total):
+    return {
+        'total_itens': sum(i['quantidade'] for i in itens),
+        'total': str(total),
+        'itens': [
+            {
+                'key': i['key'],
+                'titulo': i['produto'].titulo,
+                'modalidade_label': i['modalidade_label'],
+                'quantidade': i['quantidade'],
+                'subtotal': str(i['subtotal']),
+                'imagem_url': i['produto'].imagem.url if i['produto'].imagem else '',
+            }
+            for i in itens
+        ],
+    }
 
 
 def _resolver_produto(produto_id):
@@ -354,31 +407,13 @@ def acessar_arquivo(request, item_id):
 
 
 def carrinho(request):
-    carrinho_data = _get_carrinho(request)
-    itens = []
-    total = Decimal('0.00')
-
-    for key, entry in list(carrinho_data.items()):
-        produto = Produto.objects.filter(pk=entry['produto_id'], ativo=True).first()
-        modalidade = entry.get('modalidade', ModalidadeComercial.VENDA)
-        quantidade = entry.get('quantidade', 1)
-        if not produto or not produto.disponivel_para(modalidade):
-            continue
-        preco = produto.preco_para(modalidade)
-        subtotal = preco * quantidade
-        itens.append({
-            'key': key,
-            'produto': produto,
-            'modalidade': modalidade,
-            'modalidade_label': dict(ModalidadeComercial.choices).get(modalidade, modalidade),
-            'quantidade': quantidade,
-            'preco_unitario': preco,
-            'dias_aluguel': produto.dias_aluguel if modalidade == ModalidadeComercial.ALUGUEL else None,
-            'subtotal': subtotal,
-        })
-        total += subtotal
-
+    itens, total = _montar_itens_carrinho(request)
     return render(request, 'loja/carrinho.html', {'itens': itens, 'total': total})
+
+
+def carrinho_resumo(request):
+    itens, total = _montar_itens_carrinho(request)
+    return JsonResponse(_carrinho_resumo_json(itens, total))
 
 
 @require_POST
@@ -389,10 +424,9 @@ def adicionar_ao_carrinho(request, produto_id):
         modalidade = ModalidadeComercial.VENDA
 
     if not produto.disponivel_para(modalidade):
-        messages.error(
-            request,
-            f'"{produto.titulo}" não está disponível para {modalidade}.',
-        )
+        if _wants_json(request):
+            return JsonResponse({'ok': False, 'detail': 'Indisponível.'}, status=400)
+        messages.error(request, f'"{produto.titulo}" não está disponível para {modalidade}.')
         return redirect('home')
 
     carrinho = _get_carrinho(request)
@@ -401,6 +435,8 @@ def adicionar_ao_carrinho(request, produto_id):
     nova_qtd = atual.get('quantidade', 0) + 1
     estoque = produto.estoque_para(modalidade)
     if nova_qtd > estoque:
+        if _wants_json(request):
+            return JsonResponse({'ok': False, 'detail': 'Estoque insuficiente.'}, status=400)
         messages.warning(request, f'Estoque insuficiente para "{produto.titulo}".')
         return redirect('carrinho')
 
@@ -411,11 +447,64 @@ def adicionar_ao_carrinho(request, produto_id):
     }
     _set_carrinho(request, carrinho)
     label = 'aluguel' if modalidade == ModalidadeComercial.ALUGUEL else 'compra'
+
+    if _wants_json(request):
+        itens, total = _montar_itens_carrinho(request)
+        data = _carrinho_resumo_json(itens, total)
+        data['ok'] = True
+        data['message'] = f'"{produto.titulo}" adicionado ({label}).'
+        return JsonResponse(data)
+
     messages.success(request, f'"{produto.titulo}" adicionado ao carrinho ({label}).')
     next_url = request.POST.get('next') or request.GET.get('next')
     if next_url:
         return redirect(next_url)
     return redirect('carrinho')
+
+
+@require_POST
+def remover_do_carrinho(request):
+    key = request.POST.get('key', '')
+    carrinho = _get_carrinho(request)
+    if key in carrinho:
+        del carrinho[key]
+        _set_carrinho(request, carrinho)
+
+    if _wants_json(request):
+        itens, total = _montar_itens_carrinho(request)
+        data = _carrinho_resumo_json(itens, total)
+        data['ok'] = True
+        return JsonResponse(data)
+
+    return redirect('carrinho')
+
+
+@login_required
+def favoritos(request):
+    items = []
+    for fav in Favorito.objects.filter(usuario=request.user, produto__ativo=True).select_related('produto'):
+        ctx = _resolver_produto(fav.produto_id)
+        ctx['favorito'] = fav
+        items.append(ctx)
+    return render(request, 'loja/favoritos.html', {'favoritos_items': items})
+
+
+@login_required
+@require_POST
+def toggle_favorito(request, produto_id):
+    produto = get_object_or_404(Produto, pk=produto_id, ativo=True)
+    favorito = Favorito.objects.filter(usuario=request.user, produto=produto).first()
+    if favorito:
+        favorito.delete()
+        favoritado = False
+    else:
+        Favorito.objects.create(usuario=request.user, produto=produto)
+        favoritado = True
+
+    if _wants_json(request):
+        return JsonResponse({'ok': True, 'favoritado': favoritado, 'produto_id': produto_id})
+
+    return redirect(request.META.get('HTTP_REFERER') or 'home')
 
 
 @login_required

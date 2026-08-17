@@ -1,0 +1,9 @@
+{% if user.is_authenticated %}
+<button
+    type="button"
+    class="btn-favorito{% if item.id in favoritos_ids %} is-active{% endif %}"
+    data-favorito-toggle="{{ item.id }}"
+    aria-label="{% if item.id in favoritos_ids %}Remover dos favoritos{% else %}Salvar para depois{% endif %}"
+    title="{% if item.id in favoritos_ids %}Remover{% else %}Quero ver depois{% endif %}"
+>♥</button>
+{% endif %}

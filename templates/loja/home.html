@@ -57,14 +57,14 @@
                 <div class="item-actions">
                     <a href="{% url 'produto_detalhe' musica.id %}" class="btn btn-ghost btn-sm">Detalhes</a>
                     {% if musica.disponivel_venda and musica.estoque > 0 and musica.preco > 0 %}
-                    <form method="post" action="{% url 'adicionar_carrinho' musica.id %}">
+                    <form method="post" action="{% url 'adicionar_carrinho' musica.id %}" class="js-add-cart">
                         {% csrf_token %}
                         <input type="hidden" name="modalidade" value="venda">
                         <button type="submit" class="btn btn-primary btn-sm">Comprar</button>
                     </form>
                     {% endif %}
                     {% if musica.disponivel_aluguel and musica.estoque_aluguel > 0 and musica.preco_aluguel > 0 %}
-                    <form method="post" action="{% url 'adicionar_carrinho' musica.id %}">
+                    <form method="post" action="{% url 'adicionar_carrinho' musica.id %}" class="js-add-cart">
                         {% csrf_token %}
                         <input type="hidden" name="modalidade" value="aluguel">
                         <button type="submit" class="btn btn-ghost btn-sm">Alugar</button>
@@ -101,14 +101,14 @@
                 <div class="item-actions">
                     <a href="{% url 'produto_detalhe' livro.id %}" class="btn btn-ghost btn-sm">Detalhes</a>
                     {% if livro.disponivel_venda and livro.estoque > 0 and livro.preco > 0 %}
-                    <form method="post" action="{% url 'adicionar_carrinho' livro.id %}">
+                    <form method="post" action="{% url 'adicionar_carrinho' livro.id %}" class="js-add-cart">
                         {% csrf_token %}
                         <input type="hidden" name="modalidade" value="venda">
                         <button type="submit" class="btn btn-primary btn-sm">Comprar</button>
                     </form>
                     {% endif %}
                     {% if livro.disponivel_aluguel and livro.estoque_aluguel > 0 and livro.preco_aluguel > 0 %}
-                    <form method="post" action="{% url 'adicionar_carrinho' livro.id %}">
+                    <form method="post" action="{% url 'adicionar_carrinho' livro.id %}" class="js-add-cart">
                         {% csrf_token %}
                         <input type="hidden" name="modalidade" value="aluguel">
                         <button type="submit" class="btn btn-ghost btn-sm">Alugar</button>
@@ -164,14 +164,14 @@
                     >▶ Ver trailer</button>
                     {% endif %}
                     {% if midia.disponivel_venda and midia.estoque > 0 and midia.preco > 0 %}
-                    <form method="post" action="{% url 'adicionar_carrinho' midia.id %}">
+                    <form method="post" action="{% url 'adicionar_carrinho' midia.id %}" class="js-add-cart">
                         {% csrf_token %}
                         <input type="hidden" name="modalidade" value="venda">
                         <button type="submit" class="btn btn-primary btn-sm">Comprar</button>
                     </form>
                     {% endif %}
                     {% if midia.disponivel_aluguel and midia.estoque_aluguel > 0 and midia.preco_aluguel > 0 %}
-                    <form method="post" action="{% url 'adicionar_carrinho' midia.id %}">
+                    <form method="post" action="{% url 'adicionar_carrinho' midia.id %}" class="js-add-cart">
                         {% csrf_token %}
                         <input type="hidden" name="modalidade" value="aluguel">
                         <button type="submit" class="btn btn-ghost btn-sm">Alugar</button>

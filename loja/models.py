@@ -334,6 +334,34 @@ class ProgressoReproducao(models.Model):
         return 0 < self.segundos < (self.duracao_segundos - 15)
 
 
+class Favorito(models.Model):
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='favoritos',
+    )
+    produto = models.ForeignKey(
+        Produto,
+        on_delete=models.CASCADE,
+        related_name='favoritado_por',
+    )
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Favorito'
+        verbose_name_plural = 'Favoritos'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['usuario', 'produto'],
+                name='uniq_favorito_usuario_produto',
+            ),
+        ]
+        ordering = ['-criado_em']
+
+    def __str__(self):
+        return f'{self.usuario} ♥ {self.produto.titulo}'
+
+
 class FraseTreinoAssistente(models.Model):
     AUDIENCIA_CLIENTE = 'cliente'
     AUDIENCIA_GESTOR = 'gestor'

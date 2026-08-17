@@ -13,6 +13,7 @@
     {% block extra_head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
+    <form class="csrf-holder" aria-hidden="true" style="display:none">{% csrf_token %}</form>
     {% with url_name=request.resolver_match.url_name|default:'' %}
     <header>
         <div class="wrap header-inner">
@@ -31,6 +32,7 @@
                     <li><a href="{% url 'catalogo_livros' %}" class="{% if url_name == 'catalogo_livros' %}is-active{% endif %}">Livros</a></li>
                     {% if user.is_authenticated %}
                     <li><a href="{% url 'biblioteca' %}" class="{% if url_name == 'biblioteca' or url_name == 'reproduzir_conteudo' %}is-active{% endif %}">Biblioteca</a></li>
+                    <li><a href="{% url 'favoritos' %}" class="{% if url_name == 'favoritos' %}is-active{% endif %}">♥ Lista</a></li>
                     {% endif %}
                 </ul>
             </nav>
@@ -44,11 +46,30 @@
                 {% else %}
                     <a href="{% url 'login' %}" class="header-link">Entrar</a>
                 {% endif %}
-                <a class="cart mono" href="{% url 'carrinho' %}">Carrinho ({{ carrinho_total_itens }})</a>
+                <button type="button" class="cart mono" id="cart-open-btn" data-cart-open aria-label="Abrir carrinho">
+                    Carrinho (<span id="cart-count">{{ carrinho_total_itens }}</span>)
+                </button>
             </div>
         </div>
     </header>
     {% endwith %}
+
+    <div class="cart-drawer" id="cart-drawer" hidden>
+        <div class="cart-drawer-backdrop" data-cart-close></div>
+        <aside class="cart-drawer-panel" role="dialog" aria-label="Carrinho">
+            <header class="cart-drawer-head">
+                <h2>Seu carrinho</h2>
+                <button type="button" class="cart-drawer-close" data-cart-close aria-label="Fechar">×</button>
+            </header>
+            <div class="cart-drawer-body" id="cart-drawer-body">
+                <p class="cart-drawer-loading">Carregando…</p>
+            </div>
+            <footer class="cart-drawer-foot">
+                <p class="cart-drawer-total mono">Total: <strong id="cart-drawer-total">R$ 0,00</strong></p>
+                <a href="{% url 'carrinho' %}" class="btn btn-primary cart-drawer-checkout">Ver carrinho e pagar</a>
+            </footer>
+        </aside>
+    </div>
 
     <main>
         {% block content %}{% endblock %}
@@ -63,6 +84,7 @@
 
     {% include 'includes/assistant_widget.html' with assistant_audience='cliente' %}
     <script src="{% static 'js/assistant.js' %}?v={{ STATIC_VERSION }}"></script>
+    <script src="{% static 'js/cart-drawer.js' %}?v={{ STATIC_VERSION }}"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -41,7 +41,10 @@
         <div class="item-detail-body">
             <span class="section-eyebrow">{{ tipo_label }}</span>
             <h1>{{ produto.titulo }}</h1>
-            {% if subtitulo %}<p class="item-detail-sub">{{ subtitulo }}</p>{% endif %}
+            <div class="item-detail-title-row">
+                {% if subtitulo %}<p class="item-detail-sub">{{ subtitulo }}</p>{% endif %}
+                {% include 'loja/includes/favorito_btn.html' with item=produto %}
+            </div>
             {% if meta_extra %}<p class="item-detail-meta mono">{{ meta_extra }}</p>{% endif %}
 
             {% if produto.descricao %}
@@ -68,7 +71,7 @@
                     {% endif %}
                 </div>
 
-                <form method="post" action="{% url 'adicionar_carrinho' produto.id %}" class="item-detail-form" id="item-detail-form">
+                <form method="post" action="{% url 'adicionar_carrinho' produto.id %}" class="item-detail-form js-add-cart" id="item-detail-form">
                     {% csrf_token %}
                     <input type="hidden" name="modalidade" id="item-modalidade" value="{% if pode_venda %}venda{% else %}aluguel{% endif %}">
                     <input type="hidden" name="next" value="{{ request.path }}">

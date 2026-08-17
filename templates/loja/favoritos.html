@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Quero ver depois — Vinil & Página{% endblock %}
+
+{% block content %}
+<div class="wrap">
+    <section class="library-head">
+        <div>
+            <span class="section-eyebrow">Sua lista</span>
+            <h1>Quero ver depois</h1>
+            <p class="library-desc">Itens salvos para comprar ou alugar mais tarde.</p>
+        </div>
+        <a href="{% url 'home' %}" class="btn btn-ghost">Explorar catálogo</a>
+    </section>
+
+    {% if favoritos_items %}
+    <div class="shelf">
+        {% for entry in favoritos_items %}
+        {% include 'loja/includes/item_card.html' with item=entry.produto tipo=entry.tipo %}
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="library-empty">
+        <p>Nenhum item salvo ainda. Clique em ♥ nos discos, livros ou filmes.</p>
+        <a href="{% url 'home' %}" class="btn btn-primary">Explorar catálogo</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
