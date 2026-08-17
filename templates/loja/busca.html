@@ -12,6 +12,7 @@
         </form>
 
         {% if q %}
+        {% include 'loja/includes/search_filters.html' %}
         <p class="search-results-count mono">{{ total }} resultado{{ total|pluralize }} para “{{ q }}”</p>
 
         {% if musicas %}

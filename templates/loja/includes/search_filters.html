@@ -1,0 +1,28 @@
+<form class="catalog-filters search-filters" method="get" action="{% url 'busca' %}">
+    <input type="hidden" name="q" value="{{ q }}">
+    <label class="catalog-filter">
+        <span class="mono">Tipo</span>
+        <select name="tipo" onchange="this.form.submit()">
+            <option value=""{% if not filtro_tipo %} selected{% endif %}>Todos</option>
+            <option value="musica"{% if filtro_tipo == 'musica' %} selected{% endif %}>Discos</option>
+            <option value="livro"{% if filtro_tipo == 'livro' %} selected{% endif %}>Livros</option>
+            <option value="midia"{% if filtro_tipo == 'midia' %} selected{% endif %}>Filmes</option>
+        </select>
+    </label>
+    <label class="catalog-filter">
+        <span class="mono">Modalidade</span>
+        <select name="modalidade" onchange="this.form.submit()">
+            <option value=""{% if not filtro_modalidade %} selected{% endif %}>Todas</option>
+            <option value="venda"{% if filtro_modalidade == 'venda' %} selected{% endif %}>Compra</option>
+            <option value="aluguel"{% if filtro_modalidade == 'aluguel' %} selected{% endif %}>Aluguel</option>
+        </select>
+    </label>
+    <label class="catalog-filter">
+        <span class="mono">Ordenar</span>
+        <select name="ordem" onchange="this.form.submit()">
+            <option value="recentes"{% if filtro_ordem == 'recentes' %} selected{% endif %}>Mais recentes</option>
+            <option value="titulo"{% if filtro_ordem == 'titulo' %} selected{% endif %}>A–Z</option>
+            <option value="preco"{% if filtro_ordem == 'preco' %} selected{% endif %}>Menor preço</option>
+        </select>
+    </label>
+</form>

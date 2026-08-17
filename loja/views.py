@@ -191,11 +191,8 @@ def _tipo_de_produto(produto) -> str:
     return 'produto'
 
 
-def _filtrar_catalogo(queryset, request):
-    modalidade = request.GET.get('modalidade', '')
-    ordem = request.GET.get('ordem', 'recentes')
-
-    qs = queryset.filter(ativo=True)
+def _aplicar_filtros_catalogo(qs, modalidade='', ordem='recentes'):
+    qs = qs.filter(ativo=True)
 
     if modalidade == ModalidadeComercial.VENDA:
         qs = qs.filter(disponivel_venda=True, estoque__gt=0)
@@ -209,24 +206,49 @@ def _filtrar_catalogo(queryset, request):
     else:
         qs = qs.order_by('-criado_em')
 
+    return qs
+
+
+def _filtrar_catalogo(queryset, request):
+    modalidade = request.GET.get('modalidade', '')
+    ordem = request.GET.get('ordem', 'recentes')
+    qs = _aplicar_filtros_catalogo(queryset, modalidade, ordem)
     return qs, modalidade, ordem
 
 
 def busca(request):
     q = request.GET.get('q', '').strip()
+    tipo = request.GET.get('tipo', '')
+    modalidade = request.GET.get('modalidade', '')
+    ordem = request.GET.get('ordem', 'recentes')
     musicas = livros = midias = []
     total = 0
 
     if q:
         musicas = Musica.objects.filter(
-            ativo=True,
-        ).filter(Q(titulo__icontains=q) | Q(artista__icontains=q))
+            Q(titulo__icontains=q) | Q(artista__icontains=q),
+        )
         livros = Livro.objects.filter(
-            ativo=True,
-        ).filter(Q(titulo__icontains=q) | Q(autor__icontains=q) | Q(isbn__icontains=q))
+            Q(titulo__icontains=q) | Q(autor__icontains=q) | Q(isbn__icontains=q),
+        )
         midias = MidiaAudiovisual.objects.filter(
-            ativo=True,
-        ).filter(Q(titulo__icontains=q) | Q(diretor__icontains=q))
+            Q(titulo__icontains=q) | Q(diretor__icontains=q),
+        )
+
+        musicas = _aplicar_filtros_catalogo(musicas, modalidade, ordem)
+        livros = _aplicar_filtros_catalogo(livros, modalidade, ordem)
+        midias = _aplicar_filtros_catalogo(midias, modalidade, ordem)
+
+        if tipo == 'musica':
+            livros = Livro.objects.none()
+            midias = MidiaAudiovisual.objects.none()
+        elif tipo == 'livro':
+            musicas = Musica.objects.none()
+            midias = MidiaAudiovisual.objects.none()
+        elif tipo == 'midia':
+            musicas = Musica.objects.none()
+            livros = Livro.objects.none()
+
         total = musicas.count() + livros.count() + midias.count()
 
     return render(request, 'loja/busca.html', {
@@ -235,6 +257,9 @@ def busca(request):
         'livros': livros,
         'midias': midias,
         'total': total,
+        'filtro_tipo': tipo,
+        'filtro_modalidade': modalidade,
+        'filtro_ordem': ordem,
     })
 
 

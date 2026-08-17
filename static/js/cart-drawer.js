@@ -3,7 +3,7 @@
     const body = document.getElementById('cart-drawer-body');
     const totalEl = document.getElementById('cart-drawer-total');
     const countEl = document.getElementById('cart-count');
-    const openBtn = document.getElementById('cart-open-btn');
+    const bottomCountEl = document.getElementById('bottom-cart-count');
     if (!drawer || !body) return;
 
     const resumoUrl = '/carrinho/resumo/';
@@ -22,6 +22,7 @@
 
     function renderCart(data) {
         if (countEl) countEl.textContent = data.total_itens;
+        if (bottomCountEl) bottomCountEl.textContent = data.total_itens;
         if (totalEl) totalEl.textContent = formatMoney(data.total);
 
         if (!data.itens.length) {
@@ -85,9 +86,9 @@
             });
     }
 
-    if (openBtn) {
-        openBtn.addEventListener('click', openDrawer);
-    }
+    document.querySelectorAll('[data-cart-open]').forEach((btn) => {
+        btn.addEventListener('click', openDrawer);
+    });
 
     drawer.querySelectorAll('[data-cart-close]').forEach((el) => {
         el.addEventListener('click', closeDrawer);
