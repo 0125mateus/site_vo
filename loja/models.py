@@ -202,6 +202,19 @@ class Pedido(models.Model):
         default=STATUS_AGUARDANDO,
     )
     valor_total = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+    desconto = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        help_text='Descontos de combo, clube etc.',
+    )
+    plano_clube = models.ForeignKey(
+        'PlanoClube',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='pedidos',
+    )
     mercadopago_preference_id = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
@@ -211,13 +224,15 @@ class Pedido(models.Model):
         return f'Pedido #{self.pk} — {self.cliente}'
 
     def recalcular_valor_total(self):
-        total = sum(
+        subtotal = sum(
             (item.preco_unitario * item.quantidade for item in self.itens.all()),
             Decimal('0.00'),
         )
-        self.valor_total = total
+        if self.plano_clube_id:
+            subtotal += self.plano_clube.preco_mensal
+        self.valor_total = max(Decimal('0.00'), subtotal - self.desconto)
         self.save(update_fields=['valor_total'])
-        return total
+        return self.valor_total
 
 
 class ItemPedido(models.Model):
@@ -332,6 +347,81 @@ class ProgressoReproducao(models.Model):
         if not self.duracao_segundos or self.duracao_segundos <= 0:
             return self.segundos > 0
         return 0 < self.segundos < (self.duracao_segundos - 15)
+
+
+class PlanoClube(models.Model):
+    titulo = models.CharField(max_length=120)
+    descricao = models.TextField(blank=True)
+    preco_mensal = models.DecimalField(max_digits=10, decimal_places=2)
+    desconto_extra_percent = models.PositiveIntegerField(
+        default=5,
+        help_text='Desconto adicional em compras (%) para assinantes.',
+    )
+    ativo = models.BooleanField(default=True)
+    ordem = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['ordem', 'preco_mensal']
+        verbose_name = 'Plano do clube'
+        verbose_name_plural = 'Planos do clube'
+
+    def __str__(self):
+        return self.titulo
+
+
+class AssinaturaClube(models.Model):
+    STATUS_ATIVA = 'ativa'
+    STATUS_EXPIRADA = 'expirada'
+    STATUS_CANCELADA = 'cancelada'
+
+    STATUS_CHOICES = [
+        (STATUS_ATIVA, 'Ativa'),
+        (STATUS_EXPIRADA, 'Expirada'),
+        (STATUS_CANCELADA, 'Cancelada'),
+    ]
+
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='assinaturas_clube',
+    )
+    plano = models.ForeignKey(
+        PlanoClube,
+        on_delete=models.PROTECT,
+        related_name='assinaturas',
+    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_ATIVA)
+    valido_ate = models.DateField()
+    ultimo_pedido = models.ForeignKey(
+        Pedido,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='assinaturas_clube',
+    )
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Assinatura do clube'
+        verbose_name_plural = 'Assinaturas do clube'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['usuario', 'plano'],
+                name='uniq_assinatura_usuario_plano',
+            ),
+        ]
+
+    def __str__(self):
+        return f'{self.usuario} — {self.plano.titulo}'
+
+    @property
+    def ativa(self) -> bool:
+        from django.utils import timezone
+        return (
+            self.status == self.STATUS_ATIVA
+            and self.valido_ate >= timezone.localdate()
+        )
 
 
 class Favorito(models.Model):

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Clube — Vinil & Página{% endblock %}
+
+{% block content %}
+<div class="wrap">
+    <section class="library-head">
+        <div>
+            <span class="section-eyebrow">Assinatura</span>
+            <h1>Clube Vinil &amp; Página</h1>
+            <p class="library-desc">Curadoria mensal, desconto extra em compras e combinações livro + disco.</p>
+        </div>
+        {% if assinatura %}
+        <span class="tag mono">Membro até {{ assinatura.valido_ate|date:"d/m/Y" }}</span>
+        {% endif %}
+    </section>
+
+    {% if assinatura %}
+    <div class="clube-ativo-card">
+        <h2>Você já é membro</h2>
+        <p class="mono">Plano: {{ assinatura.plano.titulo }} · {{ assinatura.plano.desconto_extra_percent }}% off em compras</p>
+        <a href="{% url 'home' %}" class="btn btn-primary">Explorar catálogo</a>
+    </div>
+    {% endif %}
+
+    <div class="clube-beneficios">
+        <article class="feat-card">
+            <div class="kicker mono">Combo</div>
+            <h3>Livro + disco = 10% off</h3>
+            <p>Compre um vinil e um livro juntos (venda) e ganhe desconto automático no carrinho.</p>
+        </article>
+        <article class="feat-card">
+            <div class="kicker mono">Clube</div>
+            <h3>Desconto extra para membros</h3>
+            <p>Assinantes têm desconto adicional em todas as compras enquanto a assinatura estiver ativa.</p>
+        </article>
+    </div>
+
+    <section class="clube-planos">
+        <h2>Planos</h2>
+        <div class="clube-planos-grid">
+            {% for plano in planos %}
+            <article class="clube-plano-card">
+                <h3>{{ plano.titulo }}</h3>
+                <p class="clube-plano-preco mono">R$ {{ plano.preco_mensal }}/mês</p>
+                <p class="clube-plano-desc">{{ plano.descricao|linebreaksbr }}</p>
+                <ul class="clube-plano-list mono">
+                    <li>+{{ plano.desconto_extra_percent }}% em compras</li>
+                    <li>Combo livro + disco (10%)</li>
+                    <li>Renovação mensal</li>
+                </ul>
+                {% if user.is_authenticated %}
+                <form method="post" action="{% url 'assinar_clube' plano.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary">Assinar e ir ao carrinho</button>
+                </form>
+                {% else %}
+                <a href="{% url 'login' %}?next={% url 'clube' %}" class="btn btn-primary">Entrar para assinar</a>
+                {% endif %}
+            </article>
+            {% empty %}
+            <p class="shelf-empty">Nenhum plano disponível no momento.</p>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}

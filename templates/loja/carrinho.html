@@ -7,6 +7,25 @@
     <section class="page-panel page-panel--carrinho">
         <h1>Seu carrinho</h1>
 
+        {% if itens or plano_clube %}
+        {% if promos.falta_combo_livro or promos.falta_combo_disco %}
+        <div class="cart-promo-hint">
+            {% if promos.falta_combo_livro %}
+            <p>Adicione um <strong>livro</strong> (venda) e ganhe <strong>10% off</strong> no combo livro + disco.</p>
+            {% elif promos.falta_combo_disco %}
+            <p>Adicione um <strong>disco</strong> (venda) e ganhe <strong>10% off</strong> no combo livro + disco.</p>
+            {% endif %}
+            <a href="{% url 'clube' %}" class="btn btn-ghost btn-sm">Saiba mais</a>
+        </div>
+        {% endif %}
+
+        {% if plano_clube %}
+        <div class="cart-clube-line">
+            <strong>{{ plano_clube.titulo }}</strong>
+            <span class="mono">Assinatura mensal · R$ {{ plano_clube.preco_mensal }}</span>
+        </div>
+        {% endif %}
+
         {% if itens %}
         <table class="carrinho-table">
             <thead>
@@ -39,8 +58,20 @@
                 {% endfor %}
             </tbody>
         </table>
+        {% endif %}
 
-        <p class="total">Total: <strong class="mono">R$ {{ total }}</strong></p>
+        <div class="cart-totals">
+            {% if promos.subtotal_produtos %}
+            <p class="cart-total-line mono">Subtotal produtos: R$ {{ promos.subtotal_produtos }}</p>
+            {% endif %}
+            {% if promos.desconto_combo %}
+            <p class="cart-total-line mono cart-discount">Combo livro + disco: − R$ {{ promos.desconto_combo }}</p>
+            {% endif %}
+            {% if promos.desconto_clube %}
+            <p class="cart-total-line mono cart-discount">Clube ({{ promos.clube_plano.desconto_extra_percent }}%): − R$ {{ promos.desconto_clube }}</p>
+            {% endif %}
+            <p class="total">Total: <strong class="mono">R$ {{ total }}</strong></p>
+        </div>
 
         {% if user.is_authenticated %}
         <form method="post" action="{% url 'finalizar_pedido' %}">
@@ -52,7 +83,7 @@
         {% endif %}
 
         {% else %}
-        <p>Seu carrinho está vazio. <a href="{% url 'home' %}">Continuar explorando</a></p>
+        <p>Seu carrinho está vazio. <a href="{% url 'home' %}">Continuar explorando</a> ou conheça o <a href="{% url 'clube' %}">Clube</a>.</p>
         {% endif %}
     </section>
 </div>

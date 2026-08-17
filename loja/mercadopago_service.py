@@ -30,6 +30,25 @@ def criar_preferencia_pagamento(pedido):
             'currency_id': 'BRL',
         })
 
+    if pedido.plano_clube_id:
+        items.append({
+            'title': f'Assinatura — {pedido.plano_clube.titulo}',
+            'quantity': 1,
+            'unit_price': float(pedido.plano_clube.preco_mensal),
+            'currency_id': 'BRL',
+        })
+
+    if pedido.desconto > 0 and items:
+        bruto = sum(i['unit_price'] * i['quantity'] for i in items)
+        if bruto > 0:
+            alvo = float(pedido.valor_total)
+            fator = alvo / bruto
+            for item in items:
+                item['unit_price'] = round(item['unit_price'] * fator, 2)
+            ajuste = alvo - sum(i['unit_price'] * i['quantity'] for i in items)
+            if items:
+                items[-1]['unit_price'] = round(items[-1]['unit_price'] + ajuste, 2)
+
     preference_data = {
         'items': items,
         'back_urls': {
@@ -132,8 +151,10 @@ def aplicar_pagamento_ao_pedido(pedido, payment):
 
     if status_anterior != pedido.STATUS_APROVADO and pedido.status == pedido.STATUS_APROVADO:
         from loja.email_service import enviar_email_pedido_aprovado
+        from loja.promocoes import ativar_assinatura_clube
 
         enviar_email_pedido_aprovado(pedido)
+        ativar_assinatura_clube(pedido)
 
     return pedido
 

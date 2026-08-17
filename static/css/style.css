@@ -959,6 +959,10 @@ body.trailer-open {
         grid-template-columns: 1fr;
         max-width: 540px;
     }
+
+    .featured--duo {
+        grid-template-columns: 1fr 1fr;
+    }
 }
 
 .feat-card {
@@ -2267,4 +2271,93 @@ body.cart-drawer-open {
     padding: var(--space-2) var(--space-3);
     border-top: 1px solid var(--line);
     background: var(--paper-deep);
+}
+
+/* ——— CLUBE & COMBOS ——— */
+.clube-beneficios,
+.clube-planos-grid {
+    display: grid;
+    gap: var(--space-3);
+    margin-bottom: var(--space-5);
+}
+
+@media (min-width: 768px) {
+    .clube-beneficios,
+    .clube-planos-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.clube-ativo-card,
+.clube-plano-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: var(--space-3);
+    box-shadow: 4px 4px 0 rgba(42, 31, 24, 0.06);
+}
+
+.clube-plano-preco {
+    font-size: 1.5rem;
+    color: var(--wine);
+    margin: var(--space-2) 0;
+}
+
+.clube-plano-desc {
+    color: var(--ink-soft);
+    font-size: var(--fs-small);
+    margin-bottom: var(--space-2);
+}
+
+.clube-plano-list {
+    list-style: none;
+    margin: 0 0 var(--space-3);
+    padding: 0;
+    font-size: var(--fs-small);
+    color: var(--ink-soft);
+}
+
+.clube-plano-list li {
+    padding: 4px 0;
+}
+
+.cart-promo-hint {
+    background: rgba(166, 132, 47, 0.12);
+    border: 1px solid rgba(166, 132, 47, 0.25);
+    border-radius: var(--radius-sm);
+    padding: var(--space-2) var(--space-3);
+    margin-bottom: var(--space-3);
+    font-size: var(--fs-small);
+}
+
+.cart-clube-line {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    margin-bottom: var(--space-3);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+}
+
+.cart-totals {
+    margin: var(--space-3) 0;
+}
+
+.cart-total-line {
+    color: var(--ink-soft);
+    font-size: var(--fs-small);
+    margin-bottom: 6px;
+}
+
+.cart-discount {
+    color: var(--forest);
+}
+
+@media (max-width: 767px) {
+    .featured.featured--duo {
+        grid-template-columns: 1fr;
+    }
 }

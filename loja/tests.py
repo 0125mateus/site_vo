@@ -6,9 +6,10 @@ from unittest.mock import MagicMock, patch
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework.test import APIClient
 
-from .models import ItemPedido, Pagamento, Pedido, Produto
+from .models import ItemPedido, Livro, Musica, Pagamento, Pedido, PlanoClube, Produto
 
 User = get_user_model()
 
@@ -275,3 +276,73 @@ class PedidoEmailTests(TestCase):
         enviado = enviar_email_pedido_aprovado(self.pedido)
         self.assertFalse(enviado)
         mock_send.assert_not_called()
+
+
+class PromocoesTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='combo_user',
+            password='senha123',
+            email='combo@example.com',
+        )
+        self.disco = Musica.objects.create(
+            titulo='Disco Combo',
+            artista='Artista',
+            preco=Decimal('100.00'),
+            estoque=5,
+            ativo=True,
+        )
+        self.livro = Livro.objects.create(
+            titulo='Livro Combo',
+            autor='Autor',
+            preco=Decimal('50.00'),
+            estoque=5,
+            ativo=True,
+        )
+        self.plano = PlanoClube.objects.create(
+            titulo='Clube Teste',
+            preco_mensal=Decimal('29.90'),
+            desconto_extra_percent=5,
+            ativo=True,
+        )
+
+    def test_desconto_combo_livro_disco(self):
+        from loja.promocoes import calcular_promocoes_carrinho
+
+        itens = [
+            {
+                'produto': self.disco,
+                'modalidade': 'venda',
+                'preco_unitario': self.disco.preco,
+                'subtotal': self.disco.preco,
+                'quantidade': 1,
+            },
+            {
+                'produto': self.livro,
+                'modalidade': 'venda',
+                'preco_unitario': self.livro.preco,
+                'subtotal': self.livro.preco,
+                'quantidade': 1,
+            },
+        ]
+        promos = calcular_promocoes_carrinho(self.user, itens)
+        self.assertTrue(promos['tem_combo'])
+        self.assertEqual(promos['desconto_combo'], Decimal('15.00'))
+
+    def test_ativar_assinatura_clube(self):
+        from datetime import timedelta
+
+        from loja.promocoes import ativar_assinatura_clube
+
+        pedido = Pedido.objects.create(
+            cliente=self.user,
+            plano_clube=self.plano,
+            valor_total=self.plano.preco_mensal,
+        )
+        assinatura = ativar_assinatura_clube(pedido)
+        self.assertIsNotNone(assinatura)
+        self.assertEqual(assinatura.plano_id, self.plano.pk)
+        self.assertGreaterEqual(
+            assinatura.valido_ate,
+            timezone.localdate() + timedelta(days=29),
+        )

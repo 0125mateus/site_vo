@@ -37,7 +37,20 @@ from .mercadopago_service import (
     sincronizar_pedido_com_mercadopago,
     validar_assinatura_webhook,
 )
-from .models import Favorito, ItemPedido, Livro, MidiaAudiovisual, ModalidadeComercial, Musica, Pedido, Produto, ProgressoReproducao
+from .models import (
+    AssinaturaClube,
+    Favorito,
+    ItemPedido,
+    Livro,
+    MidiaAudiovisual,
+    ModalidadeComercial,
+    Musica,
+    Pedido,
+    PlanoClube,
+    Produto,
+    ProgressoReproducao,
+)
+from .promocoes import calcular_promocoes_carrinho
 
 logger = logging.getLogger(__name__)
 
@@ -82,9 +95,15 @@ def _wants_json(request):
 def _montar_itens_carrinho(request):
     carrinho_data = _get_carrinho(request)
     itens = []
-    total = Decimal('0.00')
+    plano_clube = None
 
     for key, entry in list(carrinho_data.items()):
+        if entry.get('tipo') == 'clube':
+            plano = PlanoClube.objects.filter(pk=entry.get('plano_id'), ativo=True).first()
+            if plano:
+                plano_clube = plano
+            continue
+
         produto = Produto.objects.filter(pk=entry['produto_id'], ativo=True).first()
         modalidade = entry.get('modalidade', ModalidadeComercial.VENDA)
         quantidade = entry.get('quantidade', 1)
@@ -102,13 +121,16 @@ def _montar_itens_carrinho(request):
             'dias_aluguel': produto.dias_aluguel if modalidade == ModalidadeComercial.ALUGUEL else None,
             'subtotal': subtotal,
         })
-        total += subtotal
 
-    return itens, total
+    promos = calcular_promocoes_carrinho(request.user, itens)
+    total_clube = plano_clube.preco_mensal if plano_clube else Decimal('0.00')
+    total = promos['subtotal_produtos'] - promos['desconto_total'] + total_clube
+
+    return itens, total, plano_clube, promos
 
 
-def _carrinho_resumo_json(itens, total):
-    return {
+def _carrinho_resumo_json(itens, total, promos=None):
+    data = {
         'total_itens': sum(i['quantidade'] for i in itens),
         'total': str(total),
         'itens': [
@@ -123,6 +145,10 @@ def _carrinho_resumo_json(itens, total):
             for i in itens
         ],
     }
+    if promos:
+        data['desconto'] = str(promos['desconto_total'])
+        data['tem_combo'] = promos['tem_combo']
+    return data
 
 
 def _continuar_assistindo(usuario, limit=8):
@@ -508,13 +534,18 @@ def acessar_arquivo(request, item_id):
 
 
 def carrinho(request):
-    itens, total = _montar_itens_carrinho(request)
-    return render(request, 'loja/carrinho.html', {'itens': itens, 'total': total})
+    itens, total, plano_clube, promos = _montar_itens_carrinho(request)
+    return render(request, 'loja/carrinho.html', {
+        'itens': itens,
+        'total': total,
+        'plano_clube': plano_clube,
+        'promos': promos,
+    })
 
 
 def carrinho_resumo(request):
-    itens, total = _montar_itens_carrinho(request)
-    return JsonResponse(_carrinho_resumo_json(itens, total))
+    itens, total, plano_clube, promos = _montar_itens_carrinho(request)
+    return JsonResponse(_carrinho_resumo_json(itens, total, promos))
 
 
 @require_POST
@@ -550,8 +581,8 @@ def adicionar_ao_carrinho(request, produto_id):
     label = 'aluguel' if modalidade == ModalidadeComercial.ALUGUEL else 'compra'
 
     if _wants_json(request):
-        itens, total = _montar_itens_carrinho(request)
-        data = _carrinho_resumo_json(itens, total)
+        itens, total, _, promos = _montar_itens_carrinho(request)
+        data = _carrinho_resumo_json(itens, total, promos)
         data['ok'] = True
         data['message'] = f'"{produto.titulo}" adicionado ({label}).'
         return JsonResponse(data)
@@ -572,8 +603,8 @@ def remover_do_carrinho(request):
         _set_carrinho(request, carrinho)
 
     if _wants_json(request):
-        itens, total = _montar_itens_carrinho(request)
-        data = _carrinho_resumo_json(itens, total)
+        itens, total, _, promos = _montar_itens_carrinho(request)
+        data = _carrinho_resumo_json(itens, total, promos)
         data['ok'] = True
         return JsonResponse(data)
 
@@ -615,10 +646,22 @@ def finalizar_pedido(request):
     if not carrinho:
         return redirect('carrinho')
 
-    pedido = Pedido.objects.create(cliente=request.user, valor_total=Decimal('0.00'))
+    itens, _, plano_clube, promos = _montar_itens_carrinho(request)
+    if not itens and not plano_clube:
+        messages.error(request, 'Nenhum item válido no carrinho.')
+        return redirect('carrinho')
+
+    pedido = Pedido.objects.create(
+        cliente=request.user,
+        valor_total=Decimal('0.00'),
+        desconto=promos['desconto_total'],
+        plano_clube=plano_clube,
+    )
     hoje = timezone.localdate()
 
     for entry in carrinho.values():
+        if entry.get('tipo') == 'clube':
+            continue
         produto = Produto.objects.select_for_update().filter(pk=entry['produto_id'], ativo=True).first()
         modalidade = entry.get('modalidade', ModalidadeComercial.VENDA)
         quantidade = entry.get('quantidade', 1)
@@ -647,7 +690,7 @@ def finalizar_pedido(request):
             produto.estoque = max(0, produto.estoque - quantidade)
             produto.save(update_fields=['estoque'])
 
-    if not pedido.itens.exists():
+    if not pedido.itens.exists() and not pedido.plano_clube_id:
         pedido.delete()
         messages.error(request, 'Nenhum item válido no carrinho.')
         return redirect('carrinho')
@@ -655,6 +698,41 @@ def finalizar_pedido(request):
     pedido.recalcular_valor_total()
     _set_carrinho(request, {})
     return redirect('checkout', pedido_id=pedido.pk)
+
+
+def clube(request):
+    planos = PlanoClube.objects.filter(ativo=True)
+    assinatura = None
+    if request.user.is_authenticated:
+        assinatura = (
+            AssinaturaClube.objects.filter(
+                usuario=request.user,
+                status=AssinaturaClube.STATUS_ATIVA,
+                valido_ate__gte=timezone.localdate(),
+            )
+            .select_related('plano')
+            .first()
+        )
+    return render(request, 'loja/clube.html', {
+        'planos': planos,
+        'assinatura': assinatura,
+    })
+
+
+@login_required
+@require_POST
+def assinar_clube(request, plano_id):
+    plano = get_object_or_404(PlanoClube, pk=plano_id, ativo=True)
+    carrinho = _get_carrinho(request)
+    carrinho = {k: v for k, v in carrinho.items() if v.get('tipo') != 'clube'}
+    carrinho[f'clube:{plano.pk}'] = {
+        'tipo': 'clube',
+        'plano_id': plano.pk,
+        'quantidade': 1,
+    }
+    _set_carrinho(request, carrinho)
+    messages.success(request, f'Plano "{plano.titulo}" adicionado ao carrinho.')
+    return redirect('carrinho')
 
 
 @login_required
