@@ -39,4 +39,9 @@
             btn.setAttribute('aria-label', showing ? 'Mostrar senha' : 'Ocultar senha');
         });
     });
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('tab') === 'register') {
+        activateTab('register');
+    }
 })();

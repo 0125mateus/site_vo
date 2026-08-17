@@ -1714,3 +1714,68 @@ body.has-media-bar footer {
         max-width: none;
     }
 }
+
+/* ——— CONTINUAR ——— */
+.library-continue {
+    margin-bottom: var(--space-5);
+}
+
+.library-continue-title {
+    font-size: 1.125rem;
+    margin-bottom: var(--space-2);
+}
+
+.library-continue-row {
+    display: flex;
+    gap: var(--space-2);
+    overflow-x: auto;
+    padding-bottom: var(--space-1);
+}
+
+.library-continue-card {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    min-width: 240px;
+    max-width: 280px;
+    padding: var(--space-2);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    color: inherit;
+    flex-shrink: 0;
+}
+
+.library-continue-card img {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
+}
+
+.library-continue-card strong {
+    display: block;
+    font-size: var(--fs-small);
+    margin-bottom: 4px;
+}
+
+.library-continue-card span.mono {
+    font-size: var(--fs-eyebrow);
+    color: var(--ink-soft);
+}
+
+.library-continue-bar {
+    display: block;
+    height: 4px;
+    background: var(--line);
+    border-radius: 2px;
+    margin-top: 8px;
+    overflow: hidden;
+}
+
+.library-continue-bar span {
+    display: block;
+    height: 100%;
+    background: var(--wine);
+}

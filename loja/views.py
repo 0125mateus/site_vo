@@ -4,7 +4,9 @@ from decimal import Decimal
 from datetime import timedelta
 
 from django.contrib import messages
+from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.views import (
     LoginView,
     LogoutView,
@@ -15,7 +17,7 @@ from django.contrib.auth.views import (
 from django.urls import reverse, reverse_lazy
 from django.db import transaction
 from django.db.models import Q
-from django.http import FileResponse, Http404
+from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
@@ -26,6 +28,7 @@ from rest_framework.views import APIView
 
 from django.conf import settings
 
+from .forms import RegistroClienteForm
 from .mercadopago_service import (
     MercadoPagoAPIError,
     aplicar_pagamento_ao_pedido,
@@ -34,7 +37,7 @@ from .mercadopago_service import (
     sincronizar_pedido_com_mercadopago,
     validar_assinatura_webhook,
 )
-from .models import ItemPedido, Livro, MidiaAudiovisual, ModalidadeComercial, Musica, Pedido, Produto
+from .models import ItemPedido, Livro, MidiaAudiovisual, ModalidadeComercial, Musica, Pedido, Produto, ProgressoReproducao
 
 logger = logging.getLogger(__name__)
 
@@ -250,12 +253,31 @@ def biblioteca(request):
         'expirados': expirados,
     }
 
+    progressos = ProgressoReproducao.objects.filter(
+        usuario=request.user,
+        item_pedido__pedido__status=Pedido.STATUS_APROVADO,
+    ).select_related('item_pedido__produto')
+    continuar = []
+    for prog in progressos:
+        if not prog.em_andamento:
+            continue
+        item = prog.item_pedido
+        if not item.acesso_liberado or not item.produto.tem_arquivo:
+            continue
+        continuar.append({
+            'progresso': prog,
+            'item': item,
+            'produto': item.produto,
+            'tipo_midia': _tipo_midia_arquivo(item.produto),
+        })
+
     return render(request, 'loja/biblioteca.html', {
         'aba': aba,
         'itens_aba': listas[aba],
         'total_compras': len(compras),
         'total_alugueis': len(alugueis_ativos),
         'total_expirados': len(expirados),
+        'continuar': continuar,
     })
 
 
@@ -273,12 +295,46 @@ def reproduzir_conteudo(request, item_id):
 
     ctx = _resolver_produto(item.produto_id)
     tipo_midia = _tipo_midia_arquivo(item.produto)
+    progresso = ProgressoReproducao.objects.filter(
+        usuario=request.user,
+        item_pedido=item,
+    ).first()
     ctx.update({
         'item': item,
         'tipo_midia': tipo_midia,
         'arquivo_url': reverse('acessar_arquivo', args=[item.id]),
+        'progresso_segundos': progresso.segundos if progresso else 0,
     })
     return render(request, 'loja/reproduzir.html', ctx)
+
+
+@login_required
+@require_POST
+def salvar_progresso(request, item_id):
+    item = get_object_or_404(
+        ItemPedido.objects.select_related('pedido'),
+        pk=item_id,
+        pedido__cliente=request.user,
+    )
+    if not item.acesso_liberado:
+        return JsonResponse({'ok': False, 'detail': 'Acesso negado.'}, status=403)
+
+    try:
+        segundos = max(0, int(request.POST.get('segundos', 0)))
+        duracao = request.POST.get('duracao')
+        duracao_segundos = max(0, int(duracao)) if duracao not in (None, '') else None
+    except (TypeError, ValueError):
+        return JsonResponse({'ok': False, 'detail': 'Dados inválidos.'}, status=400)
+
+    ProgressoReproducao.objects.update_or_create(
+        usuario=request.user,
+        item_pedido=item,
+        defaults={
+            'segundos': segundos,
+            'duracao_segundos': duracao_segundos,
+        },
+    )
+    return JsonResponse({'ok': True})
 
 
 @login_required
@@ -519,6 +575,34 @@ class MercadoPagoWebhookView(APIView):
 
 class LoginLojaView(LoginView):
     template_name = 'loja/login.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['register_form'] = RegistroClienteForm()
+        context['active_tab'] = self.request.GET.get('tab', 'login')
+        return context
+
+
+def registrar_cliente(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+
+    if request.method == 'POST':
+        form = RegistroClienteForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            messages.success(request, 'Conta criada com sucesso. Bem-vindo!')
+            next_url = request.POST.get('next') or request.GET.get('next')
+            return redirect(next_url or 'home')
+        return render(request, 'loja/login.html', {
+            'form': AuthenticationForm(),
+            'register_form': form,
+            'active_tab': 'register',
+            'next': request.POST.get('next', ''),
+        })
+
+    return redirect(f"{reverse('login')}?tab=register")
 
 
 class PasswordResetLojaView(PasswordResetView):

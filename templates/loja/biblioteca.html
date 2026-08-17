@@ -25,6 +25,26 @@
         </a>
     </nav>
 
+    {% if continuar %}
+    <section class="library-continue">
+        <h2 class="library-continue-title">Continuar de onde parou</h2>
+        <div class="library-continue-row">
+            {% for entry in continuar %}
+            <a href="{% url 'reproduzir_conteudo' entry.item.id %}" class="library-continue-card">
+                {% if entry.produto.imagem %}
+                <img src="{{ entry.produto.imagem.url }}" alt="">
+                {% endif %}
+                <div>
+                    <strong>{{ entry.produto.titulo|truncatechars:32 }}</strong>
+                    <span class="mono">{{ entry.progresso.percentual }}% concluído</span>
+                    <span class="library-continue-bar"><span style="width: {{ entry.progresso.percentual }}%"></span></span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
     {% if itens_aba %}
     <div class="library-grid">
         {% for entry in itens_aba %}

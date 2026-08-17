@@ -26,16 +26,16 @@
     <section class="auth-split-panel">
         <div class="auth-panel-inner">
             <div class="auth-tabs" role="tablist" aria-label="Acesso à conta">
-                <button type="button" class="auth-tab" role="tab" id="tab-register" aria-selected="false" aria-controls="panel-register" data-auth-tab="register">
+                <button type="button" class="auth-tab{% if active_tab == 'register' %} is-active{% endif %}" role="tab" id="tab-register" aria-selected="{% if active_tab == 'register' %}true{% else %}false{% endif %}" aria-controls="panel-register" data-auth-tab="register">
                     Registrar-se
                 </button>
-                <button type="button" class="auth-tab is-active" role="tab" id="tab-login" aria-selected="true" aria-controls="panel-login" data-auth-tab="login">
+                <button type="button" class="auth-tab{% if active_tab != 'register' %} is-active{% endif %}" role="tab" id="tab-login" aria-selected="{% if active_tab != 'register' %}true{% else %}false{% endif %}" aria-controls="panel-login" data-auth-tab="login">
                     Entrar
                 </button>
             </div>
 
             <div class="auth-panels">
-                <div class="auth-panel is-active" id="panel-login" role="tabpanel" aria-labelledby="tab-login" data-auth-panel="login">
+                <div class="auth-panel{% if active_tab != 'register' %} is-active{% endif %}" id="panel-login" role="tabpanel" aria-labelledby="tab-login" data-auth-panel="login"{% if active_tab == 'register' %} hidden{% endif %}>
                     {% if form.non_field_errors %}
                     <div class="auth-errors" role="alert">{{ form.non_field_errors }}</div>
                     {% endif %}
@@ -90,15 +90,49 @@
                     </form>
                 </div>
 
-                <div class="auth-panel" id="panel-register" role="tabpanel" aria-labelledby="tab-register" data-auth-panel="register" hidden>
-                    <div class="auth-register-placeholder">
-                        <h2>Criar conta</h2>
-                        <p>Em breve você poderá se registrar aqui para comprar e alugar com mais praticidade.</p>
-                        <p class="auth-register-note">Por enquanto, peça ao gestor da loja para criar seu acesso ou use a conta de teste.</p>
-                        <button type="button" class="btn btn-ghost auth-back-login" data-auth-tab="login">
-                            Já tenho conta — entrar
-                        </button>
-                    </div>
+                <div class="auth-panel{% if active_tab == 'register' %} is-active{% endif %}" id="panel-register" role="tabpanel" aria-labelledby="tab-register" data-auth-panel="register"{% if active_tab != 'register' %} hidden{% endif %}>
+                    {% if register_form.non_field_errors %}
+                    <div class="auth-errors" role="alert">{{ register_form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <form method="post" action="{% url 'registrar' %}" class="auth-form-split" novalidate>
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ next }}">
+
+                        <div class="auth-field">
+                            <input type="text" name="username" id="id_reg_username" class="auth-input" value="{{ register_form.username.value|default:'' }}" autocomplete="username" required placeholder=" " maxlength="150">
+                            <label for="id_reg_username">Nome de usuário</label>
+                            {% if register_form.username.errors %}<span class="auth-field-error">{{ register_form.username.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <div class="auth-field">
+                            <input type="email" name="email" id="id_reg_email" class="auth-input" value="{{ register_form.email.value|default:'' }}" autocomplete="email" required placeholder=" ">
+                            <label for="id_reg_email">E-mail</label>
+                            {% if register_form.email.errors %}<span class="auth-field-error">{{ register_form.email.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <div class="auth-field auth-field--password">
+                            <input type="password" name="password1" id="id_reg_password1" class="auth-input" autocomplete="new-password" required placeholder=" ">
+                            <label for="id_reg_password1">Senha</label>
+                            <button type="button" class="auth-password-toggle" data-password-toggle="id_reg_password1" aria-label="Mostrar senha">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
+                            </button>
+                            {% if register_form.password1.errors %}<span class="auth-field-error">{{ register_form.password1.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <div class="auth-field auth-field--password">
+                            <input type="password" name="password2" id="id_reg_password2" class="auth-input" autocomplete="new-password" required placeholder=" ">
+                            <label for="id_reg_password2">Confirmar senha</label>
+                            <button type="button" class="auth-password-toggle" data-password-toggle="id_reg_password2" aria-label="Mostrar senha">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
+                            </button>
+                            {% if register_form.password2.errors %}<span class="auth-field-error">{{ register_form.password2.errors.0 }}</span>{% endif %}
+                        </div>
+
+                        <div class="auth-actions auth-actions--stack">
+                            <button type="submit" class="btn btn-auth-primary">Criar conta</button>
+                        </div>
+                    </form>
                 </div>
             </div>
 

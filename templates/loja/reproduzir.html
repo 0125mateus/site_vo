@@ -13,6 +13,7 @@
     </nav>
 
     <section class="player-stage">
+        {% csrf_token %}
         <div class="player-stage-head">
             {% if produto.imagem %}
             <img src="{{ produto.imagem.url }}" alt="" class="player-stage-cover">
@@ -27,12 +28,12 @@
             </div>
         </div>
 
-        <div class="player-stage-media">
+        <div class="player-stage-media" id="player-stage" data-item-id="{{ item.id }}" data-progresso="{{ progresso_segundos }}" data-save-url="{% url 'salvar_progresso' item.id %}">
             {% if tipo_midia == 'video' %}
-            <video class="player-video" controls playsinline autoplay src="{{ arquivo_url }}"></video>
+            <video class="player-video" id="player-main" controls playsinline src="{{ arquivo_url }}"></video>
             {% elif tipo_midia == 'audio' %}
             <div class="player-audio-shell">
-                <audio id="player-audio" controls autoplay src="{{ arquivo_url }}"></audio>
+                <audio id="player-main" controls src="{{ arquivo_url }}"></audio>
             </div>
             {% elif tipo_midia == 'pdf' %}
             <iframe class="player-pdf" src="{{ arquivo_url }}" title="{{ produto.titulo }}"></iframe>
@@ -67,7 +68,5 @@
 {% endblock %}
 
 {% block extra_js %}
-{% if tipo_midia == 'audio' %}
 <script src="{% static 'js/media-player.js' %}?v={{ STATIC_VERSION }}"></script>
-{% endif %}
 {% endblock %}

@@ -293,6 +293,47 @@ class Pagamento(models.Model):
         return f'Pagamento do pedido #{self.pedido_id} — {self.status}'
 
 
+class ProgressoReproducao(models.Model):
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='progressos_reproducao',
+    )
+    item_pedido = models.ForeignKey(
+        ItemPedido,
+        on_delete=models.CASCADE,
+        related_name='progressos',
+    )
+    segundos = models.PositiveIntegerField(default=0)
+    duracao_segundos = models.PositiveIntegerField(null=True, blank=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Progresso de reprodução'
+        verbose_name_plural = 'Progressos de reprodução'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['usuario', 'item_pedido'],
+                name='uniq_progresso_usuario_item',
+            ),
+        ]
+
+    def __str__(self):
+        return f'{self.usuario} — item #{self.item_pedido_id} @ {self.segundos}s'
+
+    @property
+    def percentual(self) -> int:
+        if not self.duracao_segundos:
+            return 0
+        return min(100, round(100 * self.segundos / self.duracao_segundos))
+
+    @property
+    def em_andamento(self) -> bool:
+        if not self.duracao_segundos or self.duracao_segundos <= 0:
+            return self.segundos > 0
+        return 0 < self.segundos < (self.duracao_segundos - 15)
+
+
 class FraseTreinoAssistente(models.Model):
     AUDIENCIA_CLIENTE = 'cliente'
     AUDIENCIA_GESTOR = 'gestor'
