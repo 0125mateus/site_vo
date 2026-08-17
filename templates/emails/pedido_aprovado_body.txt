@@ -1,0 +1,18 @@
+Olá{% if cliente.get_full_name %} {{ cliente.get_full_name }}{% else %} {{ cliente.username }}{% endif %},
+
+Seu pagamento foi aprovado. Pedido #{{ pedido.id }}.
+
+Itens:
+{% for item in pedido.itens.all %}
+- {{ item.quantidade }}x {{ item.produto.titulo }} ({{ item.get_modalidade_display }}) — R$ {{ item.subtotal }}
+{% endfor %}
+
+Total: R$ {{ pedido.valor_total }}
+
+Acesse sua biblioteca para conteúdo digital:
+{{ biblioteca_url }}
+
+Ver histórico de pedidos:
+{{ pedidos_url }}
+
+Obrigado por comprar na Vinil & Página.

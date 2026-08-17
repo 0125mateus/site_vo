@@ -23,7 +23,11 @@ def _build_signature(secret, data_id, request_id, ts):
 class MercadoPagoWebhookViewTests(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.user = User.objects.create_user(username='cliente', password='senha123')
+        self.user = User.objects.create_user(
+            username='cliente',
+            password='senha123',
+            email='cliente@example.com',
+        )
         self.produto = Produto.objects.create(
             titulo='Disco Teste',
             preco=Decimal('49.90'),
@@ -61,8 +65,9 @@ class MercadoPagoWebhookViewTests(TestCase):
             HTTP_X_REQUEST_ID=request_id,
         )
 
+    @patch('loja.email_service.enviar_email_pedido_aprovado')
     @patch('loja.views.buscar_pagamento')
-    def test_webhook_aprovado_atualiza_pedido(self, mock_buscar):
+    def test_webhook_aprovado_atualiza_pedido(self, mock_buscar, mock_email):
         mock_buscar.return_value = {
             'id': self.payment_id,
             'status': 'approved',
@@ -76,6 +81,9 @@ class MercadoPagoWebhookViewTests(TestCase):
 
         self.pedido.refresh_from_db()
         self.assertEqual(self.pedido.status, Pedido.STATUS_APROVADO)
+        mock_email.assert_called_once()
+        args, _ = mock_email.call_args
+        self.assertEqual(args[0].pk, self.pedido.pk)
 
         pagamento = Pagamento.objects.get(pedido=self.pedido)
         self.assertEqual(pagamento.mercadopago_payment_id, self.payment_id)
@@ -206,3 +214,64 @@ class AssistenteIntentTests(TestCase):
         invalidate_model_cache()
         result = classify_intent('vocês mandam para minas gerais', 'cliente')
         self.assertEqual(result['intent'], 'entrega')
+
+
+class PedidoEmailTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='comprador',
+            password='senha123',
+            email='comprador@example.com',
+        )
+        self.produto = Produto.objects.create(
+            titulo='Disco Teste',
+            preco=Decimal('29.90'),
+            estoque=3,
+        )
+        self.pedido = Pedido.objects.create(
+            cliente=self.user,
+            valor_total=Decimal('29.90'),
+            status=Pedido.STATUS_AGUARDANDO,
+        )
+        ItemPedido.objects.create(
+            pedido=self.pedido,
+            produto=self.produto,
+            quantidade=1,
+            preco_unitario=self.produto.preco,
+        )
+
+    @patch('loja.email_service.EmailMultiAlternatives.send')
+    def test_envia_email_quando_aprovado(self, mock_send):
+        from loja.mercadopago_service import aplicar_pagamento_ao_pedido
+
+        aplicar_pagamento_ao_pedido(self.pedido, {
+            'id': 'pay-1',
+            'status': 'approved',
+            'transaction_amount': 29.90,
+        })
+        mock_send.assert_called_once()
+
+    @patch('loja.email_service.EmailMultiAlternatives.send')
+    def test_nao_reenvia_email_se_ja_aprovado(self, mock_send):
+        from loja.mercadopago_service import aplicar_pagamento_ao_pedido
+
+        self.pedido.status = Pedido.STATUS_APROVADO
+        self.pedido.save(update_fields=['status'])
+
+        aplicar_pagamento_ao_pedido(self.pedido, {
+            'id': 'pay-2',
+            'status': 'approved',
+            'transaction_amount': 29.90,
+        })
+        mock_send.assert_not_called()
+
+    @patch('loja.email_service.EmailMultiAlternatives.send')
+    def test_sem_email_do_cliente_nao_envia(self, mock_send):
+        from loja.email_service import enviar_email_pedido_aprovado
+
+        self.user.email = ''
+        self.user.save(update_fields=['email'])
+
+        enviado = enviar_email_pedido_aprovado(self.pedido)
+        self.assertFalse(enviado)
+        mock_send.assert_not_called()

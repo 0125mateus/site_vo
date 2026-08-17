@@ -108,6 +108,7 @@ def aplicar_pagamento_ao_pedido(pedido, payment):
     mp_status = payment.get('status', '')
     metodo = payment.get('payment_type_id') or payment.get('payment_method_id')
     valor = Decimal(str(payment.get('transaction_amount', pedido.valor_total)))
+    status_anterior = pedido.status
 
     Pagamento.objects.update_or_create(
         pedido=pedido,
@@ -128,6 +129,12 @@ def aplicar_pagamento_ao_pedido(pedido, payment):
 
     pedido.save(update_fields=['status'])
     logger.info('Pedido %s sincronizado com MP — status %s', pedido.pk, pedido.status)
+
+    if status_anterior != pedido.STATUS_APROVADO and pedido.status == pedido.STATUS_APROVADO:
+        from loja.email_service import enviar_email_pedido_aprovado
+
+        enviar_email_pedido_aprovado(pedido)
+
     return pedido
 
 
