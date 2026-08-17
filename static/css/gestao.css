@@ -210,6 +210,93 @@
     color: var(--ink-soft);
 }
 
+.gestao-badge--aprovado {
+    background: #e8f5e9;
+    color: #1b5e20;
+}
+
+.gestao-badge--aguardando_pagamento,
+.gestao-badge--em_analise {
+    background: #fff8e1;
+    color: #7a5c00;
+}
+
+.gestao-badge--recusado,
+.gestao-badge--cancelado {
+    background: #fdecea;
+    color: #7a1f17;
+}
+
+.gestao-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.gestao-filters label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 13px;
+}
+
+.gestao-filters select {
+    min-width: 180px;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    background: var(--parchment);
+    font-family: 'Work Sans', sans-serif;
+}
+
+.gestao-pedido-grid {
+    display: grid;
+    gap: 20px;
+}
+
+@media (min-width: 768px) {
+    .gestao-pedido-grid {
+        grid-template-columns: 1.4fr 1fr;
+    }
+}
+
+.gestao-pedido-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 24px;
+}
+
+.gestao-pedido-card h2 {
+    font-size: 18px;
+    margin-bottom: 16px;
+}
+
+.gestao-pedido-itens {
+    list-style: none;
+    margin: 0 0 16px;
+    padding: 0;
+}
+
+.gestao-pedido-itens li {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 14px;
+}
+
+.gestao-pedido-itens li:last-child {
+    border-bottom: none;
+}
+
+.gestao-pedido-total {
+    font-size: 16px;
+    font-weight: 600;
+}
+
 .gestao-actions {
     white-space: nowrap;
 }

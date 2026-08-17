@@ -23,6 +23,8 @@
         </div>
     </section>
 
+    {% include 'loja/includes/continue_row.html' %}
+
     {% include 'loja/includes/shelf_row.html' with section_id='novidades' catalog_class='catalog--destaques' eyebrow='Curadoria' titulo='Novidades' itens=novidades ver_todos_url='' %}
 
     {% include 'loja/includes/shelf_row.html' with section_id='para-alugar' catalog_class='catalog--aluguel' eyebrow='Streaming físico' titulo='Para alugar' itens=para_aluguel ver_todos_url='' %}

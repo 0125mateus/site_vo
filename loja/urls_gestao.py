@@ -20,4 +20,6 @@ urlpatterns = [
     path('midias/<int:pk>/excluir/', views_gestao.midia_excluir, name='gestao_midia_excluir'),
     path('assistente/', views_gestao.assistente_frases, name='gestao_assistente_frases'),
     path('assistente/frases/<int:pk>/excluir/', views_gestao.assistente_frase_excluir, name='gestao_assistente_frase_excluir'),
+    path('pedidos/', views_gestao.pedidos_lista, name='gestao_pedidos_lista'),
+    path('pedidos/<int:pk>/', views_gestao.pedido_detalhe, name='gestao_pedido_detalhe'),
 ]

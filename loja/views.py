@@ -125,6 +125,39 @@ def _carrinho_resumo_json(itens, total):
     }
 
 
+def _continuar_assistindo(usuario, limit=8):
+    progressos = ProgressoReproducao.objects.filter(
+        usuario=usuario,
+        item_pedido__pedido__status=Pedido.STATUS_APROVADO,
+    ).select_related('item_pedido__produto').order_by('-atualizado_em')
+    continuar = []
+    for prog in progressos:
+        if len(continuar) >= limit:
+            break
+        if not prog.em_andamento:
+            continue
+        item = prog.item_pedido
+        if not item.acesso_liberado or not item.produto.tem_arquivo:
+            continue
+        continuar.append({
+            'progresso': prog,
+            'item': item,
+            'produto': item.produto,
+            'tipo_midia': _tipo_midia_arquivo(item.produto),
+        })
+    return continuar
+
+
+def _produtos_relacionados(produto_id, tipo, limit=6):
+    if tipo == 'musica':
+        return Musica.objects.filter(ativo=True).exclude(pk=produto_id).order_by('-criado_em')[:limit]
+    if tipo == 'livro':
+        return Livro.objects.filter(ativo=True).exclude(pk=produto_id).order_by('-criado_em')[:limit]
+    if tipo == 'midia':
+        return MidiaAudiovisual.objects.filter(ativo=True).exclude(pk=produto_id).order_by('-criado_em')[:limit]
+    return Produto.objects.filter(ativo=True).exclude(pk=produto_id).order_by('-criado_em')[:limit]
+
+
 def _resolver_produto(produto_id):
     """Retorna produto ativo com metadados do subtipo (disco, livro, mídia)."""
     produto = get_object_or_404(Produto, pk=produto_id, ativo=True)
@@ -313,9 +346,12 @@ def home(request):
     livros = Livro.objects.filter(ativo=True).order_by('-criado_em')[:8]
     midias = MidiaAudiovisual.objects.filter(ativo=True).order_by('-criado_em')[:8]
 
+    continuar = _continuar_assistindo(request.user) if request.user.is_authenticated else []
+
     return render(request, 'loja/home.html', {
         'novidades': novidades_rows,
         'para_aluguel': aluguel_rows,
+        'continuar': continuar,
         'musicas': musicas,
         'livros': livros,
         'midias': midias,
@@ -343,6 +379,7 @@ def produto_detalhe(request, produto_id):
         'ModalidadeComercial': ModalidadeComercial,
         'pode_venda': produto.disponivel_para(ModalidadeComercial.VENDA),
         'pode_aluguel': produto.disponivel_para(ModalidadeComercial.ALUGUEL),
+        'relacionados': _produtos_relacionados(produto_id, ctx['tipo']),
     })
     return render(request, 'loja/produto_detalhe.html', ctx)
 
@@ -386,23 +423,7 @@ def biblioteca(request):
         'expirados': expirados,
     }
 
-    progressos = ProgressoReproducao.objects.filter(
-        usuario=request.user,
-        item_pedido__pedido__status=Pedido.STATUS_APROVADO,
-    ).select_related('item_pedido__produto')
-    continuar = []
-    for prog in progressos:
-        if not prog.em_andamento:
-            continue
-        item = prog.item_pedido
-        if not item.acesso_liberado or not item.produto.tem_arquivo:
-            continue
-        continuar.append({
-            'progresso': prog,
-            'item': item,
-            'produto': item.produto,
-            'tipo_midia': _tipo_midia_arquivo(item.produto),
-        })
+    continuar = _continuar_assistindo(request.user)
 
     return render(request, 'loja/biblioteca.html', {
         'aba': aba,

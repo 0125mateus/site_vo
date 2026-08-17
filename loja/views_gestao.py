@@ -265,3 +265,25 @@ def assistente_frase_excluir(request, pk):
         'tipo': 'frase',
         'voltar_url': 'gestao_assistente_frases',
     })
+
+
+@gestor_required
+def pedidos_lista(request):
+    status = request.GET.get('status', '')
+    pedidos = Pedido.objects.select_related('cliente').prefetch_related('itens').order_by('-criado_em')
+    if status:
+        pedidos = pedidos.filter(status=status)
+    return render(request, 'gestao/pedidos_lista.html', {
+        'pedidos': pedidos,
+        'filtro_status': status,
+        'status_choices': Pedido.STATUS_CHOICES,
+    })
+
+
+@gestor_required
+def pedido_detalhe(request, pk):
+    pedido = get_object_or_404(
+        Pedido.objects.select_related('cliente').prefetch_related('itens__produto'),
+        pk=pk,
+    )
+    return render(request, 'gestao/pedido_detalhe.html', {'pedido': pedido})

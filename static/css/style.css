@@ -1735,6 +1735,40 @@ body.has-media-bar footer {
     margin-bottom: var(--space-5);
 }
 
+.catalog--continue {
+    margin-top: var(--space-2);
+}
+
+.catalog--continue .section-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
+}
+
+.catalog--relacionados {
+    margin-top: var(--space-5);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--line);
+}
+
+.library-continue-ph {
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--paper-deep);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-eyebrow);
+    text-align: center;
+    padding: 4px;
+}
+
 .library-continue-title {
     font-size: 1.125rem;
     margin-bottom: var(--space-2);

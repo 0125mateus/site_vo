@@ -1,0 +1,61 @@
+{% extends "gestao/base_gestao.html" %}
+
+{% block title %}Pedidos — Gestão{% endblock %}
+
+{% block content %}
+<div class="gestao-page-head">
+    <div>
+        <h1>Pedidos</h1>
+        <p class="gestao-page-desc">{{ pedidos|length }} pedido{{ pedidos|length|pluralize }} listado{{ pedidos|length|pluralize }}</p>
+    </div>
+</div>
+
+<form class="gestao-filters" method="get">
+    <label>
+        <span class="mono">Status</span>
+        <select name="status" onchange="this.form.submit()">
+            <option value=""{% if not filtro_status %} selected{% endif %}>Todos</option>
+            {% for value, label in status_choices %}
+            <option value="{{ value }}"{% if filtro_status == value %} selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </label>
+</form>
+
+{% if pedidos %}
+<div class="gestao-table-wrap">
+    <table class="gestao-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Cliente</th>
+                <th>Data</th>
+                <th>Itens</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pedido in pedidos %}
+            <tr>
+                <td class="mono">{{ pedido.id }}</td>
+                <td>{{ pedido.cliente.username }}</td>
+                <td class="mono">{{ pedido.criado_em|date:"d/m/Y H:i" }}</td>
+                <td class="mono">{{ pedido.itens.count }}</td>
+                <td class="mono">R$ {{ pedido.valor_total }}</td>
+                <td>
+                    <span class="gestao-badge gestao-badge--{{ pedido.status }}">{{ pedido.get_status_display }}</span>
+                </td>
+                <td class="gestao-actions">
+                    <a href="{% url 'gestao_pedido_detalhe' pedido.pk %}">Ver</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="gestao-empty">Nenhum pedido encontrado.</p>
+{% endif %}
+{% endblock %}

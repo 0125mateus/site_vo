@@ -1,0 +1,38 @@
+{% extends "gestao/base_gestao.html" %}
+
+{% block title %}Pedido #{{ pedido.id }} — Gestão{% endblock %}
+
+{% block content %}
+<div class="gestao-page-head">
+    <div>
+        <a href="{% url 'gestao_pedidos_lista' %}" class="gestao-back">← Pedidos</a>
+        <h1>Pedido #{{ pedido.id }}</h1>
+        <p class="gestao-page-desc">{{ pedido.criado_em|date:"d/m/Y H:i" }} · {{ pedido.cliente.username }}</p>
+    </div>
+    <span class="gestao-badge gestao-badge--{{ pedido.status }}">{{ pedido.get_status_display }}</span>
+</div>
+
+<div class="gestao-pedido-grid">
+    <section class="gestao-pedido-card">
+        <h2>Itens</h2>
+        <ul class="gestao-pedido-itens">
+            {% for item in pedido.itens.all %}
+            <li>
+                <strong>{{ item.produto.titulo }}</strong>
+                <span class="mono">{{ item.get_modalidade_display }} · {{ item.quantidade }}x · R$ {{ item.subtotal }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        <p class="gestao-pedido-total mono">Total: R$ {{ pedido.valor_total }}</p>
+    </section>
+
+    <section class="gestao-pedido-card">
+        <h2>Cliente</h2>
+        <p><strong>{{ pedido.cliente.get_full_name|default:pedido.cliente.username }}</strong></p>
+        <p class="mono">{{ pedido.cliente.email|default:"Sem e-mail" }}</p>
+        {% if pedido.mercadopago_preference_id %}
+        <p class="gestao-field-hint mono">MP: {{ pedido.mercadopago_preference_id|truncatechars:40 }}</p>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

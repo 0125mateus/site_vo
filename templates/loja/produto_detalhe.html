@@ -8,9 +8,9 @@
     <nav class="detail-breadcrumb mono">
         <a href="{% url 'home' %}">Início</a>
         <span aria-hidden="true">/</span>
-        {% if tipo == 'musica' %}<a href="{% url 'home' %}#discos">Discos</a>{% endif %}
-        {% if tipo == 'livro' %}<a href="{% url 'home' %}#livros">Livros</a>{% endif %}
-        {% if tipo == 'midia' %}<a href="{% url 'home' %}#midias">Filmes</a>{% endif %}
+        {% if tipo == 'musica' %}<a href="{% url 'catalogo_discos' %}">Discos</a>{% endif %}
+        {% if tipo == 'livro' %}<a href="{% url 'catalogo_livros' %}">Livros</a>{% endif %}
+        {% if tipo == 'midia' %}<a href="{% url 'catalogo_filmes' %}">Filmes</a>{% endif %}
         <span aria-hidden="true">/</span>
         <span>{{ produto.titulo|truncatechars:40 }}</span>
     </nav>
@@ -91,6 +91,10 @@
             </div>
         </div>
     </article>
+
+    {% if relacionados %}
+    {% include 'loja/includes/shelf_row.html' with section_id='relacionados' catalog_class='catalog--relacionados' eyebrow='Você também pode gostar' titulo='Relacionados' itens=relacionados tipo=tipo %}
+    {% endif %}
 </div>
 
 {% if tipo == 'midia' and midia.tem_trailer %}

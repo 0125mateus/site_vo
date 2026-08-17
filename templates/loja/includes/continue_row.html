@@ -1,0 +1,27 @@
+{% if continuar %}
+<section class="library-continue catalog catalog--continue" id="continuar">
+    <div class="section-head">
+        <div>
+            <span class="section-eyebrow">Sua biblioteca</span>
+            <h2>Continuar de onde parou</h2>
+        </div>
+        <a href="{% url 'biblioteca' %}" class="btn btn-ghost btn-sm">Ver biblioteca</a>
+    </div>
+    <div class="library-continue-row">
+        {% for entry in continuar %}
+        <a href="{% url 'reproduzir_conteudo' entry.item.id %}" class="library-continue-card">
+            {% if entry.produto.imagem %}
+            <img src="{{ entry.produto.imagem.url }}" alt="">
+            {% else %}
+            <div class="library-continue-ph">{{ entry.produto.titulo|truncatechars:20 }}</div>
+            {% endif %}
+            <div>
+                <strong>{{ entry.produto.titulo|truncatechars:32 }}</strong>
+                <span class="mono">{{ entry.progresso.percentual }}% concluído</span>
+                <span class="library-continue-bar"><span style="width: {{ entry.progresso.percentual }}%"></span></span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
