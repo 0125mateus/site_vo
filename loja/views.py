@@ -16,7 +16,7 @@ from django.contrib.auth.views import (
 )
 from django.urls import reverse, reverse_lazy
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Avg, Q
 from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -39,7 +39,9 @@ from .mercadopago_service import (
 )
 from .models import (
     AssinaturaClube,
+    Avaliacao,
     Favorito,
+    InscricaoNewsletter,
     ItemPedido,
     Livro,
     MidiaAudiovisual,
@@ -50,7 +52,7 @@ from .models import (
     Produto,
     ProgressoReproducao,
 )
-from .promocoes import calcular_promocoes_carrinho
+from .promocoes import calcular_promocoes_carrinho, calcular_promocoes_pedido
 
 logger = logging.getLogger(__name__)
 
@@ -401,13 +403,59 @@ def meus_pedidos(request):
 def produto_detalhe(request, produto_id):
     ctx = _resolver_produto(produto_id)
     produto = ctx['produto']
+    avaliacoes = produto.avaliacoes.select_related('usuario').order_by('-criado_em')[:20]
+    media_nota = produto.avaliacoes.aggregate(m=Avg('nota'))['m']
+    total_avaliacoes = produto.avaliacoes.count()
+    minha_avaliacao = None
+    if request.user.is_authenticated:
+        minha_avaliacao = Avaliacao.objects.filter(usuario=request.user, produto=produto).first()
     ctx.update({
         'ModalidadeComercial': ModalidadeComercial,
         'pode_venda': produto.disponivel_para(ModalidadeComercial.VENDA),
         'pode_aluguel': produto.disponivel_para(ModalidadeComercial.ALUGUEL),
         'relacionados': _produtos_relacionados(produto_id, ctx['tipo']),
+        'avaliacoes': avaliacoes,
+        'total_avaliacoes': total_avaliacoes,
+        'media_nota': media_nota,
+        'minha_avaliacao': minha_avaliacao,
     })
     return render(request, 'loja/produto_detalhe.html', ctx)
+
+
+@login_required
+@require_POST
+def avaliar_produto(request, produto_id):
+    produto = get_object_or_404(Produto, pk=produto_id, ativo=True)
+    try:
+        nota = int(request.POST.get('nota', 0))
+    except (TypeError, ValueError):
+        nota = 0
+    if nota < 1 or nota > 5:
+        messages.error(request, 'Escolha uma nota de 1 a 5 estrelas.')
+        return redirect('produto_detalhe', produto_id=produto_id)
+
+    comentario = (request.POST.get('comentario') or '').strip()[:1000]
+    Avaliacao.objects.update_or_create(
+        usuario=request.user,
+        produto=produto,
+        defaults={'nota': nota, 'comentario': comentario},
+    )
+    messages.success(request, 'Obrigado pela sua avaliação!')
+    return redirect('produto_detalhe', produto_id=produto_id)
+
+
+@require_POST
+def inscrever_newsletter(request):
+    email = (request.POST.get('email') or '').strip().lower()
+    if not email:
+        messages.error(request, 'Informe um e-mail válido.')
+        return redirect(request.META.get('HTTP_REFERER') or 'home')
+    _, created = InscricaoNewsletter.objects.get_or_create(email=email)
+    if created:
+        messages.success(request, 'Inscrição confirmada! Em breve você recebe novidades.')
+    else:
+        messages.info(request, 'Este e-mail já está inscrito na newsletter.')
+    return redirect(request.META.get('HTTP_REFERER') or 'home')
 
 
 @login_required
@@ -737,9 +785,19 @@ def assinar_clube(request, plano_id):
 
 @login_required
 def checkout(request, pedido_id):
-    pedido = get_object_or_404(Pedido, pk=pedido_id, cliente=request.user)
+    pedido = get_object_or_404(
+        Pedido.objects.select_related('plano_clube').prefetch_related('itens__produto'),
+        pk=pedido_id,
+        cliente=request.user,
+    )
+    promos = calcular_promocoes_pedido(pedido)
+    subtotal_bruto = promos['subtotal_produtos']
+    if pedido.plano_clube_id:
+        subtotal_bruto += pedido.plano_clube.preco_mensal
     return render(request, 'loja/checkout.html', {
         'pedido': pedido,
+        'promos': promos,
+        'subtotal_bruto': subtotal_bruto,
         'mercadopago_public_key': settings.MERCADOPAGO_PUBLIC_KEY,
     })
 
@@ -762,7 +820,7 @@ class CriarPreferenciaPagamentoView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if not pedido.itens.exists():
+        if not pedido.itens.exists() and not pedido.plano_clube_id:
             return Response(
                 {'detail': 'O pedido não possui itens.'},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -787,7 +845,7 @@ class PedidoStatusView(APIView):
     def get(self, request, pedido_id):
         pedido = get_object_or_404(Pedido, pk=pedido_id, cliente=request.user)
 
-        if settings.DEBUG and pedido.status in (
+        if pedido.status in (
             Pedido.STATUS_AGUARDANDO,
             Pedido.STATUS_EM_ANALISE,
         ):

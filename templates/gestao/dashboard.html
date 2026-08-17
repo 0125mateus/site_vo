@@ -11,6 +11,19 @@
 
 <div class="gestao-stats">
     <div class="gestao-stat-card">
+        <span class="gestao-stat-num mono">R$ {{ total_vendas|floatformat:2 }}</span>
+        <span class="gestao-stat-label">Vendas aprovadas ({{ pedidos_aprovados }} pedidos)</span>
+    </div>
+    <div class="gestao-stat-card">
+        <span class="gestao-stat-num mono">R$ {{ ticket_medio|floatformat:2 }}</span>
+        <span class="gestao-stat-label">Ticket médio</span>
+    </div>
+    <div class="gestao-stat-card">
+        <span class="gestao-stat-num mono">{{ pedidos_pendentes }}</span>
+        <span class="gestao-stat-label">Pedidos pendentes</span>
+        <a href="{% url 'gestao_pedidos_lista' %}" class="btn btn-ghost">Ver pedidos</a>
+    </div>
+    <div class="gestao-stat-card">
         <span class="gestao-stat-num mono">{{ total_discos }}</span>
         <span class="gestao-stat-label">Discos ({{ discos_ativos }} ativos)</span>
         <a href="{% url 'gestao_discos_lista' %}" class="btn btn-ghost">Gerenciar</a>
@@ -25,17 +38,59 @@
         <span class="gestao-stat-label">Filmes/DVDs ({{ midias_ativas }} ativos)</span>
         <a href="{% url 'gestao_midias_lista' %}" class="btn btn-ghost">Gerenciar</a>
     </div>
-    <div class="gestao-stat-card">
-        <span class="gestao-stat-num mono">{{ pedidos_pendentes }}</span>
-        <span class="gestao-stat-label">Pedidos pendentes</span>
-        <a href="{% url 'gestao_pedidos_lista' %}" class="btn btn-ghost">Ver pedidos</a>
-    </div>
 </div>
+
+{% if estoque_baixo %}
+<section class="gestao-panel gestao-panel--alert">
+    <h2>Estoque baixo (≤ {{ estoque_limite }})</h2>
+    <ul class="gestao-stock-alert-list">
+        {% for alerta in estoque_baixo %}
+        <li>
+            <strong>{{ alerta.produto.titulo }}</strong>
+            <span class="mono">{{ alerta.tipo }}: {{ alerta.estoque }} un.</span>
+        </li>
+        {% endfor %}
+    </ul>
+</section>
+{% endif %}
+
+{% if ultimos_pedidos %}
+<section class="gestao-panel">
+    <div class="gestao-panel-head">
+        <h2>Últimos pedidos</h2>
+        <a href="{% url 'gestao_pedidos_lista' %}" class="btn btn-ghost btn-sm">Ver todos</a>
+    </div>
+    <table class="gestao-table gestao-table--compact">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Cliente</th>
+                <th>Status</th>
+                <th>Total</th>
+                <th>Data</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pedido in ultimos_pedidos %}
+            <tr>
+                <td><a href="{% url 'gestao_pedido_detalhe' pedido.pk %}">#{{ pedido.id }}</a></td>
+                <td>{{ pedido.cliente.username }}</td>
+                <td>{{ pedido.get_status_display }}</td>
+                <td class="mono">R$ {{ pedido.valor_total }}</td>
+                <td class="mono">{{ pedido.criado_em|date:"d/m/Y H:i" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endif %}
 
 <div class="gestao-quick-actions">
     <a href="{% url 'gestao_disco_criar' %}" class="btn btn-primary">+ Novo disco</a>
     <a href="{% url 'gestao_livro_criar' %}" class="btn btn-primary">+ Novo livro</a>
     <a href="{% url 'gestao_midia_criar' %}" class="btn btn-primary">+ Filme / DVD / vídeo</a>
+    <a href="{% url 'gestao_importar_catalogo' %}" class="btn btn-ghost">Importar CSV</a>
+    <a href="{% url 'gestao_planos_clube_lista' %}" class="btn btn-ghost">Planos do clube</a>
     <a href="{% url 'gestao_assistente_frases' %}" class="btn btn-ghost">Assistente IA</a>
 </div>
 {% endblock %}

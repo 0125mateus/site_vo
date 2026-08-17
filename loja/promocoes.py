@@ -83,6 +83,22 @@ def calcular_promocoes_carrinho(user, itens_produtos):
     }
 
 
+def calcular_promocoes_pedido(pedido):
+    """Reconstrói breakdown de descontos a partir de um pedido já criado."""
+    itens = []
+    for item in pedido.itens.all():
+        itens.append({
+            'produto': item.produto,
+            'modalidade': item.modalidade,
+            'preco_unitario': item.preco_unitario,
+            'subtotal': item.preco_unitario * item.quantidade,
+            'quantidade': item.quantidade,
+        })
+    promos = calcular_promocoes_carrinho(pedido.cliente, itens)
+    promos['desconto_total'] = pedido.desconto
+    return promos
+
+
 def ativar_assinatura_clube(pedido):
     """Estende ou cria assinatura após pagamento aprovado de plano do clube."""
     if not pedido.plano_clube_id:

@@ -78,6 +78,12 @@
     <footer>
         <div class="wrap footer-inner">
             <span>Vinil &amp; Página — discos e livros com curadoria.</span>
+            <form method="post" action="{% url 'inscrever_newsletter' %}" class="newsletter-form">
+                {% csrf_token %}
+                <label for="newsletter-email" class="sr-only">E-mail para newsletter</label>
+                <input type="email" id="newsletter-email" name="email" placeholder="Seu e-mail" required autocomplete="email">
+                <button type="submit" class="btn btn-ghost btn-sm">Receber novidades</button>
+            </form>
         </div>
     </footer>
 

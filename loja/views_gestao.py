@@ -1,15 +1,30 @@
+import logging
 from functools import wraps
 
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView
+from django.db.models import Avg, Sum
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
+from django.views.decorators.http import require_POST
 
 from .assistant_intent import INTENT_LABELS_CLIENTE, INTENT_LABELS_GESTOR, classify_intent
-from .forms_gestao import FraseTreinoForm, LivroForm, MidiaForm, MusicaForm, TestarIntencaoForm
-from .models import FraseTreinoAssistente, Livro, MidiaAudiovisual, Musica, Pedido
+from .forms_gestao import (
+    FraseTreinoForm,
+    ImportarCatalogoForm,
+    LivroForm,
+    MidiaForm,
+    MusicaForm,
+    PlanoClubeForm,
+    TestarIntencaoForm,
+)
+from .gestao_services import ESTOQUE_BAIXO_LIMITE, gerar_descricao_produto, importar_catalogo_csv, produtos_estoque_baixo
+from .models import FraseTreinoAssistente, Livro, MidiaAudiovisual, Musica, Pedido, PlanoClube
+
+logger = logging.getLogger(__name__)
 
 
 def gestor_required(view_func):
@@ -46,6 +61,8 @@ class GestaoLogoutView(LogoutView):
 
 @gestor_required
 def dashboard(request):
+    aprovados = Pedido.objects.filter(status=Pedido.STATUS_APROVADO)
+    agg = aprovados.aggregate(total=Sum('valor_total'), ticket=Avg('valor_total'))
     return render(request, 'gestao/dashboard.html', {
         'total_discos': Musica.objects.count(),
         'total_livros': Livro.objects.count(),
@@ -56,6 +73,12 @@ def dashboard(request):
         'pedidos_pendentes': Pedido.objects.filter(
             status__in=[Pedido.STATUS_AGUARDANDO, Pedido.STATUS_EM_ANALISE],
         ).count(),
+        'pedidos_aprovados': aprovados.count(),
+        'total_vendas': agg['total'] or 0,
+        'ticket_medio': agg['ticket'] or 0,
+        'ultimos_pedidos': Pedido.objects.select_related('cliente').order_by('-criado_em')[:6],
+        'estoque_baixo': produtos_estoque_baixo()[:8],
+        'estoque_limite': ESTOQUE_BAIXO_LIMITE,
     })
 
 
@@ -283,7 +306,77 @@ def pedidos_lista(request):
 @gestor_required
 def pedido_detalhe(request, pk):
     pedido = get_object_or_404(
-        Pedido.objects.select_related('cliente').prefetch_related('itens__produto'),
+        Pedido.objects.select_related('cliente', 'plano_clube').prefetch_related('itens__produto'),
         pk=pk,
     )
     return render(request, 'gestao/pedido_detalhe.html', {'pedido': pedido})
+
+
+@gestor_required
+@require_POST
+def gerar_descricao_ia(request):
+    titulo = (request.POST.get('titulo') or '').strip()
+    tipo = (request.POST.get('tipo') or 'livro').strip()
+    extra = (request.POST.get('extra') or '').strip()
+    if not titulo:
+        return JsonResponse({'ok': False, 'detail': 'Informe o título.'}, status=400)
+    try:
+        descricao = gerar_descricao_produto(titulo, tipo, extra)
+    except ValueError as exc:
+        return JsonResponse({'ok': False, 'detail': str(exc)}, status=400)
+    except Exception:
+        logger.exception('Falha ao gerar descrição IA')
+        return JsonResponse({'ok': False, 'detail': 'Erro ao gerar descrição.'}, status=502)
+    return JsonResponse({'ok': True, 'descricao': descricao})
+
+
+@gestor_required
+def planos_clube_lista(request):
+    planos = PlanoClube.objects.order_by('ordem', 'titulo')
+    return render(request, 'gestao/planos_clube_lista.html', {'planos': planos})
+
+
+@gestor_required
+def plano_clube_criar(request):
+    form = PlanoClubeForm(request.POST or None)
+    if form.is_valid():
+        form.save()
+        messages.success(request, f'Plano "{form.instance.titulo}" criado.')
+        return redirect('gestao_planos_clube_lista')
+    return render(request, 'gestao/form_plano_clube.html', {
+        'form': form,
+        'titulo_pagina': 'Novo plano do clube',
+    })
+
+
+@gestor_required
+def plano_clube_editar(request, pk):
+    plano = get_object_or_404(PlanoClube, pk=pk)
+    form = PlanoClubeForm(request.POST or None, instance=plano)
+    if form.is_valid():
+        form.save()
+        messages.success(request, f'Plano "{plano.titulo}" atualizado.')
+        return redirect('gestao_planos_clube_lista')
+    return render(request, 'gestao/form_plano_clube.html', {
+        'form': form,
+        'titulo_pagina': f'Editar: {plano.titulo}',
+        'plano': plano,
+    })
+
+
+@gestor_required
+def importar_catalogo(request):
+    form = ImportarCatalogoForm(request.POST or None, request.FILES or None)
+    resultado = None
+    if request.method == 'POST' and form.is_valid():
+        resultado = importar_catalogo_csv(form.cleaned_data['arquivo'])
+        if resultado['criados']:
+            messages.success(request, f'{resultado["criados"]} item(ns) importado(s).')
+        if resultado['erros']:
+            messages.warning(request, f'{len(resultado["erros"])} linha(s) com erro.')
+        if resultado['criados'] and not resultado['erros']:
+            return redirect('gestao_dashboard')
+    return render(request, 'gestao/importar_catalogo.html', {
+        'form': form,
+        'resultado': resultado,
+    })

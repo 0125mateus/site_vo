@@ -1,7 +1,7 @@
 from django import forms
 
 from .assistant_intent import get_intent_choices
-from .models import FraseTreinoAssistente, Livro, MidiaAudiovisual, Musica
+from .models import FraseTreinoAssistente, Livro, MidiaAudiovisual, Musica, PlanoClube
 
 
 class MusicaForm(forms.ModelForm):
@@ -119,4 +119,23 @@ class TestarIntencaoForm(forms.Form):
     mensagem = forms.CharField(
         max_length=300,
         widget=forms.TextInput(attrs={'placeholder': 'Digite uma frase para testar…'}),
+    )
+
+
+class PlanoClubeForm(forms.ModelForm):
+    class Meta:
+        model = PlanoClube
+        fields = [
+            'titulo', 'descricao', 'preco_mensal', 'desconto_extra_percent', 'ativo', 'ordem',
+        ]
+        widgets = {
+            'descricao': forms.Textarea(attrs={'rows': 4}),
+            'preco_mensal': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
+        }
+
+
+class ImportarCatalogoForm(forms.Form):
+    arquivo = forms.FileField(
+        label='Arquivo CSV',
+        help_text='Colunas: tipo,titulo,preco,artista|autor,estoque',
     )

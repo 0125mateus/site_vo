@@ -10,7 +10,38 @@
 <div class="wrap">
     <section class="page-panel checkout page-panel--checkout">
         <h1>Finalizar pagamento</h1>
-        <p class="checkout-resumo">Pedido #{{ pedido.id }} — Total: <strong class="mono">R$ {{ pedido.valor_total }}</strong></p>
+
+        <div class="checkout-breakdown">
+            {% if pedido.itens.exists %}
+            <ul class="checkout-items">
+                {% for item in pedido.itens.all %}
+                <li>
+                    <span>{{ item.quantidade }}× {{ item.produto.titulo }} ({{ item.get_modalidade_display }})</span>
+                    <span class="mono">R$ {{ item.subtotal }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            {% if pedido.plano_clube %}
+            <p class="checkout-line mono">
+                <span>{{ pedido.plano_clube.titulo }} (assinatura)</span>
+                <span>R$ {{ pedido.plano_clube.preco_mensal }}</span>
+            </p>
+            {% endif %}
+            {% if subtotal_bruto %}
+            <p class="checkout-line mono">Subtotal: R$ {{ subtotal_bruto }}</p>
+            {% endif %}
+            {% if promos.desconto_combo %}
+            <p class="checkout-line mono checkout-discount">Combo livro + disco: − R$ {{ promos.desconto_combo }}</p>
+            {% endif %}
+            {% if promos.desconto_clube %}
+            <p class="checkout-line mono checkout-discount">Clube: − R$ {{ promos.desconto_clube }}</p>
+            {% endif %}
+            {% if pedido.desconto and not promos.desconto_combo and not promos.desconto_clube %}
+            <p class="checkout-line mono checkout-discount">Desconto: − R$ {{ pedido.desconto }}</p>
+            {% endif %}
+            <p class="checkout-resumo">Pedido #{{ pedido.id }} — Total: <strong class="mono">R$ {{ pedido.valor_total }}</strong></p>
+        </div>
 
         <div id="payment-brick-container" class="payment-brick-wrapper"></div>
         <div id="payment-feedback" class="payment-feedback" hidden></div>

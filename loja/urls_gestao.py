@@ -22,4 +22,9 @@ urlpatterns = [
     path('assistente/frases/<int:pk>/excluir/', views_gestao.assistente_frase_excluir, name='gestao_assistente_frase_excluir'),
     path('pedidos/', views_gestao.pedidos_lista, name='gestao_pedidos_lista'),
     path('pedidos/<int:pk>/', views_gestao.pedido_detalhe, name='gestao_pedido_detalhe'),
+    path('clube/', views_gestao.planos_clube_lista, name='gestao_planos_clube_lista'),
+    path('clube/novo/', views_gestao.plano_clube_criar, name='gestao_plano_clube_criar'),
+    path('clube/<int:pk>/editar/', views_gestao.plano_clube_editar, name='gestao_plano_clube_editar'),
+    path('importar/', views_gestao.importar_catalogo, name='gestao_importar_catalogo'),
+    path('api/gerar-descricao/', views_gestao.gerar_descricao_ia, name='gestao_gerar_descricao_ia'),
 ]

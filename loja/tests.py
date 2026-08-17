@@ -346,3 +346,53 @@ class PromocoesTests(TestCase):
             assinatura.valido_ate,
             timezone.localdate() + timedelta(days=29),
         )
+
+
+class CriarPreferenciaClubeTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(username='assinante', password='senha123')
+        self.client.force_authenticate(user=self.user)
+        self.plano = PlanoClube.objects.create(
+            titulo='Clube Solo',
+            preco_mensal=Decimal('29.90'),
+            ativo=True,
+        )
+        self.pedido = Pedido.objects.create(
+            cliente=self.user,
+            valor_total=self.plano.preco_mensal,
+            plano_clube=self.plano,
+        )
+        self.url = reverse('criar_preferencia_pagamento', kwargs={'pedido_id': self.pedido.pk})
+
+    @patch('loja.views.criar_preferencia_pagamento')
+    @override_settings(MERCADOPAGO_PUBLIC_KEY='TEST_PUBLIC_KEY')
+    def test_pedido_so_clube_cria_preferencia(self, mock_criar):
+        mock_criar.return_value = 'pref-clube'
+
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['preference_id'], 'pref-clube')
+
+
+class NewsletterTests(TestCase):
+    def test_inscricao_newsletter(self):
+        response = self.client.post(reverse('inscrever_newsletter'), {'email': 'novo@example.com'})
+        self.assertEqual(response.status_code, 302)
+        from loja.models import InscricaoNewsletter
+        self.assertTrue(InscricaoNewsletter.objects.filter(email='novo@example.com').exists())
+
+
+class AvaliacaoTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='avaliador', password='senha123')
+        self.produto = Produto.objects.create(titulo='Item', preco=Decimal('10'), estoque=1, ativo=True)
+
+    def test_avaliar_produto(self):
+        self.client.force_login(self.user)
+        url = reverse('avaliar_produto', kwargs={'produto_id': self.produto.pk})
+        response = self.client.post(url, {'nota': 5, 'comentario': 'Ótimo!'})
+        self.assertEqual(response.status_code, 302)
+        from loja.models import Avaliacao
+        av = Avaliacao.objects.get(usuario=self.user, produto=self.produto)
+        self.assertEqual(av.nota, 5)

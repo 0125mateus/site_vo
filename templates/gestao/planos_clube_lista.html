@@ -1,0 +1,42 @@
+{% extends "gestao/base_gestao.html" %}
+
+{% block title %}Planos do clube — Gestão{% endblock %}
+
+{% block content %}
+<div class="gestao-page-head">
+    <div>
+        <h1>Planos do clube</h1>
+        <p class="gestao-page-sub">Assinaturas mensais com desconto extra na loja.</p>
+    </div>
+    <a href="{% url 'gestao_plano_clube_criar' %}" class="btn btn-primary">+ Novo plano</a>
+</div>
+
+{% if planos %}
+<table class="gestao-table">
+    <thead>
+        <tr>
+            <th>Plano</th>
+            <th>Preço/mês</th>
+            <th>Desconto extra</th>
+            <th>Ordem</th>
+            <th>Status</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for plano in planos %}
+        <tr>
+            <td><strong>{{ plano.titulo }}</strong></td>
+            <td class="mono">R$ {{ plano.preco_mensal }}</td>
+            <td class="mono">{{ plano.desconto_extra_percent }}%</td>
+            <td class="mono">{{ plano.ordem }}</td>
+            <td>{% if plano.ativo %}<span class="gestao-badge gestao-badge--ok">Ativo</span>{% else %}<span class="gestao-badge">Inativo</span>{% endif %}</td>
+            <td><a href="{% url 'gestao_plano_clube_editar' plano.pk %}" class="btn btn-ghost btn-sm">Editar</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>Nenhum plano cadastrado.</p>
+{% endif %}
+{% endblock %}

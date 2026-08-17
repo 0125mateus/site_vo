@@ -1,0 +1,48 @@
+{% extends "gestao/base_gestao.html" %}
+
+{% block title %}{{ titulo_pagina }} — Gestão{% endblock %}
+
+{% block content %}
+<div class="gestao-page-head">
+    <div>
+        <a href="{% url 'gestao_planos_clube_lista' %}" class="gestao-back">← Voltar</a>
+        <h1>{{ titulo_pagina }}</h1>
+    </div>
+</div>
+
+<form method="post" class="gestao-form">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="gestao-form-errors">{{ form.non_field_errors }}</div>{% endif %}
+
+    <label for="id_titulo">Título</label>
+    {{ form.titulo }}
+
+    <label for="id_descricao">Descrição</label>
+    {{ form.descricao }}
+
+    <div class="gestao-form-row">
+        <div>
+            <label for="id_preco_mensal">Preço mensal (R$)</label>
+            {{ form.preco_mensal }}
+        </div>
+        <div>
+            <label for="id_desconto_extra_percent">Desconto extra (%)</label>
+            {{ form.desconto_extra_percent }}
+        </div>
+        <div>
+            <label for="id_ordem">Ordem</label>
+            {{ form.ordem }}
+        </div>
+    </div>
+
+    <label class="gestao-checkbox">
+        {{ form.ativo }}
+        <span>Plano ativo na loja</span>
+    </label>
+
+    <div class="gestao-form-actions">
+        <button type="submit" class="btn btn-primary">Salvar</button>
+        <a href="{% url 'gestao_planos_clube_lista' %}" class="btn btn-ghost">Cancelar</a>
+    </div>
+</form>
+{% endblock %}

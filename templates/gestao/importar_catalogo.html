@@ -1,0 +1,36 @@
+{% extends "gestao/base_gestao.html" %}
+
+{% block title %}Importar catálogo — Gestão{% endblock %}
+
+{% block content %}
+<div class="gestao-page-head">
+    <div>
+        <a href="{% url 'gestao_dashboard' %}" class="gestao-back">← Voltar</a>
+        <h1>Importar catálogo (CSV)</h1>
+        <p class="gestao-page-sub">Colunas: <code class="mono">tipo,titulo,preco,artista|autor,estoque</code></p>
+    </div>
+</div>
+
+<form method="post" enctype="multipart/form-data" class="gestao-form">
+    {% csrf_token %}
+    <label for="id_arquivo">Arquivo CSV</label>
+    {{ form.arquivo }}
+    {% if form.arquivo.help_text %}<p class="gestao-field-hint">{{ form.arquivo.help_text }}</p>{% endif %}
+    <div class="gestao-form-actions">
+        <button type="submit" class="btn btn-primary">Importar</button>
+    </div>
+</form>
+
+{% if resultado %}
+<div class="gestao-import-result">
+    <p><strong>{{ resultado.criados }}</strong> item(ns) criado(s).</p>
+    {% if resultado.erros %}
+    <ul class="gestao-import-errors">
+        {% for erro in resultado.erros %}
+        <li>{{ erro }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

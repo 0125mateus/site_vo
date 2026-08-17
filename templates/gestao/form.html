@@ -1,4 +1,5 @@
 {% extends "gestao/base_gestao.html" %}
+{% load static %}
 
 {% block title %}{{ titulo_pagina }} — Gestão{% endblock %}
 
@@ -67,7 +68,13 @@
             {% endif %}
 
             <label for="id_descricao">Descrição</label>
-            {{ form.descricao }}
+            <div class="gestao-descricao-row">
+                {{ form.descricao }}
+                {% if tipo != 'midia' or tipo %}
+                <button type="button" class="btn btn-ghost btn-sm" id="btn-gerar-descricao" data-tipo="{{ tipo }}">✨ Gerar com IA</button>
+                {% endif %}
+            </div>
+            <p class="gestao-field-hint" id="gerar-descricao-status" hidden></p>
 
             <fieldset class="gestao-fieldset">
                 <legend>Venda</legend>
@@ -168,4 +175,8 @@
         <a href="{% url voltar_url %}" class="btn btn-ghost">Cancelar</a>
     </div>
 </form>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/gestao-descricao-ia.js' %}?v={{ STATIC_VERSION }}"></script>
 {% endblock %}

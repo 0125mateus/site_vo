@@ -43,6 +43,12 @@
                 <a href="{% url 'gestao_pedidos_lista' %}" class="gestao-side-link{% if url_name == 'gestao_pedidos_lista' or url_name == 'gestao_pedido_detalhe' %} is-active{% endif %}">
                     <span class="gestao-side-icon" aria-hidden="true">◫</span> Pedidos
                 </a>
+                <a href="{% url 'gestao_planos_clube_lista' %}" class="gestao-side-link{% if url_name == 'gestao_planos_clube_lista' or url_name == 'gestao_plano_clube_criar' or url_name == 'gestao_plano_clube_editar' %} is-active{% endif %}">
+                    <span class="gestao-side-icon" aria-hidden="true">★</span> Clube
+                </a>
+                <a href="{% url 'gestao_importar_catalogo' %}" class="gestao-side-link{% if url_name == 'gestao_importar_catalogo' %} is-active{% endif %}">
+                    <span class="gestao-side-icon" aria-hidden="true">⇪</span> Importar CSV
+                </a>
                 <a href="{% url 'gestao_assistente_frases' %}" class="gestao-side-link{% if url_name == 'gestao_assistente_frases' or url_name == 'gestao_assistente_frase_excluir' %} is-active{% endif %}">
                     <span class="gestao-side-icon" aria-hidden="true">◉</span> Assistente IA
                 </a>
