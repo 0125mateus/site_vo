@@ -4,8 +4,13 @@ from . import views
 
 urlpatterns = [
     path('', views.home, name='home'),
+    path('discos/', views.catalogo_discos, name='catalogo_discos'),
+    path('livros/', views.catalogo_livros, name='catalogo_livros'),
+    path('filmes/', views.catalogo_filmes, name='catalogo_filmes'),
+    path('busca/', views.busca, name='busca'),
     path('item/<int:produto_id>/', views.produto_detalhe, name='produto_detalhe'),
     path('biblioteca/', views.biblioteca, name='biblioteca'),
+    path('biblioteca/reproduzir/<int:item_id>/', views.reproduzir_conteudo, name='reproduzir_conteudo'),
     path('biblioteca/arquivo/<int:item_id>/', views.acessar_arquivo, name='acessar_arquivo'),
     path('carrinho/', views.carrinho, name='carrinho'),
     path('carrinho/adicionar/<int:produto_id>/', views.adicionar_ao_carrinho, name='adicionar_carrinho'),

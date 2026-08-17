@@ -49,8 +49,8 @@
                 </p>
                 <div class="library-card-actions">
                     {% if entry.tem_arquivo and item.acesso_liberado %}
-                    <a href="{% url 'acessar_arquivo' item.id %}" class="btn btn-primary btn-sm" target="_blank" rel="noopener">
-                        {% if produto.arquivo.name|slice:"-4:" == ".mp3" or produto.arquivo.name|slice:"-5:" == ".flac" %}▶ Ouvir{% elif produto.arquivo.name|slice:"-4:" == ".mp4" or produto.arquivo.name|slice:"-5:" == ".webm" %}▶ Assistir{% else %}Abrir arquivo{% endif %}
+                    <a href="{% url 'reproduzir_conteudo' item.id %}" class="btn btn-primary btn-sm">
+                        {% if entry.tipo_midia == 'audio' %}▶ Ouvir{% elif entry.tipo_midia == 'video' %}▶ Assistir{% elif entry.tipo_midia == 'pdf' %}📖 Ler{% else %}Abrir{% endif %}
                     </a>
                     {% elif item.modalidade == 'aluguel' and not item.aluguel_ativo %}
                     <span class="library-badge library-badge--expired">Aluguel encerrado</span>

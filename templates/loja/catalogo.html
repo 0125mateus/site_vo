@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}{{ titulo }} — Vinil & Página{% endblock %}
+
+{% block content %}
+<div class="wrap">
+    <section class="catalog {{ catalog_class }}" id="{{ secao }}">
+        <div class="section-head">
+            <div>
+                <span class="section-eyebrow">{{ eyebrow }}</span>
+                <h1>{{ titulo }}</h1>
+            </div>
+            <span class="tag mono">{{ total }} {{ total_label }}{{ total|pluralize }}</span>
+        </div>
+        <div class="shelf">
+            {% for item in itens %}
+            {% include 'loja/includes/item_card.html' with item=item tipo=tipo %}
+            {% empty %}
+            <p class="shelf-empty">Nenhum item disponível no momento.</p>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}

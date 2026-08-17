@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}{% if q %}Busca: {{ q }}{% else %}Buscar{% endif %} — Vinil & Página{% endblock %}
+
+{% block content %}
+<div class="wrap">
+    <section class="search-page">
+        <h1>Buscar no catálogo</h1>
+        <form class="search-page-form" action="{% url 'busca' %}" method="get" role="search">
+            <input type="search" name="q" value="{{ q }}" placeholder="Discos, livros, filmes, artistas…" autofocus>
+            <button type="submit" class="btn btn-primary">Buscar</button>
+        </form>
+
+        {% if q %}
+        <p class="search-results-count mono">{{ total }} resultado{{ total|pluralize }} para “{{ q }}”</p>
+
+        {% if musicas %}
+        <section class="catalog catalog--discos">
+            <h2>Discos</h2>
+            <div class="shelf">
+                {% for item in musicas %}
+                {% include 'loja/includes/item_card.html' with item=item tipo='musica' %}
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        {% if livros %}
+        <section class="catalog catalog--livros">
+            <h2>Livros</h2>
+            <div class="shelf">
+                {% for item in livros %}
+                {% include 'loja/includes/item_card.html' with item=item tipo='livro' %}
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        {% if midias %}
+        <section class="catalog catalog--midias">
+            <h2>Filmes e DVDs</h2>
+            <div class="shelf">
+                {% for item in midias %}
+                {% include 'loja/includes/item_card.html' with item=item tipo='midia' %}
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        {% if not total %}
+        <div class="library-empty">
+            <p>Nada encontrado. Tente outro termo ou explore o catálogo.</p>
+            <a href="{% url 'home' %}" class="btn btn-primary">Ver catálogo</a>
+        </div>
+        {% endif %}
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

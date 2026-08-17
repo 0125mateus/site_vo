@@ -12,8 +12,9 @@ from django.contrib.auth.views import (
     PasswordResetDoneView,
     PasswordResetView,
 )
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.db import transaction
+from django.db.models import Q
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -113,6 +114,77 @@ def _resolver_produto(produto_id):
     }
 
 
+def _tipo_midia_arquivo(produto) -> str:
+    nome = (produto.arquivo.name if produto.arquivo else '').lower()
+    if nome.endswith(('.mp3', '.flac', '.ogg', '.wav', '.m4a', '.aac')):
+        return 'audio'
+    if nome.endswith(('.mp4', '.webm', '.mkv', '.mov')):
+        return 'video'
+    if nome.endswith('.pdf'):
+        return 'pdf'
+    return 'file'
+
+
+def busca(request):
+    q = request.GET.get('q', '').strip()
+    musicas = livros = midias = []
+    total = 0
+
+    if q:
+        musicas = Musica.objects.filter(
+            ativo=True,
+        ).filter(Q(titulo__icontains=q) | Q(artista__icontains=q))
+        livros = Livro.objects.filter(
+            ativo=True,
+        ).filter(Q(titulo__icontains=q) | Q(autor__icontains=q) | Q(isbn__icontains=q))
+        midias = MidiaAudiovisual.objects.filter(
+            ativo=True,
+        ).filter(Q(titulo__icontains=q) | Q(diretor__icontains=q))
+        total = musicas.count() + livros.count() + midias.count()
+
+    return render(request, 'loja/busca.html', {
+        'q': q,
+        'musicas': musicas,
+        'livros': livros,
+        'midias': midias,
+        'total': total,
+    })
+
+
+def _catalogo_response(request, secao, titulo, eyebrow, queryset, catalog_class, total_label, tipo):
+    return render(request, 'loja/catalogo.html', {
+        'secao': secao,
+        'tipo': tipo,
+        'titulo': titulo,
+        'eyebrow': eyebrow,
+        'itens': queryset.filter(ativo=True),
+        'total': queryset.filter(ativo=True).count(),
+        'catalog_class': catalog_class,
+        'total_label': total_label,
+    })
+
+
+def catalogo_discos(request):
+    return _catalogo_response(
+        request, 'discos', 'Na prateleira dos discos', 'Vinil · Disqueira',
+        Musica.objects.all(), 'catalog--discos', 'título', 'musica',
+    )
+
+
+def catalogo_livros(request):
+    return _catalogo_response(
+        request, 'livros', 'Na prateleira dos livros', 'Sebo · Lombadas',
+        Livro.objects.all(), 'catalog--livros', 'título', 'livro',
+    )
+
+
+def catalogo_filmes(request):
+    return _catalogo_response(
+        request, 'midias', 'Filmes, DVDs e vídeos', 'Cinema · DVD / Blu-ray',
+        MidiaAudiovisual.objects.all(), 'catalog--midias', 'título', 'midia',
+    )
+
+
 def home(request):
     musicas = Musica.objects.filter(ativo=True)
     livros = Livro.objects.filter(ativo=True)
@@ -163,6 +235,7 @@ def biblioteca(request):
             'item': item,
             'produto': item.produto,
             'tem_arquivo': item.produto.tem_arquivo,
+            'tipo_midia': _tipo_midia_arquivo(item.produto) if item.produto.tem_arquivo else None,
         }
         if item.modalidade == ModalidadeComercial.VENDA:
             compras.append(entry)
@@ -184,6 +257,28 @@ def biblioteca(request):
         'total_alugueis': len(alugueis_ativos),
         'total_expirados': len(expirados),
     })
+
+
+@login_required
+def reproduzir_conteudo(request, item_id):
+    item = get_object_or_404(
+        ItemPedido.objects.select_related('produto', 'pedido'),
+        pk=item_id,
+        pedido__cliente=request.user,
+    )
+    if not item.acesso_liberado:
+        raise Http404('Acesso não disponível.')
+    if not item.produto.arquivo:
+        raise Http404('Este item não possui arquivo digital.')
+
+    ctx = _resolver_produto(item.produto_id)
+    tipo_midia = _tipo_midia_arquivo(item.produto)
+    ctx.update({
+        'item': item,
+        'tipo_midia': tipo_midia,
+        'arquivo_url': reverse('acessar_arquivo', args=[item.id]),
+    })
+    return render(request, 'loja/reproduzir.html', ctx)
 
 
 @login_required

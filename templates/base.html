@@ -13,24 +13,29 @@
     {% block extra_head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
+    {% with url_name=request.resolver_match.url_name|default:'' %}
     <header>
         <div class="wrap header-inner">
             <a href="{% url 'home' %}" class="logo">
                 <span class="mark" aria-hidden="true"></span>
                 Vinil &amp; Página
             </a>
-            <nav>
+            <form class="header-search" action="{% url 'busca' %}" method="get" role="search">
+                <input type="search" name="q" placeholder="Buscar…" aria-label="Buscar no catálogo" value="{% if url_name == 'busca' %}{{ request.GET.q }}{% endif %}">
+            </form>
+            <nav class="header-nav">
                 <ul>
-                    <li><a href="{% url 'home' %}#discos">Discos</a></li>
-                    <li><a href="{% url 'home' %}#livros">Livros</a></li>
-                    <li><a href="{% url 'home' %}#midias">Filmes / DVDs</a></li>
-                    <li><a href="{% url 'home' %}#destaques">Lançamentos</a></li>
-                    <li><a href="{% url 'home' %}#curadoria">Curadoria</a></li>
+                    <li><a href="{% url 'home' %}" class="{% if url_name == 'home' %}is-active{% endif %}">Início</a></li>
+                    <li><a href="{% url 'catalogo_discos' %}" class="{% if url_name == 'catalogo_discos' %}is-active{% endif %}">Música</a></li>
+                    <li><a href="{% url 'catalogo_filmes' %}" class="{% if url_name == 'catalogo_filmes' %}is-active{% endif %}">Filmes</a></li>
+                    <li><a href="{% url 'catalogo_livros' %}" class="{% if url_name == 'catalogo_livros' %}is-active{% endif %}">Livros</a></li>
+                    {% if user.is_authenticated %}
+                    <li><a href="{% url 'biblioteca' %}" class="{% if url_name == 'biblioteca' or url_name == 'reproduzir_conteudo' %}is-active{% endif %}">Biblioteca</a></li>
+                    {% endif %}
                 </ul>
             </nav>
             <div class="header-actions">
                 {% if user.is_authenticated %}
-                    <a href="{% url 'biblioteca' %}" class="header-link">Biblioteca</a>
                     <span class="user-greeting">{{ user.username }}</span>
                     <form method="post" action="{% url 'logout' %}" class="gestao-logout-form">
                         {% csrf_token %}
@@ -43,6 +48,7 @@
             </div>
         </div>
     </header>
+    {% endwith %}
 
     <main>
         {% block content %}{% endblock %}

@@ -1,0 +1,52 @@
+{% load static %}
+{# item: produto; tipo: musica|livro|midia #}
+<div class="item-card">
+    <a href="{% url 'produto_detalhe' item.id %}" class="item-card-cover">
+    {% if tipo == 'livro' %}
+    <div class="spine {% cycle 'h1' 'h2' 'h3' %}{% if item.imagem %} spine--image{% endif %}"{% if item.imagem %} style="background-image: url('{{ item.imagem.url }}')"{% endif %}>
+        <span>{{ item.titulo }}</span>
+    </div>
+    {% else %}
+    <div class="sleeve{% if tipo == 'midia' %} sleeve--midia{% endif %}{% if item.imagem %} sleeve--image{% endif %}"{% if item.imagem %} style="background-image: url('{{ item.imagem.url }}')"{% endif %}>
+        {% if tipo == 'musica' and not item.imagem %}
+        <div class="disc-peek"></div>
+        <div>
+            <div class="title">{{ item.titulo }}</div>
+            <div class="artist">{{ item.artista }}</div>
+        </div>
+        {% elif tipo == 'midia' and not item.imagem %}
+        <div>
+            <div class="title">{{ item.titulo }}</div>
+            <div class="artist">{{ item.get_tipo_display }}{% if item.diretor %} · {{ item.diretor }}{% endif %}</div>
+        </div>
+        {% elif item.imagem %}
+        <div class="sleeve-overlay">
+            <div class="title">{{ item.titulo }}</div>
+            <div class="artist">{% if tipo == 'musica' %}{{ item.artista }}{% elif tipo == 'midia' %}{{ item.get_tipo_display }}{% else %}{{ item.autor }}{% endif %}</div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+    </a>
+    <div class="item-prices mono">
+        {% if item.disponivel_venda %}<span>Venda R$ {{ item.preco }}</span>{% endif %}
+        {% if item.disponivel_aluguel %}<span>Aluguel R$ {{ item.preco_aluguel }}/{{ item.dias_aluguel }}d</span>{% endif %}
+    </div>
+    <div class="item-actions">
+        <a href="{% url 'produto_detalhe' item.id %}" class="btn btn-ghost btn-sm">Detalhes</a>
+        {% if item.disponivel_venda and item.estoque > 0 and item.preco > 0 %}
+        <form method="post" action="{% url 'adicionar_carrinho' item.id %}">
+            {% csrf_token %}
+            <input type="hidden" name="modalidade" value="venda">
+            <button type="submit" class="btn btn-primary btn-sm">Comprar</button>
+        </form>
+        {% endif %}
+        {% if item.disponivel_aluguel and item.estoque_aluguel > 0 and item.preco_aluguel > 0 %}
+        <form method="post" action="{% url 'adicionar_carrinho' item.id %}">
+            {% csrf_token %}
+            <input type="hidden" name="modalidade" value="aluguel">
+            <button type="submit" class="btn btn-ghost btn-sm">Alugar</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
