@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ produto.titulo }} — Vinil & Página{% endblock %}
+
+{% block content %}
+<div class="wrap">
+    <nav class="detail-breadcrumb mono">
+        <a href="{% url 'home' %}">Início</a>
+        <span aria-hidden="true">/</span>
+        {% if tipo == 'musica' %}<a href="{% url 'home' %}#discos">Discos</a>{% endif %}
+        {% if tipo == 'livro' %}<a href="{% url 'home' %}#livros">Livros</a>{% endif %}
+        {% if tipo == 'midia' %}<a href="{% url 'home' %}#midias">Filmes</a>{% endif %}
+        <span aria-hidden="true">/</span>
+        <span>{{ produto.titulo|truncatechars:40 }}</span>
+    </nav>
+
+    <article class="item-detail">
+        <div class="item-detail-media item-detail-media--{{ tipo }}">
+            {% if produto.imagem %}
+            <img src="{{ produto.imagem.url }}" alt="Capa de {{ produto.titulo }}">
+            {% else %}
+            <div class="item-detail-placeholder">
+                <span class="item-detail-type mono">{{ tipo_label }}</span>
+                <strong>{{ produto.titulo }}</strong>
+                {% if subtitulo %}<span>{{ subtitulo }}</span>{% endif %}
+            </div>
+            {% endif %}
+
+            {% if tipo == 'midia' and midia.tem_trailer %}
+            <button
+                type="button"
+                class="btn btn-ghost btn-sm btn-trailer item-detail-trailer"
+                data-trailer-title="{{ produto.titulo|escape }}"
+                {% if midia.trailer %}data-trailer-file="{{ midia.trailer.url }}"{% endif %}
+                {% if midia.trailer_embed_url %}data-trailer-embed="{{ midia.trailer_embed_url }}"{% endif %}
+            >▶ Ver trailer</button>
+            {% endif %}
+        </div>
+
+        <div class="item-detail-body">
+            <span class="section-eyebrow">{{ tipo_label }}</span>
+            <h1>{{ produto.titulo }}</h1>
+            {% if subtitulo %}<p class="item-detail-sub">{{ subtitulo }}</p>{% endif %}
+            {% if meta_extra %}<p class="item-detail-meta mono">{{ meta_extra }}</p>{% endif %}
+
+            {% if produto.descricao %}
+            <div class="item-detail-desc">
+                <h2>Sobre</h2>
+                <p>{{ produto.descricao|linebreaksbr }}</p>
+            </div>
+            {% endif %}
+
+            <div class="item-detail-commerce">
+                {% if pode_venda or pode_aluguel %}
+                <div class="modalidade-toggle" role="group" aria-label="Modalidade">
+                    {% if pode_venda %}
+                    <button type="button" class="modalidade-toggle-btn is-active" data-modalidade="venda">
+                        Comprar
+                        <span class="mono">R$ {{ produto.preco }}</span>
+                    </button>
+                    {% endif %}
+                    {% if pode_aluguel %}
+                    <button type="button" class="modalidade-toggle-btn{% if not pode_venda %} is-active{% endif %}" data-modalidade="aluguel">
+                        Alugar
+                        <span class="mono">R$ {{ produto.preco_aluguel }} / {{ produto.dias_aluguel }}d</span>
+                    </button>
+                    {% endif %}
+                </div>
+
+                <form method="post" action="{% url 'adicionar_carrinho' produto.id %}" class="item-detail-form" id="item-detail-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="modalidade" id="item-modalidade" value="{% if pode_venda %}venda{% else %}aluguel{% endif %}">
+                    <input type="hidden" name="next" value="{{ request.path }}">
+                    <button type="submit" class="btn btn-primary btn-detail-cta" id="item-detail-cta">
+                        {% if pode_venda %}Adicionar compra ao carrinho{% else %}Adicionar aluguel ao carrinho{% endif %}
+                    </button>
+                </form>
+
+                <p class="item-detail-hint mono" id="item-detail-hint">
+                    {% if pode_venda %}Compra: o item é seu após o pagamento.{% endif %}
+                    {% if pode_venda and pode_aluguel %} · {% endif %}
+                    {% if pode_aluguel %}Aluguel: acesso por {{ produto.dias_aluguel }} dias após pagamento.{% endif %}
+                </p>
+                {% else %}
+                <p class="item-detail-unavailable">Indisponível no momento.</p>
+                {% endif %}
+            </div>
+        </div>
+    </article>
+</div>
+
+{% if tipo == 'midia' and midia.tem_trailer %}
+<div class="trailer-modal" id="trailer-modal" hidden>
+    <div class="trailer-modal-backdrop" data-trailer-close></div>
+    <div class="trailer-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="trailer-modal-title">
+        <div class="trailer-modal-head">
+            <h3 id="trailer-modal-title">Trailer</h3>
+            <button type="button" class="trailer-modal-close" data-trailer-close aria-label="Fechar">×</button>
+        </div>
+        <div class="trailer-modal-body">
+            <video id="trailer-video" controls playsinline></video>
+            <iframe
+                id="trailer-iframe"
+                title="Trailer"
+                referrerpolicy="strict-origin-when-cross-origin"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen
+            ></iframe>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/item-detail.js' %}?v={{ STATIC_VERSION }}"></script>
+{% if tipo == 'midia' and midia.tem_trailer %}
+<script src="{% static 'js/trailer-preview.js' %}?v={{ STATIC_VERSION }}"></script>
+{% endif %}
+{% endblock %}

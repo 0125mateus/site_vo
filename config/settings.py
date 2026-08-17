@@ -87,7 +87,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATIC_VERSION = '20260817a'
+STATIC_VERSION = '20260817b'
 
 STORAGES = {
     'default': {

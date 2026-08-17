@@ -30,6 +30,7 @@
             </nav>
             <div class="header-actions">
                 {% if user.is_authenticated %}
+                    <a href="{% url 'biblioteca' %}" class="header-link">Biblioteca</a>
                     <span class="user-greeting">{{ user.username }}</span>
                     <form method="post" action="{% url 'logout' %}" class="gestao-logout-form">
                         {% csrf_token %}

@@ -34,6 +34,7 @@
         <div class="shelf">
             {% for musica in musicas %}
             <div class="item-card">
+                <a href="{% url 'produto_detalhe' musica.id %}" class="item-card-cover">
                 <div class="sleeve{% if musica.imagem %} sleeve--image{% endif %}"{% if musica.imagem %} style="background-image: url('{{ musica.imagem.url }}')"{% endif %}>
                     {% if not musica.imagem %}
                     <div class="disc-peek"></div>
@@ -48,11 +49,13 @@
                     </div>
                     {% endif %}
                 </div>
+                </a>
                 <div class="item-prices mono">
                     {% if musica.disponivel_venda %}<span>Venda R$ {{ musica.preco }}</span>{% endif %}
                     {% if musica.disponivel_aluguel %}<span>Aluguel R$ {{ musica.preco_aluguel }}/{{ musica.dias_aluguel }}d</span>{% endif %}
                 </div>
                 <div class="item-actions">
+                    <a href="{% url 'produto_detalhe' musica.id %}" class="btn btn-ghost btn-sm">Detalhes</a>
                     {% if musica.disponivel_venda and musica.estoque > 0 and musica.preco > 0 %}
                     <form method="post" action="{% url 'adicionar_carrinho' musica.id %}">
                         {% csrf_token %}
@@ -86,14 +89,17 @@
         <div class="shelf">
             {% for livro in livros %}
             <div class="item-card">
+                <a href="{% url 'produto_detalhe' livro.id %}" class="item-card-cover">
                 <div class="spine {% cycle 'h1' 'h2' 'h3' %}{% if livro.imagem %} spine--image{% endif %}"{% if livro.imagem %} style="background-image: url('{{ livro.imagem.url }}')"{% endif %}>
                     <span>{{ livro.titulo }}</span>
                 </div>
+                </a>
                 <div class="item-prices mono">
                     {% if livro.disponivel_venda %}<span>Venda R$ {{ livro.preco }}</span>{% endif %}
                     {% if livro.disponivel_aluguel %}<span>Aluguel R$ {{ livro.preco_aluguel }}/{{ livro.dias_aluguel }}d</span>{% endif %}
                 </div>
                 <div class="item-actions">
+                    <a href="{% url 'produto_detalhe' livro.id %}" class="btn btn-ghost btn-sm">Detalhes</a>
                     {% if livro.disponivel_venda and livro.estoque > 0 and livro.preco > 0 %}
                     <form method="post" action="{% url 'adicionar_carrinho' livro.id %}">
                         {% csrf_token %}
@@ -127,6 +133,7 @@
         <div class="shelf">
             {% for midia in midias %}
             <div class="item-card">
+                <a href="{% url 'produto_detalhe' midia.id %}" class="item-card-cover">
                 <div class="sleeve sleeve--midia{% if midia.imagem %} sleeve--image{% endif %}"{% if midia.imagem %} style="background-image: url('{{ midia.imagem.url }}')"{% endif %}>
                     {% if not midia.imagem %}
                     <div>
@@ -140,11 +147,13 @@
                     </div>
                     {% endif %}
                 </div>
+                </a>
                 <div class="item-prices mono">
                     {% if midia.disponivel_venda %}<span>Venda R$ {{ midia.preco }}</span>{% endif %}
                     {% if midia.disponivel_aluguel %}<span>Aluguel R$ {{ midia.preco_aluguel }}/{{ midia.dias_aluguel }}d</span>{% endif %}
                 </div>
                 <div class="item-actions">
+                    <a href="{% url 'produto_detalhe' midia.id %}" class="btn btn-ghost btn-sm">Detalhes</a>
                     {% if midia.tem_trailer %}
                     <button
                         type="button"

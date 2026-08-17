@@ -14,6 +14,7 @@ from django.contrib.auth.views import (
 )
 from django.urls import reverse_lazy
 from django.db import transaction
+from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
@@ -67,6 +68,51 @@ def _carrinho_total_itens(carrinho):
     return sum(item.get('quantidade', 0) for item in carrinho.values())
 
 
+def _resolver_produto(produto_id):
+    """Retorna produto ativo com metadados do subtipo (disco, livro, mídia)."""
+    produto = get_object_or_404(Produto, pk=produto_id, ativo=True)
+    musica = Musica.objects.filter(pk=produto_id).first()
+    if musica:
+        return {
+            'produto': musica,
+            'tipo': 'musica',
+            'tipo_label': 'Disco',
+            'subtitulo': musica.artista,
+            'meta_extra': musica.formato,
+        }
+    livro = Livro.objects.filter(pk=produto_id).first()
+    if livro:
+        return {
+            'produto': livro,
+            'tipo': 'livro',
+            'tipo_label': 'Livro',
+            'subtitulo': livro.autor,
+            'meta_extra': livro.isbn or '',
+        }
+    midia = MidiaAudiovisual.objects.filter(pk=produto_id).first()
+    if midia:
+        partes = [midia.get_tipo_display()]
+        if midia.diretor:
+            partes.append(midia.diretor)
+        if midia.ano:
+            partes.append(str(midia.ano))
+        return {
+            'produto': midia,
+            'tipo': 'midia',
+            'tipo_label': midia.get_tipo_display(),
+            'subtitulo': midia.diretor or midia.get_tipo_display(),
+            'meta_extra': ' · '.join(partes),
+            'midia': midia,
+        }
+    return {
+        'produto': produto,
+        'tipo': 'produto',
+        'tipo_label': 'Item',
+        'subtitulo': '',
+        'meta_extra': '',
+    }
+
+
 def home(request):
     musicas = Musica.objects.filter(ativo=True)
     livros = Livro.objects.filter(ativo=True)
@@ -80,6 +126,80 @@ def home(request):
         'total_midias': midias.count(),
         'ModalidadeComercial': ModalidadeComercial,
     })
+
+
+def produto_detalhe(request, produto_id):
+    ctx = _resolver_produto(produto_id)
+    produto = ctx['produto']
+    ctx.update({
+        'ModalidadeComercial': ModalidadeComercial,
+        'pode_venda': produto.disponivel_para(ModalidadeComercial.VENDA),
+        'pode_aluguel': produto.disponivel_para(ModalidadeComercial.ALUGUEL),
+    })
+    return render(request, 'loja/produto_detalhe.html', ctx)
+
+
+@login_required
+def biblioteca(request):
+    aba = request.GET.get('aba', 'compras')
+    if aba not in ('compras', 'alugueis', 'expirados'):
+        aba = 'compras'
+
+    itens = (
+        ItemPedido.objects.filter(
+            pedido__cliente=request.user,
+            pedido__status=Pedido.STATUS_APROVADO,
+        )
+        .select_related('produto', 'pedido')
+        .order_by('-pedido__criado_em')
+    )
+
+    compras = []
+    alugueis_ativos = []
+    expirados = []
+
+    for item in itens:
+        entry = {
+            'item': item,
+            'produto': item.produto,
+            'tem_arquivo': item.produto.tem_arquivo,
+        }
+        if item.modalidade == ModalidadeComercial.VENDA:
+            compras.append(entry)
+        elif item.aluguel_ativo:
+            alugueis_ativos.append(entry)
+        else:
+            expirados.append(entry)
+
+    listas = {
+        'compras': compras,
+        'alugueis': alugueis_ativos,
+        'expirados': expirados,
+    }
+
+    return render(request, 'loja/biblioteca.html', {
+        'aba': aba,
+        'itens_aba': listas[aba],
+        'total_compras': len(compras),
+        'total_alugueis': len(alugueis_ativos),
+        'total_expirados': len(expirados),
+    })
+
+
+@login_required
+def acessar_arquivo(request, item_id):
+    item = get_object_or_404(
+        ItemPedido.objects.select_related('produto', 'pedido'),
+        pk=item_id,
+        pedido__cliente=request.user,
+    )
+    if not item.acesso_liberado:
+        raise Http404('Acesso não disponível.')
+    if not item.produto.arquivo:
+        raise Http404('Este item não possui arquivo digital.')
+
+    arquivo = item.produto.arquivo
+    return FileResponse(arquivo.open('rb'), as_attachment=False, filename=arquivo.name.split('/')[-1])
 
 
 def carrinho(request):
@@ -141,6 +261,9 @@ def adicionar_ao_carrinho(request, produto_id):
     _set_carrinho(request, carrinho)
     label = 'aluguel' if modalidade == ModalidadeComercial.ALUGUEL else 'compra'
     messages.success(request, f'"{produto.titulo}" adicionado ao carrinho ({label}).')
+    next_url = request.POST.get('next') or request.GET.get('next')
+    if next_url:
+        return redirect(next_url)
     return redirect('carrinho')
 
 

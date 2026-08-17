@@ -248,6 +248,34 @@ class ItemPedido(models.Model):
     def is_aluguel(self):
         return self.modalidade == ModalidadeComercial.ALUGUEL
 
+    @property
+    def pedido_aprovado(self) -> bool:
+        return self.pedido.status == Pedido.STATUS_APROVADO
+
+    @property
+    def aluguel_ativo(self) -> bool:
+        if not self.is_aluguel or not self.pedido_aprovado:
+            return False
+        if not self.data_devolucao:
+            return True
+        from django.utils import timezone
+        return self.data_devolucao >= timezone.localdate()
+
+    @property
+    def dias_restantes(self) -> int | None:
+        if not self.is_aluguel or not self.data_devolucao:
+            return None
+        from django.utils import timezone
+        return max(0, (self.data_devolucao - timezone.localdate()).days)
+
+    @property
+    def acesso_liberado(self) -> bool:
+        if not self.pedido_aprovado:
+            return False
+        if self.modalidade == ModalidadeComercial.VENDA:
+            return True
+        return self.aluguel_ativo
+
 
 class Pagamento(models.Model):
     pedido = models.OneToOneField(Pedido, on_delete=models.CASCADE, related_name='pagamento')

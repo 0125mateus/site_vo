@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Minha biblioteca — Vinil & Página{% endblock %}
+
+{% block content %}
+<div class="wrap">
+    <section class="library-head">
+        <div>
+            <span class="section-eyebrow">Sua conta</span>
+            <h1>Minha biblioteca</h1>
+            <p class="library-desc">Compras permanentes e aluguéis ativos — acesse o conteúdo digital aqui.</p>
+        </div>
+        <a href="{% url 'home' %}" class="btn btn-ghost">Explorar catálogo</a>
+    </section>
+
+    <nav class="library-tabs" aria-label="Biblioteca">
+        <a href="?aba=compras" class="library-tab{% if aba == 'compras' %} is-active{% endif %}">
+            Compras <span class="mono">({{ total_compras }})</span>
+        </a>
+        <a href="?aba=alugueis" class="library-tab{% if aba == 'alugueis' %} is-active{% endif %}">
+            Aluguéis ativos <span class="mono">({{ total_alugueis }})</span>
+        </a>
+        <a href="?aba=expirados" class="library-tab{% if aba == 'expirados' %} is-active{% endif %}">
+            Expirados <span class="mono">({{ total_expirados }})</span>
+        </a>
+    </nav>
+
+    {% if itens_aba %}
+    <div class="library-grid">
+        {% for entry in itens_aba %}
+        {% with item=entry.item produto=entry.produto %}
+        <article class="library-card">
+            <a href="{% url 'produto_detalhe' produto.id %}" class="library-card-media">
+                {% if produto.imagem %}
+                <img src="{{ produto.imagem.url }}" alt="">
+                {% else %}
+                <div class="library-card-placeholder">{{ produto.titulo|truncatechars:24 }}</div>
+                {% endif %}
+            </a>
+            <div class="library-card-body">
+                <h2><a href="{% url 'produto_detalhe' produto.id %}">{{ produto.titulo }}</a></h2>
+                <p class="library-card-meta mono">
+                    {% if item.modalidade == 'venda' %}
+                    Compra · pedido #{{ item.pedido_id }}
+                    {% else %}
+                    Aluguel · {% if item.dias_restantes is not None %}{{ item.dias_restantes }} dia{{ item.dias_restantes|pluralize }} restante{{ item.dias_restantes|pluralize }}{% endif %}
+                    {% if item.data_devolucao %} · até {{ item.data_devolucao|date:"d/m/Y" }}{% endif %}
+                    {% endif %}
+                </p>
+                <div class="library-card-actions">
+                    {% if entry.tem_arquivo and item.acesso_liberado %}
+                    <a href="{% url 'acessar_arquivo' item.id %}" class="btn btn-primary btn-sm" target="_blank" rel="noopener">
+                        {% if produto.arquivo.name|slice:"-4:" == ".mp3" or produto.arquivo.name|slice:"-5:" == ".flac" %}▶ Ouvir{% elif produto.arquivo.name|slice:"-4:" == ".mp4" or produto.arquivo.name|slice:"-5:" == ".webm" %}▶ Assistir{% else %}Abrir arquivo{% endif %}
+                    </a>
+                    {% elif item.modalidade == 'aluguel' and not item.aluguel_ativo %}
+                    <span class="library-badge library-badge--expired">Aluguel encerrado</span>
+                    {% elif not entry.tem_arquivo %}
+                    <span class="library-badge">Item físico</span>
+                    {% endif %}
+                </div>
+            </div>
+        </article>
+        {% endwith %}
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="library-empty">
+        {% if aba == 'compras' %}
+        <p>Você ainda não comprou nada. Explore discos, livros e filmes no catálogo.</p>
+        {% elif aba == 'alugueis' %}
+        <p>Nenhum aluguel ativo. Alugue um título e ele aparecerá aqui após o pagamento.</p>
+        {% else %}
+        <p>Nenhum aluguel expirado.</p>
+        {% endif %}
+        <a href="{% url 'home' %}" class="btn btn-primary">Ir ao catálogo</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
