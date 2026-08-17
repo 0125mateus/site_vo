@@ -3,60 +3,93 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>{% block title %}Gestão — Vinil & Página{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/style.css' %}?v={{ STATIC_VERSION }}">
     <link rel="stylesheet" href="{% static 'css/gestao.css' %}?v={{ STATIC_VERSION }}">
     <link rel="stylesheet" href="{% static 'css/assistant.css' %}?v={{ STATIC_VERSION }}">
     {% block extra_head %}{% endblock %}
 </head>
 <body class="gestao-body">
-    <header class="gestao-header">
-        <div class="wrap gestao-header-inner">
-            <a href="{% url 'gestao_dashboard' %}" class="logo">
+    {% with url_name=request.resolver_match.url_name|default:'' %}
+    {% if user.is_authenticated and user.is_staff %}
+    <div class="gestao-layout" id="gestao-layout">
+        <div class="gestao-sidebar-backdrop" id="gestao-sidebar-backdrop" hidden data-gestao-nav-close></div>
+        <aside class="gestao-sidebar" id="gestao-sidebar" aria-label="Menu de gestão">
+            <a href="{% url 'gestao_dashboard' %}" class="gestao-brand logo">
                 <span class="mark" aria-hidden="true"></span>
-                Gestão
+                <span class="gestao-brand-text">
+                    <strong>Gestão</strong>
+                    <small class="mono">Vinil &amp; Página</small>
+                </span>
             </a>
-            {% if user.is_authenticated and user.is_staff %}
-            <nav class="gestao-nav">
-                <a href="{% url 'gestao_dashboard' %}">Início</a>
-                <a href="{% url 'gestao_discos_lista' %}">Discos</a>
-                <a href="{% url 'gestao_livros_lista' %}">Livros</a>
-                <a href="{% url 'gestao_midias_lista' %}">Filmes / DVDs</a>
-                <a href="{% url 'gestao_pedidos_lista' %}">Pedidos</a>
-                <a href="{% url 'gestao_assistente_frases' %}">Assistente IA</a>
-                <a href="{% url 'home' %}" target="_blank" rel="noopener">Ver loja ↗</a>
-            </nav>
-            <div class="gestao-header-actions">
-                <span class="user-greeting">{{ user.username }}</span>
-                <form method="post" action="{% url 'gestao_sair' %}" class="gestao-logout-form">
-                    {% csrf_token %}
-                    <button type="submit" class="header-link gestao-logout-btn">Sair</button>
-                </form>
-            </div>
-            {% endif %}
-        </div>
-    </header>
 
-    <main class="gestao-main">
-        <div class="wrap">
-            {% if messages %}
-            <div class="gestao-messages">
-                {% for message in messages %}
-                <p class="gestao-message gestao-message--{{ message.tags }}">{{ message }}</p>
-                {% endfor %}
+            <nav class="gestao-side-nav">
+                <a href="{% url 'gestao_dashboard' %}" class="gestao-side-link{% if url_name == 'gestao_dashboard' %} is-active{% endif %}">
+                    <span class="gestao-side-icon" aria-hidden="true">⌂</span> Início
+                </a>
+                <a href="{% url 'gestao_discos_lista' %}" class="gestao-side-link{% if url_name == 'gestao_discos_lista' or url_name == 'gestao_disco_criar' or url_name == 'gestao_disco_editar' or url_name == 'gestao_disco_excluir' %} is-active{% endif %}">
+                    <span class="gestao-side-icon" aria-hidden="true">♪</span> Discos
+                </a>
+                <a href="{% url 'gestao_livros_lista' %}" class="gestao-side-link{% if url_name == 'gestao_livros_lista' or url_name == 'gestao_livro_criar' or url_name == 'gestao_livro_editar' or url_name == 'gestao_livro_excluir' %} is-active{% endif %}">
+                    <span class="gestao-side-icon" aria-hidden="true">▤</span> Livros
+                </a>
+                <a href="{% url 'gestao_midias_lista' %}" class="gestao-side-link{% if url_name == 'gestao_midias_lista' or url_name == 'gestao_midia_criar' or url_name == 'gestao_midia_editar' or url_name == 'gestao_midia_excluir' %} is-active{% endif %}">
+                    <span class="gestao-side-icon" aria-hidden="true">▶</span> Filmes / DVDs
+                </a>
+                <a href="{% url 'gestao_pedidos_lista' %}" class="gestao-side-link{% if url_name == 'gestao_pedidos_lista' or url_name == 'gestao_pedido_detalhe' %} is-active{% endif %}">
+                    <span class="gestao-side-icon" aria-hidden="true">◫</span> Pedidos
+                </a>
+                <a href="{% url 'gestao_assistente_frases' %}" class="gestao-side-link{% if url_name == 'gestao_assistente_frases' or url_name == 'gestao_assistente_frase_excluir' %} is-active{% endif %}">
+                    <span class="gestao-side-icon" aria-hidden="true">◉</span> Assistente IA
+                </a>
+            </nav>
+
+            <div class="gestao-sidebar-foot">
+                <a href="{% url 'home' %}" class="gestao-side-link gestao-side-link--muted" target="_blank" rel="noopener">Ver loja ↗</a>
+                <div class="gestao-sidebar-user">
+                    <span class="mono">{{ user.username }}</span>
+                    <form method="post" action="{% url 'gestao_sair' %}" class="gestao-logout-form">
+                        {% csrf_token %}
+                        <button type="submit" class="gestao-logout-btn">Sair</button>
+                    </form>
+                </div>
             </div>
-            {% endif %}
-            {% block content %}{% endblock %}
+        </aside>
+
+        <div class="gestao-workspace">
+            <header class="gestao-mobile-bar">
+                <button type="button" class="gestao-menu-btn" id="gestao-menu-open" aria-label="Abrir menu">☰</button>
+                <span class="gestao-mobile-title">Gestão</span>
+            </header>
+    {% endif %}
+
+            <main class="gestao-main{% if not user.is_authenticated or not user.is_staff %} gestao-main--guest{% endif %}">
+                <div class="wrap gestao-wrap">
+                    {% if messages %}
+                    <div class="gestao-messages">
+                        {% for message in messages %}
+                        <p class="gestao-message gestao-message--{{ message.tags }}">{{ message }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    {% block content %}{% endblock %}
+                </div>
+            </main>
+
+    {% if user.is_authenticated and user.is_staff %}
         </div>
-    </main>
+    </div>
+    {% endif %}
+    {% endwith %}
 
     {% if user.is_authenticated and user.is_staff %}
     {% include 'includes/assistant_widget.html' with assistant_audience='gestor' %}
     <script src="{% static 'js/assistant.js' %}?v={{ STATIC_VERSION }}"></script>
+    <script src="{% static 'js/gestao-nav.js' %}?v={{ STATIC_VERSION }}"></script>
     {% endif %}
     {% block extra_js %}{% endblock %}
 </body>

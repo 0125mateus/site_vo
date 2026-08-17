@@ -1,38 +1,118 @@
-/* Gestão — painel da loja */
+/* Gestão — painel alinhado à estética sebo / disqueira */
 
 .gestao-body {
     min-height: 100vh;
+    min-height: 100dvh;
+    background-color: var(--paper);
+    background-image:
+        radial-gradient(ellipse at 8% 0%, rgba(166, 132, 47, 0.07), transparent 42%),
+        linear-gradient(180deg, var(--paper) 0%, var(--paper-deep) 100%);
 }
 
-.gestao-header {
-    padding: 20px 0;
-    border-bottom: 1px solid var(--line);
-    background: var(--card);
+.gestao-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: 100dvh;
 }
 
-.gestao-header-inner {
+.gestao-sidebar {
+    position: sticky;
+    top: 0;
+    height: 100dvh;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-    flex-wrap: wrap;
+    flex-direction: column;
+    padding: var(--space-3) var(--space-2);
+    background: linear-gradient(180deg, rgba(247, 240, 226, 0.98), rgba(237, 228, 208, 0.95));
+    border-right: 1px solid var(--line);
+    box-shadow: 4px 0 24px rgba(42, 31, 24, 0.04);
+    z-index: 100;
 }
 
-.gestao-nav {
-    display: flex;
-    gap: 24px;
-    font-size: 14px;
-}
-
-.gestao-nav a:hover {
-    color: var(--burgundy);
-}
-
-.gestao-header-actions {
+.gestao-brand {
     display: flex;
     align-items: center;
     gap: 12px;
-    flex-shrink: 0;
+    margin-bottom: var(--space-4);
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid var(--line);
+}
+
+.gestao-brand-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.gestao-brand-text strong {
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+}
+
+.gestao-brand-text small {
+    font-size: 0.625rem;
+    color: var(--ink-soft);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.gestao-side-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.gestao-side-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-small);
+    font-weight: 500;
+    color: var(--ink-soft);
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.gestao-side-link:hover {
+    background: rgba(110, 44, 44, 0.06);
+    color: var(--wine);
+}
+
+.gestao-side-link.is-active {
+    background: var(--ink);
+    color: var(--paper);
+    box-shadow: 3px 3px 0 var(--gold-soft);
+}
+
+.gestao-side-link--muted {
+    font-size: var(--fs-eyebrow);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.gestao-side-icon {
+    width: 1.25rem;
+    text-align: center;
+    opacity: 0.85;
+}
+
+.gestao-sidebar-foot {
+    margin-top: auto;
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.gestao-sidebar-user {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    font-size: var(--fs-small);
+    color: var(--ink-soft);
 }
 
 .gestao-logout-form {
@@ -44,85 +124,156 @@
     border: none;
     background: none;
     cursor: pointer;
-    font-family: inherit;
-    font-size: 13px;
+    font-family: var(--font-body);
+    font-size: var(--fs-small);
+    color: var(--wine);
     padding: 0;
 }
 
-.gestao-logout-btn:hover {
-    color: var(--burgundy);
+.gestao-workspace {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.gestao-mobile-bar {
+    display: none;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2);
+    border-bottom: 1px solid var(--line);
+    background: rgba(247, 240, 226, 0.95);
+    backdrop-filter: blur(6px);
+}
+
+.gestao-menu-btn {
+    border: 1px solid var(--line-strong);
+    background: var(--card);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-size: 1.125rem;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.gestao-mobile-title {
+    font-family: var(--font-display);
+    font-weight: 600;
+}
+
+.gestao-sidebar-backdrop {
+    display: none;
 }
 
 .gestao-main {
-    padding: 40px 0 60px;
+    flex: 1;
+    padding: var(--space-5) 0 var(--space-6);
+}
+
+.gestao-main--guest {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100dvh;
+    padding: var(--space-4) 0;
+}
+
+.gestao-wrap {
+    max-width: 1080px;
 }
 
 .gestao-messages {
-    margin-bottom: 24px;
+    margin-bottom: var(--space-3);
 }
 
 .gestao-message {
     padding: 12px 16px;
-    border-radius: 2px;
-    font-size: 14px;
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-small);
     margin-bottom: 8px;
+    border: 1px solid var(--line);
 }
 
 .gestao-message--success {
-    background: #e8f5e9;
-    color: #1b5e20;
-    border: 1px solid #a5d6a7;
+    background: rgba(45, 90, 61, 0.1);
+    color: var(--forest);
+    border-color: rgba(45, 90, 61, 0.2);
 }
 
 .gestao-message--error {
-    background: #fdecea;
-    color: #7a1f17;
-    border: 1px solid #f5c6c2;
+    background: rgba(110, 44, 44, 0.08);
+    color: var(--wine-deep);
+    border-color: rgba(110, 44, 44, 0.2);
+}
+
+.gestao-hero {
+    margin-bottom: var(--space-4);
+}
+
+.gestao-hero .section-eyebrow,
+.gestao-hero .eyebrow {
+    margin-bottom: var(--space-2);
 }
 
 .gestao-hero h1 {
-    font-size: 36px;
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 3vw, 2.25rem);
     margin-bottom: 8px;
 }
 
 .gestao-hero p,
 .gestao-page-desc {
     color: var(--ink-soft);
-    font-size: 15px;
+    font-size: var(--fs-small);
+    max-width: 52ch;
 }
 
 .gestao-stats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-    margin: 32px 0;
+    gap: var(--space-3);
+    margin: var(--space-4) 0;
 }
 
 .gestao-stat-card {
     background: var(--card);
     border: 1px solid var(--line);
-    padding: 24px;
-    border-radius: 2px;
+    padding: var(--space-3);
+    border-radius: var(--radius-sm);
     display: flex;
     flex-direction: column;
     gap: 8px;
+    box-shadow: 4px 4px 0 rgba(42, 31, 24, 0.06);
+    position: relative;
+}
+
+.gestao-stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: var(--space-2);
+    right: var(--space-2);
+    height: 2px;
+    background: repeating-linear-gradient(90deg, var(--ink) 0 2px, transparent 2px 5px);
+    opacity: 0.15;
 }
 
 .gestao-stat-num {
-    font-size: 32px;
-    font-weight: 500;
-    color: var(--burgundy);
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--wine);
+    font-family: var(--font-display);
 }
 
 .gestao-stat-label {
-    font-size: 13px;
+    font-size: var(--fs-small);
     color: var(--ink-soft);
-    margin-bottom: 8px;
+    margin-bottom: 4px;
 }
 
 .gestao-quick-actions {
     display: flex;
-    gap: 12px;
+    gap: var(--space-2);
     flex-wrap: wrap;
 }
 
@@ -130,36 +281,38 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 20px;
-    margin-bottom: 28px;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
     flex-wrap: wrap;
 }
 
 .gestao-page-head h1 {
-    font-size: 32px;
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 2.5vw, 2rem);
     margin-top: 8px;
 }
 
 .gestao-back {
-    font-size: 13px;
+    font-size: var(--fs-small);
     color: var(--ink-soft);
 }
 
 .gestao-back:hover {
-    color: var(--burgundy);
+    color: var(--wine);
 }
 
 .gestao-table-wrap {
     overflow-x: auto;
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: var(--radius-sm);
+    box-shadow: 4px 4px 0 rgba(42, 31, 24, 0.05);
 }
 
 .gestao-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 14px;
+    font-size: var(--fs-small);
 }
 
 .gestao-table th,
@@ -169,12 +322,18 @@
     border-bottom: 1px solid var(--line);
 }
 
+.gestao-table tbody tr:hover {
+    background: rgba(110, 44, 44, 0.03);
+}
+
 .gestao-table th {
-    font-size: 11px;
+    font-size: var(--fs-eyebrow);
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.1em;
     color: var(--ink-soft);
-    font-weight: 500;
+    font-weight: 600;
+    font-family: var(--font-mono);
+    background: var(--paper-deep);
 }
 
 .gestao-table tbody tr:last-child td {
@@ -185,7 +344,7 @@
     width: 48px;
     height: 48px;
     object-fit: cover;
-    border-radius: 2px;
+    border-radius: var(--radius-sm);
     border: 1px solid var(--line);
 }
 
@@ -194,65 +353,62 @@
 }
 
 .gestao-badge {
-    font-size: 11px;
-    padding: 4px 8px;
-    border-radius: 2px;
-    font-family: 'IBM Plex Mono', monospace;
+    font-size: var(--fs-eyebrow);
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-weight: 600;
 }
 
-.gestao-badge--ativo {
-    background: #e8f5e9;
-    color: #1b5e20;
+.gestao-badge--ativo,
+.gestao-badge--aprovado {
+    background: rgba(45, 90, 61, 0.12);
+    color: var(--forest);
 }
 
 .gestao-badge--inativo {
-    background: #f5f5f5;
+    background: rgba(42, 31, 24, 0.08);
     color: var(--ink-soft);
-}
-
-.gestao-badge--aprovado {
-    background: #e8f5e9;
-    color: #1b5e20;
 }
 
 .gestao-badge--aguardando_pagamento,
 .gestao-badge--em_analise {
-    background: #fff8e1;
-    color: #7a5c00;
+    background: rgba(166, 132, 47, 0.15);
+    color: #785028;
 }
 
 .gestao-badge--recusado,
 .gestao-badge--cancelado {
-    background: #fdecea;
-    color: #7a1f17;
+    background: rgba(110, 44, 44, 0.1);
+    color: var(--wine-deep);
 }
 
 .gestao-filters {
     display: flex;
     flex-wrap: wrap;
-    gap: 16px;
-    margin-bottom: 20px;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
 }
 
 .gestao-filters label {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    font-size: 13px;
+    font-size: var(--fs-small);
 }
 
 .gestao-filters select {
     min-width: 180px;
-    padding: 8px 12px;
-    border: 1px solid var(--line);
-    border-radius: 2px;
-    background: var(--parchment);
-    font-family: 'Work Sans', sans-serif;
+    padding: 10px 12px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--card);
+    font-family: var(--font-body);
 }
 
 .gestao-pedido-grid {
     display: grid;
-    gap: 20px;
+    gap: var(--space-3);
 }
 
 @media (min-width: 768px) {
@@ -264,18 +420,20 @@
 .gestao-pedido-card {
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: 2px;
-    padding: 24px;
+    border-radius: var(--radius-sm);
+    padding: var(--space-3);
+    box-shadow: 4px 4px 0 rgba(42, 31, 24, 0.05);
 }
 
 .gestao-pedido-card h2 {
-    font-size: 18px;
-    margin-bottom: 16px;
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    margin-bottom: var(--space-2);
 }
 
 .gestao-pedido-itens {
     list-style: none;
-    margin: 0 0 16px;
+    margin: 0 0 var(--space-2);
     padding: 0;
 }
 
@@ -285,7 +443,7 @@
     gap: 4px;
     padding: 12px 0;
     border-bottom: 1px solid var(--line);
-    font-size: 14px;
+    font-size: var(--fs-small);
 }
 
 .gestao-pedido-itens li:last-child {
@@ -293,7 +451,7 @@
 }
 
 .gestao-pedido-total {
-    font-size: 16px;
+    font-size: 1rem;
     font-weight: 600;
 }
 
@@ -303,61 +461,65 @@
 
 .gestao-actions a {
     margin-right: 12px;
-    font-size: 13px;
-    color: var(--burgundy);
+    font-size: var(--fs-small);
+    color: var(--wine);
+    font-weight: 500;
 }
 
 .gestao-link-danger {
-    color: #9b2c2c !important;
+    color: var(--wine-deep) !important;
 }
 
 .gestao-empty {
     color: var(--ink-soft);
-    padding: 40px 0;
+    padding: var(--space-5) 0;
+    text-align: center;
 }
 
 /* Login */
 .gestao-login {
+    width: 100%;
     display: flex;
     justify-content: center;
-    padding: 60px 0;
 }
 
 .gestao-login-card {
     background: var(--card);
     border: 1px solid var(--line);
-    padding: 40px;
-    border-radius: 2px;
+    padding: var(--space-5);
+    border-radius: var(--radius-sm);
     width: min(420px, 100%);
+    box-shadow: 6px 6px 0 rgba(42, 31, 24, 0.08);
 }
 
 .gestao-login-card h1 {
-    font-size: 28px;
+    font-family: var(--font-display);
+    font-size: 1.75rem;
     margin: 12px 0 8px;
 }
 
 .gestao-login-desc {
     color: var(--ink-soft);
-    font-size: 14px;
-    margin-bottom: 24px;
+    font-size: var(--fs-small);
+    margin-bottom: var(--space-3);
 }
 
 .gestao-login-hint {
-    margin-top: 20px;
-    font-size: 11px;
+    margin-top: var(--space-3);
+    font-size: var(--fs-eyebrow);
     color: var(--ink-soft);
 }
 
 .gestao-login-hint code {
-    background: var(--parchment);
+    background: var(--paper-deep);
     padding: 2px 6px;
-    border-radius: 2px;
+    border-radius: 4px;
 }
 
 /* Forms */
 .gestao-form label {
     display: block;
-    font-size: 13px;
+    font-size: var(--fs-small);
     font-weight: 500;
     margin-bottom: 6px;
     margin-top: 16px;
@@ -370,15 +532,24 @@
 .gestao-form input[type="text"],
 .gestao-form input[type="number"],
 .gestao-form input[type="password"],
+.gestao-form input[type="email"],
+.gestao-form input[type="url"],
 .gestao-form textarea,
 .gestao-form select {
     width: 100%;
     padding: 10px 12px;
-    border: 1px solid var(--line);
-    border-radius: 2px;
-    background: var(--parchment);
-    font-family: 'Work Sans', sans-serif;
-    font-size: 14px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--paper);
+    font-family: var(--font-body);
+    font-size: var(--fs-small);
+}
+
+.gestao-form input:focus,
+.gestao-form textarea:focus,
+.gestao-form select:focus {
+    outline: 2px solid rgba(110, 44, 44, 0.2);
+    outline-offset: 1px;
 }
 
 .password-field {
@@ -397,40 +568,41 @@
     right: 8px;
     border: none;
     background: transparent;
-    color: var(--burgundy);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
+    color: var(--wine);
+    font-family: var(--font-mono);
+    font-size: var(--fs-eyebrow);
     cursor: pointer;
     padding: 6px 8px;
-    border-radius: 2px;
+    border-radius: var(--radius-sm);
 }
 
 .password-toggle:hover {
-    background: rgba(124, 45, 45, 0.08);
+    background: rgba(110, 44, 44, 0.08);
 }
 
 .gestao-form input[type="file"] {
-    font-size: 13px;
+    font-size: var(--fs-small);
     margin-top: 4px;
 }
 
 .gestao-form--wide {
     background: var(--card);
     border: 1px solid var(--line);
-    padding: 32px;
-    border-radius: 2px;
+    padding: var(--space-4);
+    border-radius: var(--radius-sm);
+    box-shadow: 4px 4px 0 rgba(42, 31, 24, 0.05);
 }
 
 .gestao-form-grid {
     display: grid;
     grid-template-columns: 1fr 280px;
-    gap: 40px;
+    gap: var(--space-5);
 }
 
 .gestao-form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 16px;
+    gap: var(--space-2);
 }
 
 .gestao-checkbox {
@@ -452,18 +624,19 @@
 
 .field-error {
     display: block;
-    color: #9b2c2c;
-    font-size: 12px;
+    color: var(--wine-deep);
+    font-size: var(--fs-eyebrow);
     margin-top: 4px;
 }
 
 .gestao-form-errors {
-    background: #fdecea;
-    color: #7a1f17;
+    background: rgba(110, 44, 44, 0.08);
+    color: var(--wine-deep);
     padding: 12px;
-    border-radius: 2px;
-    margin-bottom: 16px;
-    font-size: 14px;
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-2);
+    font-size: var(--fs-small);
+    border: 1px solid rgba(110, 44, 44, 0.15);
 }
 
 .gestao-image-preview {
@@ -475,101 +648,107 @@
     max-width: 200px;
     aspect-ratio: 1;
     object-fit: cover;
-    border-radius: 2px;
+    border-radius: var(--radius-sm);
     border: 1px solid var(--line);
     margin-bottom: 8px;
 }
 
 .gestao-image-preview p {
-    font-size: 11px;
+    font-size: var(--fs-eyebrow);
     color: var(--ink-soft);
 }
 
 .gestao-field-hint {
-    font-size: 12px;
+    font-size: var(--fs-eyebrow);
     color: var(--ink-soft);
     margin-top: 8px;
 }
 
 .gestao-form-actions {
     display: flex;
-    gap: 12px;
-    margin-top: 28px;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
     flex-wrap: wrap;
 }
 
 .btn-danger {
-    background: #9b2c2c;
-    color: #fff;
+    background: var(--wine-deep);
+    color: var(--paper);
     border: none;
     padding: 14px 26px;
-    font-size: 14px;
-    border-radius: 2px;
+    font-size: var(--fs-small);
+    border-radius: var(--radius-sm);
     cursor: pointer;
-    font-family: 'Work Sans', sans-serif;
+    font-family: var(--font-body);
+    box-shadow: 3px 3px 0 rgba(42, 31, 24, 0.15);
 }
 
 .btn-danger:hover {
-    background: #7a1f1f;
+    background: var(--wine);
 }
 
 .gestao-confirm {
     background: var(--card);
     border: 1px solid var(--line);
-    padding: 36px;
-    border-radius: 2px;
+    padding: var(--space-4);
+    border-radius: var(--radius-sm);
     max-width: 480px;
+    box-shadow: 4px 4px 0 rgba(42, 31, 24, 0.06);
 }
 
 .gestao-confirm h1 {
-    font-size: 24px;
+    font-family: var(--font-display);
+    font-size: 1.5rem;
     margin-bottom: 12px;
 }
 
 .gestao-confirm-warn {
     color: var(--ink-soft);
-    font-size: 14px;
-    margin-bottom: 24px;
+    font-size: var(--fs-small);
+    margin-bottom: var(--space-3);
 }
 
 .gestao-tabs {
     display: flex;
-    gap: 8px;
-    margin-bottom: 24px;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+    flex-wrap: wrap;
 }
 
 .gestao-tab {
     padding: 8px 16px;
     border: 1px solid var(--line);
-    border-radius: 2px;
-    font-size: 13px;
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-small);
     background: var(--card);
 }
 
 .gestao-tab.is-active {
     background: var(--ink);
-    color: var(--parchment);
+    color: var(--paper);
     border-color: var(--ink);
+    box-shadow: 2px 2px 0 var(--gold-soft);
 }
 
 .gestao-assistente-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 24px;
+    gap: var(--space-3);
 }
 
 .gestao-teste-resultado {
-    margin-top: 16px;
+    margin-top: var(--space-2);
     padding: 12px;
-    background: var(--parchment);
-    border-radius: 2px;
-    font-size: 14px;
+    background: var(--paper-deep);
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-small);
+    border: 1px solid var(--line);
 }
 
 .gestao-intent-list {
     margin: 0;
     padding-left: 1.2rem;
-    font-size: 14px;
+    font-size: var(--fs-small);
     color: var(--ink-soft);
 }
 
@@ -579,30 +758,71 @@
 
 .gestao-fieldset {
     border: 1px solid var(--line);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     padding: 14px 16px;
     margin: 12px 0;
+    background: var(--paper);
 }
 
 .gestao-fieldset legend {
-    font-family: 'Fraunces', serif;
-    font-size: 15px;
+    font-family: var(--font-display);
+    font-size: 1rem;
     padding: 0 6px;
     color: var(--ink);
 }
 
-@media (max-width: 768px) {
-    .gestao-assistente-grid {
-        grid-template-columns: 1fr;
-    }
+body.gestao-nav-open {
+    overflow: hidden;
 }
 
-@media (max-width: 768px) {
-    .gestao-nav {
+@media (max-width: 900px) {
+    .gestao-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .gestao-mobile-bar {
+        display: flex;
+        position: sticky;
+        top: 0;
+        z-index: 90;
+    }
+
+    .gestao-sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: min(280px, 88vw);
+        transform: translateX(-105%);
+        transition: transform 0.22s ease;
+        box-shadow: 8px 0 32px rgba(42, 31, 24, 0.15);
+    }
+
+    .gestao-layout.gestao-nav-open .gestao-sidebar {
+        transform: translateX(0);
+    }
+
+    .gestao-sidebar-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(42, 31, 24, 0.45);
+        z-index: 80;
+    }
+
+    .gestao-sidebar-backdrop[hidden] {
         display: none;
     }
 
+    .gestao-main {
+        padding: var(--space-3) 0 var(--space-5);
+    }
+
+    .gestao-assistente-grid,
     .gestao-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .gestao-form-row {
         grid-template-columns: 1fr;
     }
 }
