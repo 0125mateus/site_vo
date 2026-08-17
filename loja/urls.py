@@ -19,6 +19,7 @@ urlpatterns = [
     path('carrinho/adicionar/<int:produto_id>/', views.adicionar_ao_carrinho, name='adicionar_carrinho'),
     path('favoritos/', views.favoritos, name='favoritos'),
     path('favoritos/toggle/<int:produto_id>/', views.toggle_favorito, name='toggle_favorito'),
+    path('pedidos/', views.meus_pedidos, name='meus_pedidos'),
     path('pedidos/finalizar/', views.finalizar_pedido, name='finalizar_pedido'),
     path('pedidos/<int:pedido_id>/checkout/', views.checkout, name='checkout'),
     path('pedidos/<int:pedido_id>/processando/', views.processando_pedido, name='processando_pedido'),

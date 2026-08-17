@@ -1,0 +1,27 @@
+<section class="catalog {{ catalog_class }}"{% if section_id %} id="{{ section_id }}"{% endif %}>
+    <div class="section-head">
+        <div>
+            {% if eyebrow %}<span class="section-eyebrow">{{ eyebrow }}</span>{% endif %}
+            <h2>{{ titulo }}</h2>
+        </div>
+        {% if total is not None %}
+        <span class="tag mono">{{ total }} {{ total_label }}{{ total|pluralize }}</span>
+        {% endif %}
+    </div>
+    <div class="shelf">
+        {% for entry in itens %}
+        {% if entry.produto %}
+        {% include 'loja/includes/item_card.html' with item=entry.produto tipo=entry.tipo %}
+        {% else %}
+        {% include 'loja/includes/item_card.html' with item=entry tipo=tipo %}
+        {% endif %}
+        {% empty %}
+        <p class="shelf-empty">Nenhum item disponível no momento.</p>
+        {% endfor %}
+    </div>
+    {% if ver_todos_url %}
+    <p class="shelf-more">
+        <a href="{{ ver_todos_url }}" class="btn btn-ghost btn-sm">Ver todos →</a>
+    </p>
+    {% endif %}
+</section>

@@ -181,6 +181,37 @@ def _tipo_midia_arquivo(produto) -> str:
     return 'file'
 
 
+def _tipo_de_produto(produto) -> str:
+    if Musica.objects.filter(pk=produto.pk).exists():
+        return 'musica'
+    if Livro.objects.filter(pk=produto.pk).exists():
+        return 'livro'
+    if MidiaAudiovisual.objects.filter(pk=produto.pk).exists():
+        return 'midia'
+    return 'produto'
+
+
+def _filtrar_catalogo(queryset, request):
+    modalidade = request.GET.get('modalidade', '')
+    ordem = request.GET.get('ordem', 'recentes')
+
+    qs = queryset.filter(ativo=True)
+
+    if modalidade == ModalidadeComercial.VENDA:
+        qs = qs.filter(disponivel_venda=True, estoque__gt=0)
+    elif modalidade == ModalidadeComercial.ALUGUEL:
+        qs = qs.filter(disponivel_aluguel=True, estoque_aluguel__gt=0)
+
+    if ordem == 'titulo':
+        qs = qs.order_by('titulo')
+    elif ordem == 'preco':
+        qs = qs.order_by('preco')
+    else:
+        qs = qs.order_by('-criado_em')
+
+    return qs, modalidade, ordem
+
+
 def busca(request):
     q = request.GET.get('q', '').strip()
     musicas = livros = midias = []
@@ -208,15 +239,18 @@ def busca(request):
 
 
 def _catalogo_response(request, secao, titulo, eyebrow, queryset, catalog_class, total_label, tipo):
+    itens, filtro_modalidade, filtro_ordem = _filtrar_catalogo(queryset, request)
     return render(request, 'loja/catalogo.html', {
         'secao': secao,
         'tipo': tipo,
         'titulo': titulo,
         'eyebrow': eyebrow,
-        'itens': queryset.filter(ativo=True),
-        'total': queryset.filter(ativo=True).count(),
+        'itens': itens,
+        'total': itens.count(),
         'catalog_class': catalog_class,
         'total_label': total_label,
+        'filtro_modalidade': filtro_modalidade,
+        'filtro_ordem': filtro_ordem,
     })
 
 
@@ -242,18 +276,39 @@ def catalogo_filmes(request):
 
 
 def home(request):
-    musicas = Musica.objects.filter(ativo=True)
-    livros = Livro.objects.filter(ativo=True)
-    midias = MidiaAudiovisual.objects.filter(ativo=True)
+    base = Produto.objects.filter(ativo=True)
+    novidades = list(base.order_by('-criado_em')[:8])
+    para_aluguel = list(
+        base.filter(disponivel_aluguel=True, estoque_aluguel__gt=0).order_by('-criado_em')[:8]
+    )
+    novidades_rows = [{'produto': p, 'tipo': _tipo_de_produto(p)} for p in novidades]
+    aluguel_rows = [{'produto': p, 'tipo': _tipo_de_produto(p)} for p in para_aluguel]
+
+    musicas = Musica.objects.filter(ativo=True).order_by('-criado_em')[:8]
+    livros = Livro.objects.filter(ativo=True).order_by('-criado_em')[:8]
+    midias = MidiaAudiovisual.objects.filter(ativo=True).order_by('-criado_em')[:8]
+
     return render(request, 'loja/home.html', {
+        'novidades': novidades_rows,
+        'para_aluguel': aluguel_rows,
         'musicas': musicas,
         'livros': livros,
         'midias': midias,
-        'total_musicas': musicas.count(),
-        'total_livros': livros.count(),
-        'total_midias': midias.count(),
+        'total_musicas': Musica.objects.filter(ativo=True).count(),
+        'total_livros': Livro.objects.filter(ativo=True).count(),
+        'total_midias': MidiaAudiovisual.objects.filter(ativo=True).count(),
         'ModalidadeComercial': ModalidadeComercial,
     })
+
+
+@login_required
+def meus_pedidos(request):
+    pedidos = (
+        Pedido.objects.filter(cliente=request.user)
+        .prefetch_related('itens__produto')
+        .order_by('-criado_em')
+    )
+    return render(request, 'loja/meus_pedidos.html', {'pedidos': pedidos})
 
 
 def produto_detalhe(request, produto_id):

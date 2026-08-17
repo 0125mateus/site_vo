@@ -1947,3 +1947,134 @@ body.cart-drawer-open {
 #cart-open-btn:hover {
     color: var(--wine);
 }
+
+/* ——— CATÁLOGO FILTROS ——— */
+.catalog-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--line);
+}
+
+.catalog-filter {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: var(--fs-small);
+}
+
+.catalog-filter select {
+    min-width: 140px;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--card);
+    font-family: var(--font-body);
+    font-size: var(--fs-small);
+    color: var(--ink);
+}
+
+.shelf-more {
+    margin-top: var(--space-2);
+    text-align: center;
+}
+
+.catalog--destaques,
+.catalog--aluguel {
+    margin-bottom: var(--space-5);
+}
+
+/* ——— MEUS PEDIDOS ——— */
+.pedidos-list {
+    display: grid;
+    gap: var(--space-3);
+    margin-bottom: var(--space-6);
+}
+
+.pedido-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.pedido-card-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    background: var(--paper-deep);
+    border-bottom: 1px solid var(--line);
+}
+
+.pedido-data {
+    display: block;
+    font-size: var(--fs-small);
+    color: var(--ink-soft);
+    margin-top: 4px;
+}
+
+.pedido-status {
+    font-size: var(--fs-small);
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--line);
+    color: var(--ink-soft);
+}
+
+.pedido-status--aprovado {
+    background: rgba(45, 90, 61, 0.12);
+    color: var(--forest, #2d5a3d);
+}
+
+.pedido-status--aguardando_pagamento {
+    background: rgba(120, 80, 40, 0.12);
+    color: var(--amber, #785028);
+}
+
+.pedido-status--recusado,
+.pedido-status--cancelado {
+    background: rgba(120, 40, 40, 0.1);
+    color: var(--wine-deep);
+}
+
+.pedido-itens {
+    list-style: none;
+    margin: 0;
+    padding: var(--space-2) var(--space-3);
+}
+
+.pedido-itens li {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-2);
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: var(--fs-small);
+}
+
+.pedido-itens li:last-child {
+    border-bottom: none;
+}
+
+.pedido-itens a {
+    font-weight: 500;
+    color: var(--ink);
+}
+
+.pedido-card-foot {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border-top: 1px solid var(--line);
+    background: var(--paper-deep);
+}

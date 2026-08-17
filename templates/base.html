@@ -32,6 +32,7 @@
                     <li><a href="{% url 'catalogo_livros' %}" class="{% if url_name == 'catalogo_livros' %}is-active{% endif %}">Livros</a></li>
                     {% if user.is_authenticated %}
                     <li><a href="{% url 'biblioteca' %}" class="{% if url_name == 'biblioteca' or url_name == 'reproduzir_conteudo' %}is-active{% endif %}">Biblioteca</a></li>
+                    <li><a href="{% url 'meus_pedidos' %}" class="{% if url_name == 'meus_pedidos' %}is-active{% endif %}">Pedidos</a></li>
                     <li><a href="{% url 'favoritos' %}" class="{% if url_name == 'favoritos' %}is-active{% endif %}">♥ Lista</a></li>
                     {% endif %}
                 </ul>

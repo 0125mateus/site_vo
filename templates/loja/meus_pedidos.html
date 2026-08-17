@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Meus pedidos — Vinil & Página{% endblock %}
+
+{% block content %}
+<div class="wrap">
+    <section class="library-head">
+        <div>
+            <span class="section-eyebrow">Sua conta</span>
+            <h1>Meus pedidos</h1>
+            <p class="library-desc">Histórico de compras e aluguéis.</p>
+        </div>
+        <a href="{% url 'biblioteca' %}" class="btn btn-ghost">Minha biblioteca</a>
+    </section>
+
+    {% if pedidos %}
+    <div class="pedidos-list">
+        {% for pedido in pedidos %}
+        <article class="pedido-card">
+            <header class="pedido-card-head">
+                <div>
+                    <strong class="mono">Pedido #{{ pedido.id }}</strong>
+                    <span class="pedido-data">{{ pedido.criado_em|date:"d/m/Y H:i" }}</span>
+                </div>
+                <span class="pedido-status pedido-status--{{ pedido.status }}">{{ pedido.get_status_display }}</span>
+            </header>
+            <ul class="pedido-itens">
+                {% for item in pedido.itens.all %}
+                <li>
+                    <a href="{% url 'produto_detalhe' item.produto_id %}">{{ item.produto.titulo }}</a>
+                    <span class="mono">{{ item.get_modalidade_display }} · {{ item.quantidade }}x · R$ {{ item.subtotal }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+            <footer class="pedido-card-foot">
+                <span class="mono">Total: R$ {{ pedido.valor_total }}</span>
+                {% if pedido.status == 'aguardando_pagamento' %}
+                <a href="{% url 'checkout' pedido.id %}" class="btn btn-primary btn-sm">Pagar</a>
+                {% elif pedido.status == 'aprovado' %}
+                <a href="{% url 'biblioteca' %}" class="btn btn-ghost btn-sm">Acessar biblioteca</a>
+                {% endif %}
+            </footer>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="library-empty">
+        <p>Você ainda não fez nenhum pedido.</p>
+        <a href="{% url 'home' %}" class="btn btn-primary">Explorar catálogo</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
