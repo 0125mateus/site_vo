@@ -5,7 +5,14 @@ from datetime import timedelta
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.views import LoginView, LogoutView
+from django.contrib.auth.views import (
+    LoginView,
+    LogoutView,
+    PasswordResetConfirmView,
+    PasswordResetDoneView,
+    PasswordResetView,
+)
+from django.urls import reverse_lazy
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -294,6 +301,22 @@ class MercadoPagoWebhookView(APIView):
 
 class LoginLojaView(LoginView):
     template_name = 'loja/login.html'
+
+
+class PasswordResetLojaView(PasswordResetView):
+    template_name = 'loja/password_reset.html'
+    email_template_name = 'loja/password_reset_email.txt'
+    subject_template_name = 'loja/password_reset_subject.txt'
+    success_url = reverse_lazy('password_reset_done')
+
+
+class PasswordResetDoneLojaView(PasswordResetDoneView):
+    template_name = 'loja/password_reset_done.html'
+
+
+class PasswordResetConfirmLojaView(PasswordResetConfirmView):
+    template_name = 'loja/password_reset_confirm.html'
+    success_url = reverse_lazy('login')
 
 
 class LogoutLojaView(LogoutView):

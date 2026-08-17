@@ -1,16 +1,115 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Entrar — Vinil & Página{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}?v={{ STATIC_VERSION }}">
+{% endblock %}
 
 {% block content %}
-<div class="wrap">
-    <section class="page-panel auth-form">
-        <h1>Entrar</h1>
-        <form method="post">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit" class="btn btn-primary">Entrar</button>
-        </form>
+<div class="auth-split">
+    <aside class="auth-split-brand" aria-hidden="true">
+        <a href="{% url 'home' %}" class="auth-brand-logo">
+            <span class="mark" aria-hidden="true"></span>
+            Vinil &amp; Página
+        </a>
+        <p class="auth-brand-lead">
+            Compartilhe a<br>
+            <em>curadoria</em> com<br>
+            Vinil &amp; Página
+        </p>
+        <p class="auth-brand-sub">Discos, livros e filmes — compre ou alugue na mesma prateleira.</p>
+    </aside>
+
+    <section class="auth-split-panel">
+        <div class="auth-panel-inner">
+            <div class="auth-tabs" role="tablist" aria-label="Acesso à conta">
+                <button type="button" class="auth-tab" role="tab" id="tab-register" aria-selected="false" aria-controls="panel-register" data-auth-tab="register">
+                    Registrar-se
+                </button>
+                <button type="button" class="auth-tab is-active" role="tab" id="tab-login" aria-selected="true" aria-controls="panel-login" data-auth-tab="login">
+                    Entrar
+                </button>
+            </div>
+
+            <div class="auth-panels">
+                <div class="auth-panel is-active" id="panel-login" role="tabpanel" aria-labelledby="tab-login" data-auth-panel="login">
+                    {% if form.non_field_errors %}
+                    <div class="auth-errors" role="alert">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <form method="post" class="auth-form-split" novalidate>
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ next }}">
+
+                        <div class="auth-field">
+                            <input
+                                type="text"
+                                name="username"
+                                id="id_username"
+                                class="auth-input"
+                                value="{{ form.username.value|default:'' }}"
+                                autocomplete="username"
+                                required
+                                placeholder=" "
+                            >
+                            <label for="id_username">Nome de usuário ou e-mail</label>
+                            {% if form.username.errors %}
+                            <span class="auth-field-error">{{ form.username.errors.0 }}</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="auth-field auth-field--password">
+                            <input
+                                type="password"
+                                name="password"
+                                id="id_password"
+                                class="auth-input"
+                                autocomplete="current-password"
+                                required
+                                placeholder=" "
+                            >
+                            <label for="id_password">Senha</label>
+                            <button type="button" class="auth-password-toggle" data-password-toggle="id_password" aria-label="Mostrar senha">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" stroke="currentColor" stroke-width="1.5"/>
+                                    <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/>
+                                </svg>
+                            </button>
+                            {% if form.password.errors %}
+                            <span class="auth-field-error">{{ form.password.errors.0 }}</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="auth-actions">
+                            <button type="submit" class="btn btn-auth-primary">Entrar</button>
+                            <a href="{% url 'password_reset' %}" class="auth-forgot">Esqueceu a senha</a>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="auth-panel" id="panel-register" role="tabpanel" aria-labelledby="tab-register" data-auth-panel="register" hidden>
+                    <div class="auth-register-placeholder">
+                        <h2>Criar conta</h2>
+                        <p>Em breve você poderá se registrar aqui para comprar e alugar com mais praticidade.</p>
+                        <p class="auth-register-note">Por enquanto, peça ao gestor da loja para criar seu acesso ou use a conta de teste.</p>
+                        <button type="button" class="btn btn-ghost auth-back-login" data-auth-tab="login">
+                            Já tenho conta — entrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <p class="auth-back-home">
+                <a href="{% url 'home' %}">← Voltar à loja</a>
+            </p>
+        </div>
     </section>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/auth-login.js' %}?v={{ STATIC_VERSION }}"></script>
 {% endblock %}

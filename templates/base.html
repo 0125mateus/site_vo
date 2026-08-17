@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="{% static 'css/assistant.css' %}?v={{ STATIC_VERSION }}">
     {% block extra_head %}{% endblock %}
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
     <header>
         <div class="wrap header-inner">
             <a href="{% url 'home' %}" class="logo">
