@@ -1,27 +1,33 @@
-/* Vinil & Página — estética sebo / disqueira boutique */
+/* Vinil & Página — estética Hollywood premium / cinema boutique */
 
 :root {
-    /* Paleta vintage */
-    --paper: #EDE4D0;
-    --paper-deep: #E2D5BC;
-    --card: #F7F0E2;
-    --ink: #2A1F18;
-    --ink-soft: #6B5748;
-    --wine: #6E2C2C;
-    --wine-deep: #4A1C1C;
-    --leather: #5C4030;
-    --leather-soft: #8A6A4F;
-    --gold: #A6842F;
-    --gold-soft: #C4A44A;
-    --forest: #2F4538;
-    --line: rgba(42, 31, 24, 0.16);
-    --line-strong: rgba(42, 31, 24, 0.28);
-    --shadow: rgba(42, 31, 24, 0.22);
-    /* Espaço reservado para barra inferior mobile */
+    /* Paleta cinema — escuro + ouro + tapete vermelho */
+    --paper: #0C0A09;
+    --paper-deep: #060504;
+    --card: #161310;
+    --card-elevated: #1E1A16;
+    --ink: #F5EBDC;
+    --ink-soft: #A39688;
+    --wine: #B4234A;
+    --wine-deep: #7A1835;
+    --leather: #2A221C;
+    --leather-soft: #453830;
+    --gold: #C9A962;
+    --gold-soft: #E2C88A;
+    --gold-bright: #F5E6B8;
+    --forest: #5A9A7A;
+    --line: rgba(245, 235, 220, 0.1);
+    --line-strong: rgba(201, 169, 98, 0.22);
+    --line-gold: rgba(201, 169, 98, 0.38);
+    --shadow: rgba(0, 0, 0, 0.45);
+    --shadow-deep: rgba(0, 0, 0, 0.72);
+    --overlay: rgba(0, 0, 0, 0.6);
+    --spotlight-gold: rgba(201, 169, 98, 0.12);
+    --spotlight-wine: rgba(180, 35, 74, 0.1);
+    --glow-gold: rgba(201, 169, 98, 0.35);
     --bottom-nav-offset: calc(4.75rem + env(safe-area-inset-bottom, 0px));
 
-    /* Alias legados (compatibilidade) */
-    --parchment: var(--paper);
+    --parchment: var(--ink);
     --burgundy: var(--wine);
     --burgundy-dark: var(--wine-deep);
 
@@ -63,8 +69,9 @@
 body {
     background-color: var(--paper);
     background-image:
-        radial-gradient(ellipse at 12% 0%, rgba(166, 132, 47, 0.08), transparent 45%),
-        radial-gradient(ellipse at 88% 20%, rgba(110, 44, 44, 0.06), transparent 40%),
+        radial-gradient(ellipse 80% 50% at 50% -10%, var(--spotlight-gold), transparent 55%),
+        radial-gradient(ellipse 60% 40% at 100% 30%, var(--spotlight-wine), transparent 50%),
+        radial-gradient(ellipse 50% 35% at 0% 70%, rgba(201, 169, 98, 0.06), transparent 45%),
         linear-gradient(180deg, var(--paper) 0%, var(--paper-deep) 100%);
     color: var(--ink);
     font-family: var(--font-body);
@@ -86,8 +93,17 @@ body::before {
     position: fixed;
     inset: 0;
     z-index: 0;
-    opacity: 0.045;
+    opacity: 0.035;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+body::after {
+    content: '';
+    pointer-events: none;
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(201, 169, 98, 0.04), transparent 40%);
 }
 
 .app-shell,
@@ -139,22 +155,19 @@ a {
 /* ——— HEADER ——— */
 header {
     padding: var(--space-3) 0;
-    border-bottom: 1px solid var(--line);
-    background: linear-gradient(180deg, rgba(247, 240, 226, 0.92), rgba(237, 228, 208, 0.75));
-    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--line-gold);
+    background: linear-gradient(180deg, rgba(22, 19, 16, 0.98), rgba(12, 10, 9, 0.95));
+    backdrop-filter: blur(12px);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
 }
 
 header::after {
     content: '';
     display: block;
-    height: 3px;
+    height: 1px;
     margin-top: var(--space-3);
-    background: repeating-linear-gradient(
-        90deg,
-        var(--ink) 0 1px,
-        transparent 1px 4px
-    );
-    opacity: 0.18;
+    background: linear-gradient(90deg, transparent, var(--gold-soft), transparent);
+    opacity: 0.55;
 }
 
 .header-inner {
@@ -185,17 +198,23 @@ header::after {
 .header-search input {
     width: 100%;
     padding: 10px 14px 10px 40px;
-    border: 1px solid var(--line-strong);
+    border: 1px solid var(--line-gold);
     border-radius: 999px;
-    background: var(--card);
+    background: rgba(0, 0, 0, 0.35);
     font-family: var(--font-body);
     font-size: var(--fs-small);
     color: var(--ink);
 }
 
+.header-search input::placeholder {
+    color: var(--ink-soft);
+}
+
 .header-search input:focus {
-    outline: 2px solid rgba(110, 44, 44, 0.25);
+    outline: 2px solid rgba(201, 169, 98, 0.35);
     outline-offset: 1px;
+    border-color: var(--gold-soft);
+    background: rgba(0, 0, 0, 0.5);
 }
 
 .header-nav {
@@ -234,9 +253,9 @@ header::after {
     width: 22px;
     height: 22px;
     border-radius: 50%;
-    background: var(--ink);
-    background-image: radial-gradient(circle at center, var(--paper) 0 3px, var(--ink) 3px 20px);
-    box-shadow: 0 0 0 1px var(--gold-soft);
+    background: var(--paper-deep);
+    background-image: radial-gradient(circle at center, var(--gold-soft) 0 3px, var(--paper-deep) 3px 20px);
+    box-shadow: 0 0 0 1px var(--gold), 0 0 12px var(--glow-gold);
     flex-shrink: 0;
 }
 
@@ -264,7 +283,7 @@ nav a,
 
 nav a.is-active,
 .header-nav a.is-active {
-    color: var(--wine);
+    color: var(--gold-soft);
     font-weight: 600;
 }
 
@@ -276,7 +295,8 @@ nav a.is-active::after,
     right: 0;
     bottom: 0;
     height: 2px;
-    background: var(--wine);
+    background: linear-gradient(90deg, var(--gold), var(--gold-soft));
+    box-shadow: 0 0 8px var(--glow-gold);
 }
 
 nav a {
@@ -293,7 +313,7 @@ nav a {
 nav a:hover,
 .header-nav a:hover,
 .header-link:hover {
-    color: var(--wine);
+    color: var(--gold-soft);
 }
 
 nav a:hover::after,
@@ -391,7 +411,8 @@ nav a:hover::after,
 
 .hero h1 em {
     font-style: italic;
-    color: var(--wine);
+    color: var(--gold-soft);
+    text-shadow: 0 0 40px var(--glow-gold);
 }
 
 .hero p {
@@ -421,23 +442,28 @@ nav a:hover::after,
 }
 
 .btn-primary {
-    background: var(--ink);
-    color: var(--paper);
-    box-shadow: 3px 3px 0 var(--gold);
+    background: linear-gradient(135deg, var(--gold-soft) 0%, var(--gold) 100%);
+    color: var(--paper-deep);
+    font-weight: 600;
+    box-shadow: 0 4px 16px var(--glow-gold), 3px 3px 0 var(--wine-deep);
 }
 
 .btn-primary:hover {
-    background: var(--wine);
+    background: linear-gradient(135deg, var(--gold-bright) 0%, var(--gold-soft) 100%);
+    color: var(--paper-deep);
+    transform: translateY(-1px);
 }
 
 .btn-ghost {
-    border: 1px solid var(--ink);
-    background: var(--card);
+    border: 1px solid var(--line-gold);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--ink);
 }
 
 .btn-ghost:hover {
-    border-color: var(--wine);
-    color: var(--wine);
+    border-color: var(--gold-soft);
+    color: var(--gold-soft);
+    background: rgba(201, 169, 98, 0.08);
 }
 
 .btn-disabled {
@@ -470,10 +496,11 @@ nav a:hover::after,
     width: min(280px, 72vw);
     height: min(280px, 72vw);
     border-radius: 50%;
-    background: repeating-radial-gradient(circle, var(--ink) 0 2px, #3a2e26 2px 5px);
+    background: repeating-radial-gradient(circle, #1a1816 0 2px, #0a0908 2px 5px);
     box-shadow:
         0 30px 50px -20px var(--shadow-deep),
-        inset 0 0 0 1px rgba(166, 132, 47, 0.25);
+        inset 0 0 0 1px rgba(201, 169, 98, 0.35),
+        0 0 60px rgba(201, 169, 98, 0.08);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -590,19 +617,19 @@ section.catalog::before {
 }
 
 .catalog--discos .section-eyebrow { color: var(--wine); }
-.catalog--livros .section-eyebrow { color: var(--forest); }
+.catalog--livros .section-eyebrow { color: var(--gold-soft); }
 .catalog--midias .section-eyebrow { color: var(--gold); }
 
 .catalog--discos {
-    background: linear-gradient(180deg, transparent, rgba(110, 44, 44, 0.04) 30%, transparent);
+    background: linear-gradient(180deg, transparent, var(--spotlight-wine) 40%, transparent);
 }
 
 .catalog--livros {
-    background: linear-gradient(180deg, transparent, rgba(47, 69, 56, 0.05) 30%, transparent);
+    background: linear-gradient(180deg, transparent, rgba(201, 169, 98, 0.06) 40%, transparent);
 }
 
 .catalog--midias {
-    background: linear-gradient(180deg, transparent, rgba(166, 132, 47, 0.06) 30%, transparent);
+    background: linear-gradient(180deg, transparent, var(--spotlight-gold) 40%, transparent);
 }
 
 /* ——— PRATELEIRA ——— */
@@ -721,9 +748,9 @@ section.catalog::before {
     width: 152px;
     height: 152px;
     background:
-        linear-gradient(145deg, rgba(255, 255, 255, 0.12), transparent 40%),
-        var(--card);
-    border: 1px solid var(--line-strong);
+        linear-gradient(145deg, rgba(201, 169, 98, 0.08), transparent 40%),
+        var(--card-elevated);
+    border: 1px solid var(--line-gold);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -979,10 +1006,10 @@ body.trailer-open {
 
 .feat-card {
     background: var(--card);
-    border: 1px solid var(--line);
+    border: 1px solid var(--line-gold);
     padding: var(--space-4);
     border-radius: var(--radius-sm);
-    box-shadow: 4px 4px 0 rgba(42, 31, 24, 0.06);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
     position: relative;
 }
 
@@ -992,9 +1019,9 @@ body.trailer-open {
     top: 0;
     left: var(--space-2);
     right: var(--space-2);
-    height: 2px;
-    background: repeating-linear-gradient(90deg, var(--ink) 0 2px, transparent 2px 5px);
-    opacity: 0.2;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold-soft), transparent);
+    opacity: 0.6;
 }
 
 .feat-card .kicker {
@@ -1028,10 +1055,10 @@ footer {
 footer::before {
     content: '';
     display: block;
-    height: 3px;
+    height: 1px;
     margin-bottom: var(--space-3);
-    background: repeating-linear-gradient(90deg, var(--ink) 0 1px, transparent 1px 4px);
-    opacity: 0.15;
+    background: linear-gradient(90deg, transparent, var(--gold-soft), transparent);
+    opacity: 0.45;
 }
 
 .footer-inner {
@@ -1044,14 +1071,14 @@ footer::before {
 /* ——— CARRINHO / CHECKOUT ——— */
 .page-panel {
     background: var(--card);
-    border: 1px solid var(--line-strong);
+    border: 1px solid var(--line-gold);
     padding: var(--space-3);
     border-radius: var(--radius-sm);
     margin: var(--space-5) auto;
     max-width: 720px;
     box-shadow:
-        6px 6px 0 rgba(42, 31, 24, 0.06),
-        0 18px 40px -24px var(--shadow-deep);
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(201, 169, 98, 0.08);
     position: relative;
 }
 
@@ -1846,21 +1873,22 @@ body.has-media-bar footer {
     z-index: 2;
     width: 32px;
     height: 32px;
-    border: 1px solid var(--line);
+    border: 1px solid var(--line-gold);
     border-radius: 50%;
-    background: rgba(247, 240, 226, 0.92);
+    background: rgba(12, 10, 9, 0.85);
     color: var(--ink-soft);
     font-size: 14px;
     line-height: 1;
     cursor: pointer;
     transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    backdrop-filter: blur(4px);
 }
 
 .btn-favorito.is-active,
 .btn-favorito:hover {
-    color: var(--wine);
-    border-color: var(--wine);
-    background: rgba(110, 44, 44, 0.1);
+    color: var(--gold-bright);
+    border-color: var(--gold-soft);
+    background: rgba(180, 35, 74, 0.25);
 }
 
 .item-detail-title-row {
@@ -1893,7 +1921,7 @@ body.cart-drawer-open {
 .cart-drawer-backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(42, 31, 24, 0.45);
+    background: var(--overlay);
 }
 
 .cart-drawer-panel {
@@ -1902,11 +1930,11 @@ body.cart-drawer-open {
     right: 0;
     width: min(400px, 100%);
     height: 100%;
-    background: var(--card);
-    border-left: 1px solid var(--line-strong);
+    background: var(--card-elevated);
+    border-left: 1px solid var(--line-gold);
     display: flex;
     flex-direction: column;
-    box-shadow: -12px 0 40px rgba(42, 31, 24, 0.15);
+    box-shadow: -12px 0 48px rgba(0, 0, 0, 0.55);
 }
 
 .cart-drawer-head {
@@ -2050,14 +2078,15 @@ body.cart-drawer-open {
         bottom: 0;
         z-index: 900;
         min-height: var(--bottom-nav-offset);
-        background: linear-gradient(180deg, rgba(247, 240, 226, 0.97), rgba(237, 228, 208, 0.98));
-        border-top: 1px solid var(--line);
-        backdrop-filter: blur(8px);
+        background: linear-gradient(180deg, rgba(22, 19, 16, 0.98), rgba(12, 10, 9, 0.99));
+        border-top: 1px solid var(--line-gold);
+        backdrop-filter: blur(12px);
         padding: 8px 6px max(12px, env(safe-area-inset-bottom, 12px));
         justify-content: space-around;
         align-items: flex-start;
         gap: 2px;
         box-sizing: border-box;
+        box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
     }
 
     body.site-with-bottom-nav .assistant-widget {
@@ -2396,17 +2425,26 @@ body.cart-drawer-open {
 .newsletter-form input[type="email"] {
     min-width: 200px;
     padding: 8px 12px;
-    border: 1px solid var(--line);
+    border: 1px solid var(--line-gold);
     border-radius: var(--radius-sm);
     font: inherit;
-    background: var(--paper);
+    background: rgba(0, 0, 0, 0.35);
+    color: var(--ink);
+}
+
+.newsletter-form input[type="email"]::placeholder {
+    color: var(--ink-soft);
+}
+
+.section-eyebrow {
+    color: var(--gold-soft);
 }
 
 .checkout-breakdown {
     margin-bottom: var(--space-4);
     padding: var(--space-3);
-    background: var(--card);
-    border: 1px solid var(--line);
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--line-gold);
     border-radius: var(--radius-sm);
 }
 
@@ -2461,9 +2499,10 @@ body.cart-drawer-open {
 .review-form textarea {
     font: inherit;
     padding: 8px 12px;
-    border: 1px solid var(--line);
+    border: 1px solid var(--line-gold);
     border-radius: var(--radius-sm);
-    background: var(--paper);
+    background: rgba(0, 0, 0, 0.35);
+    color: var(--ink);
 }
 
 .review-list {
@@ -2505,22 +2544,23 @@ body.cart-drawer-open {
     align-items: center;
     gap: 8px;
     font-size: var(--fs-small);
-    border: 1px solid var(--ink);
+    border: 1px solid var(--line-gold);
     padding: 8px 14px;
     border-radius: 999px;
     white-space: nowrap;
-    background: var(--card);
-    box-shadow: 2px 2px 0 var(--shadow);
+    background: rgba(201, 169, 98, 0.08);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
     cursor: pointer;
     font-family: var(--font-body);
     font-weight: 500;
-    color: inherit;
-    transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+    color: var(--ink);
+    transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease, border-color 0.18s ease;
 }
 
 .cart-btn:hover {
-    background: var(--ink);
-    color: var(--paper);
+    background: linear-gradient(135deg, var(--gold-soft), var(--gold));
+    color: var(--paper-deep);
+    border-color: var(--gold-soft);
 }
 
 .cart-btn-icon {
@@ -2537,7 +2577,7 @@ body.cart-drawer-open {
     padding: 0 5px;
     border-radius: 999px;
     background: var(--wine);
-    color: var(--paper);
+    color: var(--gold-bright);
     font-size: 0.6875rem;
     font-weight: 600;
 }
@@ -2594,13 +2634,14 @@ body.cart-drawer-open {
 }
 
 .item-badge--sale {
-    background: rgba(42, 31, 24, 0.82);
-    color: var(--paper);
+    background: rgba(180, 35, 74, 0.9);
+    color: var(--gold-bright);
+    border: 1px solid rgba(245, 230, 184, 0.25);
 }
 
 .item-badge--rent {
-    background: rgba(166, 132, 47, 0.92);
-    color: var(--paper);
+    background: rgba(201, 169, 98, 0.92);
+    color: var(--paper-deep);
 }
 
 .item-card-body {
@@ -2649,8 +2690,9 @@ body.cart-drawer-open {
 
 .item-card:hover .item-card-cover .sleeve,
 .item-card:hover .item-card-cover .spine {
-    outline: 2px solid rgba(166, 132, 47, 0.55);
+    outline: 2px solid var(--gold-soft);
     outline-offset: 2px;
+    box-shadow: 0 0 24px var(--glow-gold);
 }
 
 .bottom-nav-icon.icon {
@@ -2659,7 +2701,7 @@ body.cart-drawer-open {
 }
 
 .bottom-nav-item.is-active {
-    color: var(--wine);
+    color: var(--gold-soft);
     font-weight: 600;
 }
 
@@ -2670,9 +2712,10 @@ body.cart-drawer-open {
     left: 50%;
     transform: translateX(-50%);
     width: 28px;
-    height: 3px;
-    border-radius: 0 0 3px 3px;
-    background: var(--wine);
+    height: 2px;
+    border-radius: 0 0 2px 2px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-soft));
+    box-shadow: 0 0 10px var(--glow-gold);
 }
 
 .bottom-nav-item {
