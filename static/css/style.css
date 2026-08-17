@@ -945,6 +945,11 @@ body.trailer-open {
         grid-template-columns: 1fr 1fr;
         gap: var(--space-5);
     }
+
+    .featured--single {
+        grid-template-columns: 1fr;
+        max-width: 540px;
+    }
 }
 
 .feat-card {

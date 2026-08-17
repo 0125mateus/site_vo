@@ -33,17 +33,11 @@
 
     {% include 'loja/includes/shelf_row.html' with section_id='midias' catalog_class='catalog--midias' eyebrow='Cinema · DVD / Blu-ray' titulo='Filmes, DVDs e vídeos' itens=midias tipo='midia' total=total_midias total_label='título' ver_todos_url='/filmes/' %}
 
-    <section class="featured" id="curadoria">
+    <section class="featured featured--single" id="curadoria">
         <div class="feat-card" id="destaques">
             <div class="kicker mono">Como funciona</div>
             <h3>Comprar ou alugar — você escolhe.</h3>
             <p>Na venda, o item é seu. No aluguel, você paga o período (ex.: 7 dias) e devolve. Tudo pelo mesmo carrinho e pagamento.</p>
-        </div>
-        <div class="feat-card">
-            <div class="kicker mono">Gestão simples</div>
-            <h3>Cadastre pelo painel, sem código.</h3>
-            <p>O gestor sobe capas e arquivos do PC, define preço de venda, preço de aluguel e estoque de cada modalidade.</p>
-            <a href="{% url 'gestao_entrar' %}" class="btn btn-ghost">Área do gestor</a>
         </div>
     </section>
 </div>
