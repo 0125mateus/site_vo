@@ -916,3 +916,123 @@ body.gestao-nav-open {
     color: var(--wine);
     font-size: var(--fs-small);
 }
+
+/* ——— UI REFINE v2 ——— */
+.gestao-nav-label {
+    font-size: 0.625rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: var(--space-2) 0 4px 12px;
+    opacity: 0.75;
+}
+
+.gestao-nav-label:first-child {
+    margin-top: 0;
+}
+
+.gestao-side-icon.icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.gestao-side-link.is-active .gestao-side-icon {
+    opacity: 1;
+}
+
+.gestao-menu-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.gestao-menu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gestao-stat-card--accent {
+    border-left: 4px solid var(--line-strong);
+}
+
+.gestao-stat-card--sales {
+    border-left-color: var(--forest);
+}
+
+.gestao-stat-card--ticket {
+    border-left-color: var(--gold);
+}
+
+.gestao-stat-card--pending {
+    border-left-color: var(--wine);
+}
+
+.gestao-table tbody tr:nth-child(even) {
+    background: rgba(42, 31, 24, 0.025);
+}
+
+.gestao-thumb img {
+    width: 44px;
+    height: 44px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line);
+    box-shadow: 2px 2px 0 rgba(42, 31, 24, 0.06);
+}
+
+.gestao-thumb-empty {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-sm);
+    background: var(--paper-deep);
+    color: var(--ink-soft);
+    font-size: var(--fs-price);
+}
+
+.gestao-empty {
+    padding: var(--space-5) var(--space-3);
+    text-align: center;
+    color: var(--ink-soft);
+    background: var(--card);
+    border: 1px dashed var(--line-strong);
+    border-radius: var(--radius-sm);
+}
+
+.gestao-filters {
+    margin-bottom: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+}
+
+.gestao-filters select {
+    margin-left: 8px;
+    padding: 6px 10px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--paper);
+    font: inherit;
+    font-size: var(--fs-small);
+}
+
+.gestao-form {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: var(--space-4);
+    box-shadow: 4px 4px 0 rgba(42, 31, 24, 0.05);
+}
+
+.gestao-form--wide {
+    padding: var(--space-4);
+}
+
+.gestao-page-head .btn-primary {
+    box-shadow: 3px 3px 0 var(--gold-soft);
+}

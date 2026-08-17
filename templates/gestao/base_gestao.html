@@ -28,29 +28,34 @@
             </a>
 
             <nav class="gestao-side-nav">
+                <p class="gestao-nav-label mono">Painel</p>
                 <a href="{% url 'gestao_dashboard' %}" class="gestao-side-link{% if url_name == 'gestao_dashboard' %} is-active{% endif %}">
-                    <span class="gestao-side-icon" aria-hidden="true">⌂</span> Início
-                </a>
-                <a href="{% url 'gestao_discos_lista' %}" class="gestao-side-link{% if url_name == 'gestao_discos_lista' or url_name == 'gestao_disco_criar' or url_name == 'gestao_disco_editar' or url_name == 'gestao_disco_excluir' %} is-active{% endif %}">
-                    <span class="gestao-side-icon" aria-hidden="true">♪</span> Discos
-                </a>
-                <a href="{% url 'gestao_livros_lista' %}" class="gestao-side-link{% if url_name == 'gestao_livros_lista' or url_name == 'gestao_livro_criar' or url_name == 'gestao_livro_editar' or url_name == 'gestao_livro_excluir' %} is-active{% endif %}">
-                    <span class="gestao-side-icon" aria-hidden="true">▤</span> Livros
-                </a>
-                <a href="{% url 'gestao_midias_lista' %}" class="gestao-side-link{% if url_name == 'gestao_midias_lista' or url_name == 'gestao_midia_criar' or url_name == 'gestao_midia_editar' or url_name == 'gestao_midia_excluir' %} is-active{% endif %}">
-                    <span class="gestao-side-icon" aria-hidden="true">▶</span> Filmes / DVDs
+                    {% include 'includes/icon.html' with icon='dashboard' class='gestao-side-icon' %} Início
                 </a>
                 <a href="{% url 'gestao_pedidos_lista' %}" class="gestao-side-link{% if url_name == 'gestao_pedidos_lista' or url_name == 'gestao_pedido_detalhe' %} is-active{% endif %}">
-                    <span class="gestao-side-icon" aria-hidden="true">◫</span> Pedidos
+                    {% include 'includes/icon.html' with icon='orders' class='gestao-side-icon' %} Pedidos
                 </a>
-                <a href="{% url 'gestao_planos_clube_lista' %}" class="gestao-side-link{% if url_name == 'gestao_planos_clube_lista' or url_name == 'gestao_plano_clube_criar' or url_name == 'gestao_plano_clube_editar' %} is-active{% endif %}">
-                    <span class="gestao-side-icon" aria-hidden="true">★</span> Clube
+
+                <p class="gestao-nav-label mono">Catálogo</p>
+                <a href="{% url 'gestao_discos_lista' %}" class="gestao-side-link{% if url_name == 'gestao_discos_lista' or url_name == 'gestao_disco_criar' or url_name == 'gestao_disco_editar' or url_name == 'gestao_disco_excluir' %} is-active{% endif %}">
+                    {% include 'includes/icon.html' with icon='music' class='gestao-side-icon' %} Discos
+                </a>
+                <a href="{% url 'gestao_livros_lista' %}" class="gestao-side-link{% if url_name == 'gestao_livros_lista' or url_name == 'gestao_livro_criar' or url_name == 'gestao_livro_editar' or url_name == 'gestao_livro_excluir' %} is-active{% endif %}">
+                    {% include 'includes/icon.html' with icon='book' class='gestao-side-icon' %} Livros
+                </a>
+                <a href="{% url 'gestao_midias_lista' %}" class="gestao-side-link{% if url_name == 'gestao_midias_lista' or url_name == 'gestao_midia_criar' or url_name == 'gestao_midia_editar' or url_name == 'gestao_midia_excluir' %} is-active{% endif %}">
+                    {% include 'includes/icon.html' with icon='film' class='gestao-side-icon' %} Filmes / DVDs
                 </a>
                 <a href="{% url 'gestao_importar_catalogo' %}" class="gestao-side-link{% if url_name == 'gestao_importar_catalogo' %} is-active{% endif %}">
-                    <span class="gestao-side-icon" aria-hidden="true">⇪</span> Importar CSV
+                    {% include 'includes/icon.html' with icon='upload' class='gestao-side-icon' %} Importar CSV
+                </a>
+
+                <p class="gestao-nav-label mono">Ferramentas</p>
+                <a href="{% url 'gestao_planos_clube_lista' %}" class="gestao-side-link{% if url_name == 'gestao_planos_clube_lista' or url_name == 'gestao_plano_clube_criar' or url_name == 'gestao_plano_clube_editar' %} is-active{% endif %}">
+                    {% include 'includes/icon.html' with icon='club' class='gestao-side-icon' %} Clube
                 </a>
                 <a href="{% url 'gestao_assistente_frases' %}" class="gestao-side-link{% if url_name == 'gestao_assistente_frases' or url_name == 'gestao_assistente_frase_excluir' %} is-active{% endif %}">
-                    <span class="gestao-side-icon" aria-hidden="true">◉</span> Assistente IA
+                    {% include 'includes/icon.html' with icon='assistant' class='gestao-side-icon' %} Assistente IA
                 </a>
             </nav>
 
@@ -68,7 +73,7 @@
 
         <div class="gestao-workspace">
             <header class="gestao-mobile-bar">
-                <button type="button" class="gestao-menu-btn" id="gestao-menu-open" aria-label="Abrir menu">☰</button>
+                <button type="button" class="gestao-menu-btn" id="gestao-menu-open" aria-label="Abrir menu">{% include 'includes/icon.html' with icon='menu' class='gestao-menu-icon' %}</button>
                 <span class="gestao-mobile-title">Gestão</span>
             </header>
     {% endif %}

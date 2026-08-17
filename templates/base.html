@@ -22,7 +22,8 @@
                 Vinil &amp; Página
             </a>
             <form class="header-search" action="{% url 'busca' %}" method="get" role="search">
-                <input type="search" name="q" placeholder="Buscar…" aria-label="Buscar no catálogo" value="{% if url_name == 'busca' %}{{ request.GET.q }}{% endif %}">
+                {% include 'includes/icon.html' with icon='search' class='header-search-icon' %}
+                <input type="search" name="q" placeholder="Buscar discos, livros, filmes…" aria-label="Buscar no catálogo" value="{% if url_name == 'busca' %}{{ request.GET.q }}{% endif %}">
             </form>
             <nav class="header-nav">
                 <ul>
@@ -33,7 +34,7 @@
                     {% if user.is_authenticated %}
                     <li><a href="{% url 'biblioteca' %}" class="{% if url_name == 'biblioteca' or url_name == 'reproduzir_conteudo' %}is-active{% endif %}">Biblioteca</a></li>
                     <li><a href="{% url 'meus_pedidos' %}" class="{% if url_name == 'meus_pedidos' %}is-active{% endif %}">Pedidos</a></li>
-                    <li><a href="{% url 'favoritos' %}" class="{% if url_name == 'favoritos' %}is-active{% endif %}">♥ Lista</a></li>
+                    <li><a href="{% url 'favoritos' %}" class="{% if url_name == 'favoritos' %}is-active{% endif %}">Lista</a></li>
                     {% endif %}
                 </ul>
             </nav>
@@ -47,8 +48,10 @@
                 {% else %}
                     <a href="{% url 'login' %}" class="header-link">Entrar</a>
                 {% endif %}
-                <button type="button" class="cart mono" id="cart-open-btn" data-cart-open aria-label="Abrir carrinho">
-                    Carrinho (<span id="cart-count">{{ carrinho_total_itens }}</span>)
+                <button type="button" class="cart-btn" id="cart-open-btn" data-cart-open aria-label="Abrir carrinho">
+                    {% include 'includes/icon.html' with icon='cart' class='cart-btn-icon' %}
+                    <span class="cart-btn-label">Carrinho</span>
+                    <span class="cart-btn-count mono" id="cart-count">{{ carrinho_total_itens }}</span>
                 </button>
             </div>
         </div>
@@ -65,6 +68,7 @@
                 <p class="cart-drawer-loading">Carregando…</p>
             </div>
             <footer class="cart-drawer-foot">
+                <p class="cart-drawer-discount mono" id="cart-drawer-discount" hidden></p>
                 <p class="cart-drawer-total mono">Total: <strong id="cart-drawer-total">R$ 0,00</strong></p>
                 <a href="{% url 'carrinho' %}" class="btn btn-primary cart-drawer-checkout">Ver carrinho e pagar</a>
             </footer>
@@ -72,6 +76,13 @@
     </div>
 
     <main>
+        {% if messages %}
+        <div class="wrap site-messages">
+            {% for message in messages %}
+            <p class="site-message site-message--{{ message.tags }}">{{ message }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
         {% block content %}{% endblock %}
     </main>
 
@@ -89,31 +100,31 @@
 
     <nav class="bottom-nav" aria-label="Navegação rápida">
         <a href="{% url 'home' %}" class="bottom-nav-item{% if url_name == 'home' %} is-active{% endif %}">
-            <span class="bottom-nav-icon" aria-hidden="true">⌂</span>
+            {% include 'includes/icon.html' with icon='home' class='bottom-nav-icon' %}
             <span>Início</span>
         </a>
         <a href="{% url 'catalogo_discos' %}" class="bottom-nav-item{% if url_name == 'catalogo_discos' %} is-active{% endif %}">
-            <span class="bottom-nav-icon" aria-hidden="true">♪</span>
+            {% include 'includes/icon.html' with icon='music' class='bottom-nav-icon' %}
             <span>Música</span>
         </a>
         <a href="{% url 'busca' %}" class="bottom-nav-item{% if url_name == 'busca' %} is-active{% endif %}">
-            <span class="bottom-nav-icon" aria-hidden="true">⌕</span>
+            {% include 'includes/icon.html' with icon='search' class='bottom-nav-icon' %}
             <span>Buscar</span>
         </a>
         {% if user.is_authenticated %}
         <a href="{% url 'biblioteca' %}" class="bottom-nav-item{% if url_name == 'biblioteca' or url_name == 'reproduzir_conteudo' %} is-active{% endif %}">
-            <span class="bottom-nav-icon" aria-hidden="true">▤</span>
+            {% include 'includes/icon.html' with icon='library' class='bottom-nav-icon' %}
             <span>Biblioteca</span>
         </a>
         {% else %}
         <a href="{% url 'login' %}" class="bottom-nav-item{% if url_name == 'login' %} is-active{% endif %}">
-            <span class="bottom-nav-icon" aria-hidden="true">→</span>
+            {% include 'includes/icon.html' with icon='login' class='bottom-nav-icon' %}
             <span>Entrar</span>
         </a>
         {% endif %}
         <button type="button" class="bottom-nav-item bottom-nav-cart" data-cart-open aria-label="Abrir carrinho">
             <span class="bottom-nav-icon-wrap">
-                <span class="bottom-nav-icon" aria-hidden="true">◫</span>
+                {% include 'includes/icon.html' with icon='cart' class='bottom-nav-icon' %}
                 <span class="bottom-nav-badge" id="bottom-cart-count">{{ carrinho_total_itens }}</span>
             </span>
             <span>Carrinho</span>

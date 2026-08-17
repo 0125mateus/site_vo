@@ -4,6 +4,7 @@
     const totalEl = document.getElementById('cart-drawer-total');
     const countEl = document.getElementById('cart-count');
     const bottomCountEl = document.getElementById('bottom-cart-count');
+    const discountEl = document.getElementById('cart-drawer-discount');
     if (!drawer || !body) return;
 
     const resumoUrl = '/carrinho/resumo/';
@@ -25,8 +26,23 @@
         if (bottomCountEl) bottomCountEl.textContent = data.total_itens;
         if (totalEl) totalEl.textContent = formatMoney(data.total);
 
+        if (discountEl) {
+            const desconto = parseFloat(data.desconto || 0);
+            if (desconto > 0) {
+                discountEl.hidden = false;
+                discountEl.textContent = `Desconto: − ${formatMoney(desconto)}`;
+            } else {
+                discountEl.hidden = true;
+                discountEl.textContent = '';
+            }
+        }
+
         if (!data.itens.length) {
-            body.innerHTML = '<p class="cart-drawer-empty">Seu carrinho está vazio.</p>';
+            body.innerHTML = `
+                <div class="cart-drawer-empty-state">
+                    <p>Seu carrinho está vazio.</p>
+                    <a href="/" class="btn btn-ghost btn-sm">Explorar catálogo</a>
+                </div>`;
             return;
         }
 

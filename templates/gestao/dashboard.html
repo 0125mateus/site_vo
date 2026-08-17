@@ -10,15 +10,15 @@
 </section>
 
 <div class="gestao-stats">
-    <div class="gestao-stat-card">
+    <div class="gestao-stat-card gestao-stat-card--accent gestao-stat-card--sales">
         <span class="gestao-stat-num mono">R$ {{ total_vendas|floatformat:2 }}</span>
         <span class="gestao-stat-label">Vendas aprovadas ({{ pedidos_aprovados }} pedidos)</span>
     </div>
-    <div class="gestao-stat-card">
+    <div class="gestao-stat-card gestao-stat-card--accent gestao-stat-card--ticket">
         <span class="gestao-stat-num mono">R$ {{ ticket_medio|floatformat:2 }}</span>
         <span class="gestao-stat-label">Ticket médio</span>
     </div>
-    <div class="gestao-stat-card">
+    <div class="gestao-stat-card gestao-stat-card--accent gestao-stat-card--pending">
         <span class="gestao-stat-num mono">{{ pedidos_pendentes }}</span>
         <span class="gestao-stat-label">Pedidos pendentes</span>
         <a href="{% url 'gestao_pedidos_lista' %}" class="btn btn-ghost">Ver pedidos</a>

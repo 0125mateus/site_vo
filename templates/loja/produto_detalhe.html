@@ -107,16 +107,18 @@
         {% if user.is_authenticated %}
         <form method="post" action="{% url 'avaliar_produto' produto.id %}" class="review-form">
             {% csrf_token %}
-            <label for="review-nota">Sua nota</label>
-            <select name="nota" id="review-nota" required>
-                <option value="">—</option>
-                {% for n in "12345" %}
-                <option value="{{ n }}"{% if minha_avaliacao and minha_avaliacao.nota|stringformat:"s" == n %} selected{% endif %}>{{ n }} ★</option>
-                {% endfor %}
-            </select>
+            <fieldset class="star-rating">
+                <legend>Sua nota</legend>
+                <div class="star-rating-input">
+                    {% for n in "54321" %}
+                    <input type="radio" name="nota" id="star-{{ n }}" value="{{ n }}"{% if minha_avaliacao and minha_avaliacao.nota|stringformat:"s" == n %} checked{% endif %} required>
+                    <label for="star-{{ n }}" title="{{ n }} estrelas">★</label>
+                    {% endfor %}
+                </div>
+            </fieldset>
             <label for="review-comentario">Comentário (opcional)</label>
             <textarea name="comentario" id="review-comentario" rows="3" maxlength="1000" placeholder="Conte o que achou…">{% if minha_avaliacao %}{{ minha_avaliacao.comentario }}{% endif %}</textarea>
-            <button type="submit" class="btn btn-ghost btn-sm">{% if minha_avaliacao %}Atualizar avaliação{% else %}Enviar avaliação{% endif %}</button>
+            <button type="submit" class="btn btn-primary btn-sm">{% if minha_avaliacao %}Atualizar avaliação{% else %}Enviar avaliação{% endif %}</button>
         </form>
         {% else %}
         <p><a href="{% url 'login' %}?next={{ request.path }}">Entre</a> para avaliar este item.</p>
@@ -128,7 +130,7 @@
             <li class="review-item">
                 <div class="review-item-head">
                     <strong>{{ av.usuario.username }}</strong>
-                    <span class="mono">{{ av.nota }} ★</span>
+                    <span class="review-stars" aria-label="{{ av.nota }} de 5">{% for i in "12345" %}{% if forloop.counter <= av.nota %}★{% else %}☆{% endif %}{% endfor %}</span>
                 </div>
                 {% if av.comentario %}<p>{{ av.comentario|linebreaksbr }}</p>{% endif %}
                 <time class="mono review-date">{{ av.criado_em|date:"d/m/Y" }}</time>
