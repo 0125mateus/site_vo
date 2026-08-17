@@ -204,6 +204,20 @@
     cursor: not-allowed;
 }
 
+@media (max-width: 767px) {
+    .assistant-fab-label {
+        display: none;
+    }
+
+    .assistant-fab {
+        width: 48px;
+        height: 48px;
+        padding: 0;
+        justify-content: center;
+        border-radius: 50%;
+    }
+}
+
 @media (max-width: 480px) {
     .assistant-widget {
         bottom: 16px;
@@ -212,6 +226,7 @@
 
     .assistant-panel {
         width: calc(100vw - 32px);
-        height: calc(100vh - 80px);
+        height: calc(100dvh - 80px);
+        max-height: calc(100dvh - 80px);
     }
 }

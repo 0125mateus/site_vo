@@ -17,7 +17,8 @@
     --line: rgba(42, 31, 24, 0.16);
     --line-strong: rgba(42, 31, 24, 0.28);
     --shadow: rgba(42, 31, 24, 0.22);
-    --shadow-deep: rgba(42, 31, 24, 0.38);
+    /* Espaço reservado para barra inferior mobile */
+    --bottom-nav-offset: calc(4.75rem + env(safe-area-inset-bottom, 0px));
 
     /* Alias legados (compatibilidade) */
     --parchment: var(--paper);
@@ -70,6 +71,13 @@ body {
     font-size: var(--fs-body);
     line-height: var(--lh-body);
     min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+}
+
+html {
+    overflow-x: hidden;
+    scroll-behavior: smooth;
 }
 
 body::before {
@@ -595,6 +603,7 @@ section.catalog::before {
     padding: var(--space-3) 4px var(--space-5);
     scroll-snap-type: x proximity;
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
 }
 
 .shelf::after {
@@ -1955,6 +1964,14 @@ body.cart-drawer-open {
 
 /* ——— BOTTOM NAV (mobile) ——— */
 @media (max-width: 767px) {
+    html {
+        scroll-padding-bottom: var(--bottom-nav-offset);
+    }
+
+    header {
+        padding-top: calc(var(--space-3) + env(safe-area-inset-top, 0px));
+    }
+
     .header-nav {
         display: none;
     }
@@ -1963,12 +1980,16 @@ body.cart-drawer-open {
         display: none;
     }
 
-    body.site-with-bottom-nav {
-        padding-bottom: 72px;
+    body.site-with-bottom-nav main {
+        padding-bottom: calc(var(--bottom-nav-offset) + var(--space-4));
+    }
+
+    body.site-with-bottom-nav.has-media-bar main {
+        padding-bottom: calc(var(--bottom-nav-offset) + 88px + var(--space-4));
     }
 
     body.site-with-bottom-nav footer {
-        margin-bottom: 72px;
+        margin-bottom: var(--bottom-nav-offset);
     }
 
     .bottom-nav {
@@ -1978,16 +1999,31 @@ body.cart-drawer-open {
         right: 0;
         bottom: 0;
         z-index: 900;
+        min-height: var(--bottom-nav-offset);
         background: linear-gradient(180deg, rgba(247, 240, 226, 0.97), rgba(237, 228, 208, 0.98));
         border-top: 1px solid var(--line);
         backdrop-filter: blur(8px);
-        padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+        padding: 8px 6px max(12px, env(safe-area-inset-bottom, 12px));
         justify-content: space-around;
+        align-items: flex-start;
         gap: 2px;
+        box-sizing: border-box;
     }
 
     body.site-with-bottom-nav .assistant-widget {
-        bottom: calc(72px + 12px);
+        bottom: calc(var(--bottom-nav-offset) + 12px);
+        right: max(12px, env(safe-area-inset-right, 12px));
+    }
+
+    .record-visual {
+        height: auto;
+        min-height: 240px;
+        padding: var(--space-2) 0 var(--space-3);
+        overflow: hidden;
+    }
+
+    .book-lean {
+        right: 8px;
     }
 }
 
@@ -2002,19 +2038,45 @@ body.cart-drawer-open {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 2px;
+    justify-content: flex-start;
+    gap: 4px;
     min-width: 0;
-    padding: 6px 4px;
-    font-size: 0.625rem;
+    max-width: 20%;
+    padding: 4px 2px;
+    font-size: 0.6875rem;
     font-weight: 500;
     color: var(--ink-soft);
     text-align: center;
-    line-height: 1.2;
+    line-height: 1.15;
     border: none;
     background: none;
     cursor: pointer;
     font-family: var(--font-body);
+    white-space: nowrap;
+}
+
+.bottom-nav-icon-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bottom-nav-badge {
+    position: absolute;
+    top: -4px;
+    right: -8px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: var(--wine);
+    color: var(--paper);
+    font-family: var(--font-mono);
+    font-size: 0.5625rem;
+    font-weight: 600;
+    line-height: 16px;
+    text-align: center;
 }
 
 .bottom-nav-icon {
@@ -2032,9 +2094,10 @@ body.cart-drawer-open {
     opacity: 1;
 }
 
-.bottom-nav-cart span:last-child {
-    font-family: var(--font-mono);
-    font-size: 0.5625rem;
+@media (max-width: 767px) {
+    .bottom-nav-cart span:last-child {
+        font-size: 0.6875rem;
+    }
 }
 
 .search-filters {
