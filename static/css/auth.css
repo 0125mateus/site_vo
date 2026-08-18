@@ -1,4 +1,4 @@
-/* Login split-screen — Hollywood premium com formulário legível */
+/* Login split-screen — inspiração edX, paleta sebo/disqueira */
 
 body.auth-page header,
 body.auth-page footer,
@@ -31,8 +31,8 @@ body.auth-page main {
     justify-content: center;
     padding: var(--space-5) var(--space-4);
     background:
-        linear-gradient(145deg, #3d2430 0%, var(--wine-deep) 45%, #1a1210 100%);
-    color: var(--ink);
+        linear-gradient(145deg, var(--forest) 0%, #1a2e26 55%, var(--wine-deep) 100%);
+    color: #f5efe4;
     overflow: hidden;
 }
 
@@ -53,7 +53,7 @@ body.auth-page main {
     width: 320px;
     height: 320px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(212, 176, 106, 0.3), transparent 70%);
+    background: radial-gradient(circle, rgba(166, 132, 47, 0.25), transparent 70%);
     pointer-events: none;
 }
 
@@ -66,7 +66,7 @@ body.auth-page main {
     font-family: var(--font-display);
     font-size: 1.125rem;
     font-weight: 600;
-    color: var(--ink);
+    color: inherit;
     margin-bottom: var(--space-5);
 }
 
@@ -100,17 +100,16 @@ body.auth-page main {
     max-width: 28ch;
     font-size: var(--fs-small);
     line-height: 1.6;
-    color: rgba(248, 240, 228, 0.88);
+    color: rgba(245, 239, 228, 0.82);
 }
 
-/* Painel direito — formulário claro */
+/* Painel direito — formulário */
 .auth-split-panel {
     display: flex;
     align-items: center;
     justify-content: center;
     padding: var(--space-4) var(--space-3);
-    background: var(--surface-light);
-    color: var(--text-on-light);
+    background: var(--card);
 }
 
 .auth-panel-inner {
@@ -121,7 +120,7 @@ body.auth-page main {
     display: flex;
     gap: var(--space-3);
     margin-bottom: var(--space-4);
-    border-bottom: 1px solid var(--input-border);
+    border-bottom: 1px solid var(--line);
 }
 
 .auth-tab {
@@ -131,19 +130,18 @@ body.auth-page main {
     font-family: var(--font-body);
     font-size: 1rem;
     font-weight: 500;
-    color: var(--text-muted-on-light);
+    color: var(--ink-soft);
     cursor: pointer;
     position: relative;
     transition: color 0.2s ease;
 }
 
 .auth-tab:hover {
-    color: var(--text-on-light);
+    color: var(--ink);
 }
 
 .auth-tab.is-active {
-    color: var(--text-on-light);
-    font-weight: 600;
+    color: var(--ink);
 }
 
 .auth-tab.is-active::after {
@@ -160,19 +158,18 @@ body.auth-page main {
 .auth-panel-title {
     font-size: clamp(1.5rem, 3vw, 1.75rem);
     margin-bottom: var(--space-2);
-    color: var(--text-on-light);
 }
 
 .auth-panel-desc {
-    color: var(--text-muted-on-light);
+    color: var(--ink-soft);
     font-size: var(--fs-small);
     margin-bottom: var(--space-4);
     line-height: 1.55;
 }
 
 .auth-errors {
-    background: rgba(196, 45, 82, 0.1);
-    border: 1px solid rgba(196, 45, 82, 0.3);
+    background: rgba(110, 44, 44, 0.1);
+    border: 1px solid rgba(110, 44, 44, 0.25);
     color: var(--wine-deep);
     padding: 12px 14px;
     border-radius: var(--radius-sm);
@@ -192,7 +189,7 @@ body.auth-page main {
     top: 50%;
     transform: translateY(-50%);
     font-size: var(--fs-body);
-    color: var(--text-muted-on-light);
+    color: var(--ink-soft);
     pointer-events: none;
     transition: top 0.15s ease, transform 0.15s ease, font-size 0.15s ease, color 0.15s ease;
     background: transparent;
@@ -202,24 +199,19 @@ body.auth-page main {
 .auth-input {
     width: 100%;
     padding: 18px 14px 10px;
-    border: 1px solid var(--input-border);
+    border: 1px solid var(--line-strong);
     border-radius: 4px;
-    background: var(--input-bg);
+    background: #fff;
     font-family: var(--font-body);
     font-size: var(--fs-body);
-    color: var(--input-text);
+    color: var(--ink);
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.auth-input::placeholder {
-    color: transparent;
 }
 
 .auth-input:focus {
     outline: none;
     border-color: var(--wine);
-    box-shadow: 0 0 0 3px rgba(196, 45, 82, 0.15);
-    background: #fff;
+    box-shadow: 0 0 0 3px rgba(110, 44, 44, 0.12);
 }
 
 .auth-input:focus + label,
@@ -228,12 +220,6 @@ body.auth-page main {
     transform: none;
     font-size: var(--fs-eyebrow);
     color: var(--wine);
-}
-
-.auth-input:-webkit-autofill,
-.auth-input:-webkit-autofill:focus {
-    -webkit-text-fill-color: var(--input-text) !important;
-    box-shadow: 0 0 0 1000px var(--input-bg) inset !important;
 }
 
 .auth-field--password .auth-input {
@@ -248,13 +234,13 @@ body.auth-page main {
     border: none;
     background: none;
     padding: 6px;
-    color: var(--text-muted-on-light);
+    color: var(--ink-soft);
     cursor: pointer;
     border-radius: var(--radius-sm);
 }
 
 .auth-password-toggle:hover {
-    color: var(--text-on-light);
+    color: var(--ink);
 }
 
 .auth-field-error {
@@ -283,18 +269,17 @@ body.auth-page main {
     padding: 14px 24px;
     border: none;
     border-radius: 999px;
-    background: linear-gradient(135deg, var(--gold-soft), var(--gold));
-    color: var(--text-on-light);
+    background: var(--wine);
+    color: #fff;
     font-family: var(--font-body);
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
     transition: background 0.2s ease, transform 0.15s ease;
-    box-shadow: 0 4px 16px var(--glow-gold);
 }
 
 .btn-auth-primary:hover {
-    background: linear-gradient(135deg, var(--gold-bright), var(--gold-soft));
+    background: var(--wine-deep);
 }
 
 .btn-auth-primary:active {
@@ -304,7 +289,6 @@ body.auth-page main {
 .auth-forgot {
     font-size: var(--fs-small);
     color: var(--wine);
-    font-weight: 500;
     text-decoration: underline;
     text-underline-offset: 3px;
 }
@@ -316,11 +300,10 @@ body.auth-page main {
 .auth-register-placeholder h2 {
     font-size: 1.375rem;
     margin-bottom: var(--space-2);
-    color: var(--text-on-light);
 }
 
 .auth-register-placeholder p {
-    color: var(--text-muted-on-light);
+    color: var(--ink-soft);
     font-size: var(--fs-small);
     line-height: 1.55;
     margin-bottom: var(--space-2);
@@ -328,10 +311,9 @@ body.auth-page main {
 
 .auth-register-note {
     padding: var(--space-2);
-    background: rgba(212, 176, 106, 0.15);
+    background: rgba(166, 132, 47, 0.1);
     border-left: 3px solid var(--gold);
     border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-    color: var(--text-on-light);
 }
 
 .auth-back-login {
@@ -347,8 +329,7 @@ body.auth-page main {
 }
 
 .auth-back-home a {
-    color: var(--text-muted-on-light);
-    font-weight: 500;
+    color: var(--ink-soft);
 }
 
 .auth-back-home a:hover {

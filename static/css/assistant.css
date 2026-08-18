@@ -12,20 +12,20 @@
     align-items: center;
     gap: 8px;
     padding: 12px 18px;
-    background: linear-gradient(135deg, var(--gold-soft), var(--gold));
-    color: var(--paper-deep);
-    border: 1px solid var(--line-gold);
+    background: var(--ink, #211D1A);
+    color: var(--parchment, #F1E9D6);
+    border: 1px solid var(--ink, #211D1A);
     border-radius: 2px;
     cursor: pointer;
-    box-shadow: 0 8px 24px var(--glow-gold);
+    box-shadow: 0 8px 24px rgba(33, 29, 26, 0.25);
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 500;
     font-family: inherit;
     transition: transform 0.18s ease, background 0.18s ease;
 }
 
 .assistant-fab:hover {
-    background: linear-gradient(135deg, var(--gold-bright), var(--gold-soft));
+    background: var(--burgundy, #7C2D2D);
     transform: translateY(-2px);
 }
 
@@ -181,10 +181,9 @@
 .assistant-input-row input {
     flex: 1;
     padding: 10px 12px;
-    border: 1px solid var(--input-border);
+    border: 1px solid rgba(33, 29, 26, 0.14);
     border-radius: 2px;
-    background: var(--input-bg);
-    color: var(--input-text);
+    background: var(--parchment, #F1E9D6);
     font-family: inherit;
     font-size: 13px;
 }
