@@ -144,6 +144,7 @@ class CriarPreferenciaPagamentoViewTests(TestCase):
         self.assertEqual(response.data['preference_id'], 'pref-123')
         self.assertEqual(response.data['public_key'], 'TEST_PUBLIC_KEY')
         self.assertIn('mercadopago.com', response.data['init_point'])
+        self.assertEqual(response.data['checkout_url'], response.data['init_point'])
 
 
 class AssistenteAPITests(TestCase):

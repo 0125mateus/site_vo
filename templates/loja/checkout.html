@@ -43,7 +43,7 @@
             <p class="checkout-resumo">Pedido #{{ pedido.id }} — Total: <strong class="mono">R$ {{ pedido.valor_total }}</strong></p>
         </div>
 
-        <p class="checkout-mp-hint">Ao clicar em pagar, o Mercado Pago mostra Pix (QR) e cartão. O Pix só aparece se a conta que recebe tiver uma <strong>chave Pix cadastrada</strong>.</p>
+        <p class="checkout-mp-hint">Use as <strong>credenciais de produção</strong> no Render para pagar com sua conta real e ver o Pix. Credencial de teste com conta real gera o erro “uma das partes é de teste”.</p>
         <div id="payment-brick-container" class="payment-brick-wrapper"></div>
         <a id="mp-pay-link" class="btn btn-primary checkout-mp-link" hidden>Pagar com Pix ou cartão</a>
         <div id="payment-feedback" class="payment-feedback" hidden></div>
@@ -104,13 +104,20 @@
             const data = await response.json();
             const publicKeyFromApi = String(data.public_key || publicKey || '');
             const preferenceId = data.preference_id ? String(data.preference_id) : '';
-            const initPoint = data.init_point || data.sandbox_init_point || '';
-            ativarLinkPagamento(initPoint);
+            const checkoutUrl = data.checkout_url || data.sandbox_init_point || data.init_point || '';
+            const isSandbox = Boolean(data.sandbox_init_point);
+            ativarLinkPagamento(checkoutUrl);
+
+            if (isSandbox && checkoutUrl) {
+                loadingEl.hidden = false;
+                window.location.href = checkoutUrl;
+                return;
+            }
 
             if (!publicKeyFromApi || !preferenceId) {
-                if (initPoint) {
+                if (checkoutUrl) {
                     loadingEl.hidden = false;
-                    window.location.href = initPoint;
+                    window.location.href = checkoutUrl;
                     return;
                 }
                 throw new Error('Pagamento indisponível no momento. Tente novamente mais tarde.');
@@ -133,8 +140,8 @@
                         feedbackEl.hidden = true;
                     },
                     onError: () => {
-                        if (initPoint) {
-                            window.location.href = initPoint;
+                        if (checkoutUrl) {
+                            window.location.href = checkoutUrl;
                             return;
                         }
                         showFeedback('Não foi possível abrir o botão de pagamento. Use o botão abaixo.', true);

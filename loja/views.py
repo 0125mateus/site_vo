@@ -837,13 +837,23 @@ class CriarPreferenciaPagamentoView(APIView):
             return Response({'detail': str(exc)}, status=status.HTTP_502_BAD_GATEWAY)
 
         if isinstance(pref, str):
-            pref = {'preference_id': pref, 'init_point': '', 'sandbox_init_point': ''}
+            pref = {
+                'preference_id': pref,
+                'init_point': '',
+                'sandbox_init_point': '',
+                'checkout_url': '',
+            }
+
+        sandbox = pref.get('sandbox_init_point') or ''
+        live = pref.get('init_point') or ''
+        checkout_url = pref.get('checkout_url') or sandbox or live
 
         return Response({
             'preference_id': str(pref.get('preference_id') or ''),
             'public_key': str(settings.MERCADOPAGO_PUBLIC_KEY or ''),
-            'init_point': pref.get('init_point') or '',
-            'sandbox_init_point': pref.get('sandbox_init_point') or '',
+            'init_point': live,
+            'sandbox_init_point': sandbox,
+            'checkout_url': checkout_url,
         })
 
 
