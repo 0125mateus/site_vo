@@ -59,6 +59,10 @@ def criar_preferencia_pagamento(pedido):
             'pending': f'{site_url}/pedidos/{pedido.pk}/processando/?result=pending',
         },
         'auto_return': 'approved',
+        'binary_mode': False,
+        'payment_methods': {
+            'default_payment_method_id': 'pix',
+        },
         'external_reference': str(pedido.pk),
         'notification_url': f'{site_url}/api/webhooks/mercadopago/',
     }
