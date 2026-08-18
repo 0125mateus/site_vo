@@ -23,7 +23,7 @@ body.auth-page main {
     }
 }
 
-/* Painel esquerdo — marca */
+/* Painel esquerdo — marca Hollywood (marrom + ouro, sem vinho) */
 .auth-split-brand {
     position: relative;
     display: flex;
@@ -31,7 +31,8 @@ body.auth-page main {
     justify-content: center;
     padding: var(--space-5) var(--space-4);
     background:
-        linear-gradient(145deg, #3d2430 0%, var(--wine-deep) 45%, #1a1210 100%);
+        radial-gradient(ellipse 80% 50% at 50% -10%, var(--spotlight-gold), transparent 55%),
+        linear-gradient(180deg, var(--paper) 0%, var(--paper-deep) 100%);
     color: var(--ink);
     overflow: hidden;
 }
@@ -74,8 +75,9 @@ body.auth-page main {
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, var(--gold-soft), var(--wine));
-    box-shadow: inset 0 0 0 2px rgba(255, 248, 235, 0.35);
+    background: var(--paper-deep);
+    background-image: radial-gradient(circle at center, var(--gold-soft) 0 4px, var(--paper-deep) 4px 20px);
+    box-shadow: 0 0 0 1px var(--gold), 0 0 14px var(--glow-gold);
 }
 
 .auth-brand-lead {
@@ -103,14 +105,17 @@ body.auth-page main {
     color: rgba(248, 240, 228, 0.88);
 }
 
-/* Painel direito — formulário claro */
+/* Painel direito — mesmo fundo da home */
 .auth-split-panel {
     display: flex;
     align-items: center;
     justify-content: center;
     padding: var(--space-4) var(--space-3);
-    background: var(--surface-light);
-    color: var(--text-on-light);
+    background:
+        radial-gradient(ellipse 70% 40% at 80% 0%, var(--spotlight-gold), transparent 50%),
+        linear-gradient(180deg, var(--paper) 0%, var(--paper-deep) 100%);
+    color: var(--ink);
+    border-left: 1px solid var(--line-gold);
 }
 
 .auth-panel-inner {
@@ -121,7 +126,7 @@ body.auth-page main {
     display: flex;
     gap: var(--space-3);
     margin-bottom: var(--space-4);
-    border-bottom: 1px solid var(--input-border);
+    border-bottom: 1px solid var(--line-gold);
 }
 
 .auth-tab {
@@ -131,18 +136,18 @@ body.auth-page main {
     font-family: var(--font-body);
     font-size: 1rem;
     font-weight: 500;
-    color: var(--text-muted-on-light);
+    color: var(--ink-soft);
     cursor: pointer;
     position: relative;
     transition: color 0.2s ease;
 }
 
 .auth-tab:hover {
-    color: var(--text-on-light);
+    color: var(--gold-soft);
 }
 
 .auth-tab.is-active {
-    color: var(--text-on-light);
+    color: var(--gold-soft);
     font-weight: 600;
 }
 
@@ -153,27 +158,28 @@ body.auth-page main {
     right: 0;
     bottom: -1px;
     height: 2px;
-    background: var(--wine);
+    background: linear-gradient(90deg, var(--gold), var(--gold-soft));
+    box-shadow: 0 0 8px var(--glow-gold);
     border-radius: 1px;
 }
 
 .auth-panel-title {
     font-size: clamp(1.5rem, 3vw, 1.75rem);
     margin-bottom: var(--space-2);
-    color: var(--text-on-light);
+    color: var(--ink);
 }
 
 .auth-panel-desc {
-    color: var(--text-muted-on-light);
+    color: var(--ink-soft);
     font-size: var(--fs-small);
     margin-bottom: var(--space-4);
     line-height: 1.55;
 }
 
 .auth-errors {
-    background: rgba(196, 45, 82, 0.1);
-    border: 1px solid rgba(196, 45, 82, 0.3);
-    color: var(--wine-deep);
+    background: rgba(212, 176, 106, 0.12);
+    border: 1px solid var(--line-gold);
+    color: var(--gold-bright);
     padding: 12px 14px;
     border-radius: var(--radius-sm);
     font-size: var(--fs-small);
@@ -217,8 +223,8 @@ body.auth-page main {
 
 .auth-input:focus {
     outline: none;
-    border-color: var(--wine);
-    box-shadow: 0 0 0 3px rgba(196, 45, 82, 0.15);
+    border-color: var(--gold-soft);
+    box-shadow: 0 0 0 3px var(--spotlight-gold);
     background: #fff;
 }
 
@@ -227,7 +233,7 @@ body.auth-page main {
     top: 8px;
     transform: none;
     font-size: var(--fs-eyebrow);
-    color: var(--wine);
+    color: var(--gold);
 }
 
 .auth-input:-webkit-autofill,
@@ -254,14 +260,14 @@ body.auth-page main {
 }
 
 .auth-password-toggle:hover {
-    color: var(--text-on-light);
+    color: var(--gold-soft);
 }
 
 .auth-field-error {
     display: block;
     margin-top: 6px;
     font-size: var(--fs-eyebrow);
-    color: var(--wine-deep);
+    color: var(--gold-soft);
 }
 
 .auth-actions {
@@ -282,9 +288,9 @@ body.auth-page main {
     min-width: 140px;
     padding: 14px 24px;
     border: none;
-    border-radius: 999px;
+    border-radius: var(--radius-sm);
     background: linear-gradient(135deg, var(--gold-soft), var(--gold));
-    color: var(--text-on-light);
+    color: var(--paper-deep);
     font-family: var(--font-body);
     font-size: 1rem;
     font-weight: 600;
@@ -303,24 +309,24 @@ body.auth-page main {
 
 .auth-forgot {
     font-size: var(--fs-small);
-    color: var(--wine);
+    color: var(--gold-soft);
     font-weight: 500;
     text-decoration: underline;
     text-underline-offset: 3px;
 }
 
 .auth-forgot:hover {
-    color: var(--wine-deep);
+    color: var(--gold-bright);
 }
 
 .auth-register-placeholder h2 {
     font-size: 1.375rem;
     margin-bottom: var(--space-2);
-    color: var(--text-on-light);
+    color: var(--ink);
 }
 
 .auth-register-placeholder p {
-    color: var(--text-muted-on-light);
+    color: var(--ink-soft);
     font-size: var(--fs-small);
     line-height: 1.55;
     margin-bottom: var(--space-2);
@@ -328,10 +334,10 @@ body.auth-page main {
 
 .auth-register-note {
     padding: var(--space-2);
-    background: rgba(212, 176, 106, 0.15);
+    background: rgba(212, 176, 106, 0.12);
     border-left: 3px solid var(--gold);
     border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-    color: var(--text-on-light);
+    color: var(--ink);
 }
 
 .auth-back-login {
@@ -347,12 +353,12 @@ body.auth-page main {
 }
 
 .auth-back-home a {
-    color: var(--text-muted-on-light);
+    color: var(--gold-soft);
     font-weight: 500;
 }
 
 .auth-back-home a:hover {
-    color: var(--wine);
+    color: var(--gold-bright);
 }
 
 .auth-split--compact .auth-brand-lead {
