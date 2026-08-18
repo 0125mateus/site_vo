@@ -28,4 +28,5 @@ def carrinho_context(request):
         'favoritos_ids': favoritos_ids,
         'STATIC_VERSION': getattr(settings, 'STATIC_VERSION', '1'),
         'ModalidadeComercial': ModalidadeComercial,
+        'MEDIA_NA_NUVEM': bool(getattr(settings, 'CLOUDINARY_URL', '')),
     }

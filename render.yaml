@@ -35,3 +35,5 @@ services:
         sync: false
       - key: OPENAI_API_KEY
         sync: false
+      - key: CLOUDINARY_URL
+        sync: false

@@ -87,7 +87,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATIC_VERSION = '20260817t'
+STATIC_VERSION = '20260817u'
 
 STORAGES = {
     'default': {
@@ -97,6 +97,12 @@ STORAGES = {
         'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage',
     },
 }
+
+CLOUDINARY_URL = env('CLOUDINARY_URL', default='')
+if CLOUDINARY_URL:
+    STORAGES['default'] = {
+        'BACKEND': 'loja.storage.CloudinaryAutoStorage',
+    }
 
 # YouTube embeds exigem Referer; o default do Django (same-origin) suprime
 # e causa Error 153 no player embutido.

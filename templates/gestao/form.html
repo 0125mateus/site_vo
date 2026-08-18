@@ -125,12 +125,16 @@
             <label for="id_imagem">Capa / imagem</label>
             {% if objeto and objeto.imagem %}
             <div class="gestao-image-preview">
-                <img src="{{ objeto.imagem.url }}" alt="Capa atual">
+                <img src="{{ objeto.imagem.url }}" alt="Capa atual" onerror="this.style.display='none'">
                 <p class="mono">Capa atual — envie outra para substituir</p>
             </div>
             {% endif %}
             {{ form.imagem }}
+            {% if form.imagem.errors %}<span class="field-error">{{ form.imagem.errors.0 }}</span>{% endif %}
             <p class="gestao-field-hint">JPG, PNG ou WebP. Envie direto do seu PC.</p>
+            {% if not MEDIA_NA_NUVEM %}
+            <p class="gestao-field-hint">No ar (Render) os arquivos só ficam salvos se a nuvem estiver ligada (CLOUDINARY_URL). Sem isso a capa some depois do deploy.</p>
+            {% endif %}
 
             {% if tipo == 'midia' %}
             <label for="id_trailer" style="margin-top:1.25rem;">Trailer / prévia (arquivo)</label>
@@ -141,7 +145,8 @@
             </p>
             {% endif %}
             {{ form.trailer }}
-            <p class="gestao-field-hint">MP4 ou WebM curto para o cliente assistir antes de comprar/alugar.</p>
+            {% if form.trailer.errors %}<span class="field-error">{{ form.trailer.errors.0 }}</span>{% endif %}
+            <p class="gestao-field-hint">MP4 ou WebM curto (prévia). Filmes longos use o campo de arquivo abaixo ou um link do YouTube.</p>
 
             <label for="id_trailer_url">Ou link do YouTube / Vimeo</label>
             {{ form.trailer_url }}
@@ -157,6 +162,7 @@
             </p>
             {% endif %}
             {{ form.arquivo }}
+            {% if form.arquivo.errors %}<span class="field-error">{{ form.arquivo.errors.0 }}</span>{% endif %}
             <p class="gestao-field-hint">
                 {% if tipo == 'disco' %}
                 MP3, FLAC, WAV… (opcional — versão digital)

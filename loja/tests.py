@@ -396,3 +396,16 @@ class AvaliacaoTests(TestCase):
         from loja.models import Avaliacao
         av = Avaliacao.objects.get(usuario=self.user, produto=self.produto)
         self.assertEqual(av.nota, 5)
+
+
+class MediaUploadPathTests(TestCase):
+    def test_nome_arquivo_remove_espacos(self):
+        from loja.models import _nome_arquivo_seguro, produto_imagem_upload_path
+
+        self.assertEqual(
+            _nome_arquivo_seguro('ChatGPT Image 14 de ago.png'),
+            'chatgpt-image-14-de-ago.png',
+        )
+        produto = Produto(pk=7, titulo='x', preco=Decimal('1'))
+        path = produto_imagem_upload_path(produto, 'Capa Com Espaço.JPG')
+        self.assertEqual(path, 'produtos/7/capa-com-espaco.jpg')

@@ -27,6 +27,9 @@ class MusicaForm(forms.ModelForm):
             'arquivo': forms.ClearableFileInput(attrs={
                 'accept': 'audio/*,.mp3,.flac,.wav,.aac,.m4a,.ogg',
             }),
+            'imagem': forms.ClearableFileInput(attrs={
+                'accept': 'image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp',
+            }),
         }
 
 
@@ -52,6 +55,9 @@ class LivroForm(forms.ModelForm):
             'estoque_aluguel': forms.NumberInput(attrs={'min': '0'}),
             'arquivo': forms.ClearableFileInput(attrs={
                 'accept': '.pdf,.epub,.mobi,application/pdf',
+            }),
+            'imagem': forms.ClearableFileInput(attrs={
+                'accept': 'image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp',
             }),
         }
 
@@ -86,6 +92,9 @@ class MidiaForm(forms.ModelForm):
             }),
             'arquivo': forms.ClearableFileInput(attrs={
                 'accept': 'video/*,.mp4,.mkv,.avi,.mov,.wmv,.iso',
+            }),
+            'imagem': forms.ClearableFileInput(attrs={
+                'accept': 'image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp',
             }),
         }
 

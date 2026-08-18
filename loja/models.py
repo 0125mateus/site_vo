@@ -1,22 +1,31 @@
 import uuid
+from pathlib import Path
 
 from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.utils.text import slugify
 
 User = get_user_model()
 
 
+def _nome_arquivo_seguro(filename: str) -> str:
+    nome = Path(str(filename).replace('\\', '/')).name
+    stem = slugify(Path(nome).stem, allow_unicode=False) or 'arquivo'
+    ext = Path(nome).suffix.lower()[:12]
+    return f'{stem[:80]}{ext}'
+
+
 def produto_imagem_upload_path(instance, filename):
     folder = instance.pk or uuid.uuid4().hex
-    return f'produtos/{folder}/{filename}'
+    return f'produtos/{folder}/{_nome_arquivo_seguro(filename)}'
 
 
 def produto_arquivo_upload_path(instance, filename):
     folder = instance.pk or uuid.uuid4().hex
-    return f'produtos/{folder}/arquivos/{filename}'
+    return f'produtos/{folder}/arquivos/{_nome_arquivo_seguro(filename)}'
 
 
 class ModalidadeComercial(models.TextChoices):
@@ -31,12 +40,14 @@ class Produto(models.Model):
         upload_to=produto_imagem_upload_path,
         blank=True,
         null=True,
+        max_length=500,
         help_text='Capa (JPG, PNG ou WebP).',
     )
     arquivo = models.FileField(
         upload_to=produto_arquivo_upload_path,
         blank=True,
         null=True,
+        max_length=500,
         help_text='Arquivo digital opcional (MP3, FLAC, MP4, MKV, PDF…).',
     )
     preco = models.DecimalField('preço de venda', max_digits=10, decimal_places=2)
@@ -113,7 +124,7 @@ class Livro(Produto):
 
 def produto_trailer_upload_path(instance, filename):
     folder = instance.pk or uuid.uuid4().hex
-    return f'produtos/{folder}/trailers/{filename}'
+    return f'produtos/{folder}/trailers/{_nome_arquivo_seguro(filename)}'
 
 
 class MidiaAudiovisual(Produto):
@@ -136,6 +147,7 @@ class MidiaAudiovisual(Produto):
         upload_to=produto_trailer_upload_path,
         blank=True,
         null=True,
+        max_length=500,
         help_text='Prévia em vídeo do PC (MP4, WebM…).',
     )
     trailer_url = models.URLField(

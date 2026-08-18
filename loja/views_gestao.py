@@ -27,6 +27,23 @@ from .models import FraseTreinoAssistente, Livro, MidiaAudiovisual, Musica, Pedi
 logger = logging.getLogger(__name__)
 
 
+def _salvar_form_produto(request, form, sucesso_msg, redirect_name):
+    if not form.is_valid():
+        return False
+    try:
+        form.save()
+    except Exception:
+        logger.exception('Falha ao salvar arquivo de mídia no gestor')
+        messages.error(
+            request,
+            'Não foi possível enviar o arquivo. Use JPG/PNG para capa, MP4 curto para trailer '
+            '(até ~80 MB) e tente de novo. No ar, a nuvem (CLOUDINARY_URL) precisa estar configurada.',
+        )
+        return False
+    messages.success(request, sucesso_msg)
+    return redirect(redirect_name)
+
+
 def gestor_required(view_func):
     @wraps(view_func)
     @login_required(login_url='gestao_entrar')
@@ -91,10 +108,11 @@ def discos_lista(request):
 @gestor_required
 def disco_criar(request):
     form = MusicaForm(request.POST or None, request.FILES or None)
-    if form.is_valid():
-        form.save()
-        messages.success(request, f'Disco "{form.instance.titulo}" cadastrado.')
-        return redirect('gestao_discos_lista')
+    salvo = _salvar_form_produto(
+        request, form, f'Disco "{form.instance.titulo}" cadastrado.', 'gestao_discos_lista',
+    )
+    if salvo:
+        return salvo
     return render(request, 'gestao/form.html', {
         'form': form,
         'titulo_pagina': 'Novo disco',
@@ -107,10 +125,11 @@ def disco_criar(request):
 def disco_editar(request, pk):
     disco = get_object_or_404(Musica, pk=pk)
     form = MusicaForm(request.POST or None, request.FILES or None, instance=disco)
-    if form.is_valid():
-        form.save()
-        messages.success(request, f'Disco "{disco.titulo}" atualizado.')
-        return redirect('gestao_discos_lista')
+    salvo = _salvar_form_produto(
+        request, form, f'Disco "{disco.titulo}" atualizado.', 'gestao_discos_lista',
+    )
+    if salvo:
+        return salvo
     return render(request, 'gestao/form.html', {
         'form': form,
         'titulo_pagina': f'Editar: {disco.titulo}',
@@ -144,10 +163,11 @@ def livros_lista(request):
 @gestor_required
 def livro_criar(request):
     form = LivroForm(request.POST or None, request.FILES or None)
-    if form.is_valid():
-        form.save()
-        messages.success(request, f'Livro "{form.instance.titulo}" cadastrado.')
-        return redirect('gestao_livros_lista')
+    salvo = _salvar_form_produto(
+        request, form, f'Livro "{form.instance.titulo}" cadastrado.', 'gestao_livros_lista',
+    )
+    if salvo:
+        return salvo
     return render(request, 'gestao/form.html', {
         'form': form,
         'titulo_pagina': 'Novo livro',
@@ -160,10 +180,11 @@ def livro_criar(request):
 def livro_editar(request, pk):
     livro = get_object_or_404(Livro, pk=pk)
     form = LivroForm(request.POST or None, request.FILES or None, instance=livro)
-    if form.is_valid():
-        form.save()
-        messages.success(request, f'Livro "{livro.titulo}" atualizado.')
-        return redirect('gestao_livros_lista')
+    salvo = _salvar_form_produto(
+        request, form, f'Livro "{livro.titulo}" atualizado.', 'gestao_livros_lista',
+    )
+    if salvo:
+        return salvo
     return render(request, 'gestao/form.html', {
         'form': form,
         'titulo_pagina': f'Editar: {livro.titulo}',
@@ -197,10 +218,11 @@ def midias_lista(request):
 @gestor_required
 def midia_criar(request):
     form = MidiaForm(request.POST or None, request.FILES or None)
-    if form.is_valid():
-        form.save()
-        messages.success(request, f'Mídia "{form.instance.titulo}" cadastrada.')
-        return redirect('gestao_midias_lista')
+    salvo = _salvar_form_produto(
+        request, form, f'Mídia "{form.instance.titulo}" cadastrada.', 'gestao_midias_lista',
+    )
+    if salvo:
+        return salvo
     return render(request, 'gestao/form.html', {
         'form': form,
         'titulo_pagina': 'Nova mídia (filme / DVD / vídeo)',
@@ -213,10 +235,11 @@ def midia_criar(request):
 def midia_editar(request, pk):
     midia = get_object_or_404(MidiaAudiovisual, pk=pk)
     form = MidiaForm(request.POST or None, request.FILES or None, instance=midia)
-    if form.is_valid():
-        form.save()
-        messages.success(request, f'Mídia "{midia.titulo}" atualizada.')
-        return redirect('gestao_midias_lista')
+    salvo = _salvar_form_produto(
+        request, form, f'Mídia "{midia.titulo}" atualizada.', 'gestao_midias_lista',
+    )
+    if salvo:
+        return salvo
     return render(request, 'gestao/form.html', {
         'form': form,
         'titulo_pagina': f'Editar: {midia.titulo}',
