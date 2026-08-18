@@ -1,30 +1,37 @@
 /* Vinil & Página — estética Hollywood premium / cinema boutique */
 
 :root {
-    /* Paleta cinema — escuro + ouro + tapete vermelho */
-    --paper: #0C0A09;
-    --paper-deep: #060504;
-    --card: #161310;
-    --card-elevated: #1E1A16;
-    --ink: #F5EBDC;
-    --ink-soft: #A39688;
-    --wine: #B4234A;
-    --wine-deep: #7A1835;
-    --leather: #2A221C;
-    --leather-soft: #453830;
-    --gold: #C9A962;
-    --gold-soft: #E2C88A;
+    /* Hollywood premium — escuro elegante + superfícies claras para leitura */
+    --paper: #221E1A;
+    --paper-deep: #161310;
+    --card: #2E2924;
+    --card-elevated: #38322C;
+    --surface-light: #F7F0E4;
+    --surface-light-muted: #EBE2D4;
+    --ink: #F8F0E4;
+    --ink-soft: #C4B8A8;
+    --text-on-light: #1C1612;
+    --text-muted-on-light: #5E5248;
+    --input-bg: #FFFDF9;
+    --input-text: #1C1612;
+    --input-border: rgba(28, 22, 18, 0.2);
+    --wine: #C42D52;
+    --wine-deep: #8E1F3D;
+    --leather: #3A3028;
+    --leather-soft: #5A4A3E;
+    --gold: #D4B06A;
+    --gold-soft: #E8C98A;
     --gold-bright: #F5E6B8;
     --forest: #5A9A7A;
-    --line: rgba(245, 235, 220, 0.1);
-    --line-strong: rgba(201, 169, 98, 0.22);
-    --line-gold: rgba(201, 169, 98, 0.38);
-    --shadow: rgba(0, 0, 0, 0.45);
-    --shadow-deep: rgba(0, 0, 0, 0.72);
-    --overlay: rgba(0, 0, 0, 0.6);
-    --spotlight-gold: rgba(201, 169, 98, 0.12);
-    --spotlight-wine: rgba(180, 35, 74, 0.1);
-    --glow-gold: rgba(201, 169, 98, 0.35);
+    --line: rgba(248, 240, 228, 0.12);
+    --line-strong: rgba(201, 169, 98, 0.28);
+    --line-gold: rgba(212, 176, 106, 0.45);
+    --shadow: rgba(0, 0, 0, 0.35);
+    --shadow-deep: rgba(0, 0, 0, 0.55);
+    --overlay: rgba(0, 0, 0, 0.5);
+    --spotlight-gold: rgba(212, 176, 106, 0.14);
+    --spotlight-wine: rgba(196, 45, 82, 0.08);
+    --glow-gold: rgba(212, 176, 106, 0.4);
     --bottom-nav-offset: calc(4.75rem + env(safe-area-inset-bottom, 0px));
 
     --parchment: var(--ink);
@@ -156,9 +163,9 @@ a {
 header {
     padding: var(--space-3) 0;
     border-bottom: 1px solid var(--line-gold);
-    background: linear-gradient(180deg, rgba(22, 19, 16, 0.98), rgba(12, 10, 9, 0.95));
+    background: linear-gradient(180deg, rgba(46, 41, 36, 0.98), rgba(34, 30, 26, 0.96));
     backdrop-filter: blur(12px);
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
 }
 
 header::after {
@@ -191,30 +198,30 @@ header::after {
     transform: translateY(-50%);
     width: 16px;
     height: 16px;
-    color: var(--ink-soft);
+    color: var(--text-muted-on-light);
     pointer-events: none;
 }
 
 .header-search input {
     width: 100%;
     padding: 10px 14px 10px 40px;
-    border: 1px solid var(--line-gold);
+    border: 1px solid var(--input-border);
     border-radius: 999px;
-    background: rgba(0, 0, 0, 0.35);
+    background: var(--input-bg);
     font-family: var(--font-body);
     font-size: var(--fs-small);
-    color: var(--ink);
+    color: var(--input-text);
 }
 
 .header-search input::placeholder {
-    color: var(--ink-soft);
+    color: var(--text-muted-on-light);
 }
 
 .header-search input:focus {
-    outline: 2px solid rgba(201, 169, 98, 0.35);
+    outline: 2px solid rgba(212, 176, 106, 0.45);
     outline-offset: 1px;
     border-color: var(--gold-soft);
-    background: rgba(0, 0, 0, 0.5);
+    background: #fff;
 }
 
 .header-nav {
@@ -400,7 +407,7 @@ nav a:hover::after,
     font-size: var(--fs-eyebrow);
     text-transform: uppercase;
     letter-spacing: 0.16em;
-    color: var(--wine);
+    color: var(--gold-soft);
     margin-bottom: var(--space-2);
 }
 
@@ -1616,11 +1623,16 @@ footer::before {
 .search-page-form input {
     flex: 1;
     padding: 12px 16px;
-    border: 1px solid var(--line-strong);
+    border: 1px solid var(--input-border);
     border-radius: var(--radius-sm);
     font-family: var(--font-body);
     font-size: 1rem;
-    background: var(--card);
+    background: var(--input-bg);
+    color: var(--input-text);
+}
+
+.search-page-form input::placeholder {
+    color: var(--text-muted-on-light);
 }
 
 .search-results-count {
@@ -2078,7 +2090,7 @@ body.cart-drawer-open {
         bottom: 0;
         z-index: 900;
         min-height: var(--bottom-nav-offset);
-        background: linear-gradient(180deg, rgba(22, 19, 16, 0.98), rgba(12, 10, 9, 0.99));
+        background: linear-gradient(180deg, rgba(46, 41, 36, 0.98), rgba(34, 30, 26, 0.99));
         border-top: 1px solid var(--line-gold);
         backdrop-filter: blur(12px);
         padding: 8px 6px max(12px, env(safe-area-inset-bottom, 12px));
@@ -2203,12 +2215,13 @@ body.cart-drawer-open {
 .catalog-filter select {
     min-width: 140px;
     padding: 8px 12px;
-    border: 1px solid var(--line);
+    border: 1px solid var(--input-border);
     border-radius: var(--radius-sm);
-    background: var(--card);
+    background: var(--input-bg);
     font-family: var(--font-body);
     font-size: var(--fs-small);
-    color: var(--ink);
+    color: var(--input-text);
+}
 }
 
 .shelf-more {
@@ -2425,15 +2438,15 @@ body.cart-drawer-open {
 .newsletter-form input[type="email"] {
     min-width: 200px;
     padding: 8px 12px;
-    border: 1px solid var(--line-gold);
+    border: 1px solid var(--input-border);
     border-radius: var(--radius-sm);
     font: inherit;
-    background: rgba(0, 0, 0, 0.35);
-    color: var(--ink);
+    background: var(--input-bg);
+    color: var(--input-text);
 }
 
 .newsletter-form input[type="email"]::placeholder {
-    color: var(--ink-soft);
+    color: var(--text-muted-on-light);
 }
 
 .section-eyebrow {
@@ -2499,10 +2512,10 @@ body.cart-drawer-open {
 .review-form textarea {
     font: inherit;
     padding: 8px 12px;
-    border: 1px solid var(--line-gold);
+    border: 1px solid var(--input-border);
     border-radius: var(--radius-sm);
-    background: rgba(0, 0, 0, 0.35);
-    color: var(--ink);
+    background: var(--input-bg);
+    color: var(--input-text);
 }
 
 .review-list {
@@ -2811,6 +2824,21 @@ body.cart-drawer-open {
 .btn:focus-visible,
 .cart-btn:focus-visible,
 .bottom-nav-item:focus-visible {
-    outline: 2px solid var(--wine);
+    outline: 2px solid var(--gold-soft);
     outline-offset: 2px;
+}
+
+/* Campos de formulário — texto sempre legível */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill {
+    -webkit-text-fill-color: var(--input-text) !important;
+    box-shadow: 0 0 0 1000px var(--input-bg) inset !important;
+    caret-color: var(--input-text);
+}
+
+.header-search input:-webkit-autofill {
+    -webkit-text-fill-color: var(--input-text) !important;
+    box-shadow: 0 0 0 1000px var(--input-bg) inset !important;
 }

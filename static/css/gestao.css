@@ -540,9 +540,10 @@
 .gestao-form select {
     width: 100%;
     padding: 10px 12px;
-    border: 1px solid var(--line-strong);
+    border: 1px solid var(--input-border);
     border-radius: var(--radius-sm);
-    background: var(--paper);
+    background: var(--input-bg);
+    color: var(--input-text);
     font-family: var(--font-body);
     font-size: var(--fs-small);
 }
@@ -550,8 +551,9 @@
 .gestao-form input:focus,
 .gestao-form textarea:focus,
 .gestao-form select:focus {
-    outline: 2px solid rgba(110, 44, 44, 0.2);
+    outline: 2px solid rgba(212, 176, 106, 0.35);
     outline-offset: 1px;
+    border-color: var(--gold-soft);
 }
 
 .password-field {
@@ -1016,9 +1018,10 @@ body.gestao-nav-open {
 .gestao-filters select {
     margin-left: 8px;
     padding: 6px 10px;
-    border: 1px solid var(--line-strong);
+    border: 1px solid var(--input-border);
     border-radius: var(--radius-sm);
-    background: var(--paper);
+    background: var(--input-bg);
+    color: var(--input-text);
     font: inherit;
     font-size: var(--fs-small);
 }
