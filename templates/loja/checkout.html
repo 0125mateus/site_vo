@@ -44,6 +44,15 @@
         </div>
 
         <div id="payment-brick-container" class="payment-brick-wrapper"></div>
+        <div id="pix-on-page" class="pix-on-page" hidden>
+            <h2>Pague com Pix nesta tela</h2>
+            <p>Escaneie o QR Code ou copie o código. O Pix não é enviado por e-mail.</p>
+            <img id="pix-qr-img" class="pix-qr-img" alt="QR Code Pix" hidden>
+            <label class="pix-copy-label" for="pix-copy-code">Pix copia e cola</label>
+            <textarea id="pix-copy-code" class="pix-copy-code" readonly rows="4"></textarea>
+            <button type="button" id="pix-copy-btn" class="btn btn-primary">Copiar código Pix</button>
+            <p class="pix-wait">Aguardando a confirmação do pagamento…</p>
+        </div>
         <div id="payment-feedback" class="payment-feedback" hidden></div>
         <div id="payment-loading" class="payment-loading" hidden>
             <p>Processando pagamento…</p>
@@ -60,6 +69,10 @@
     const feedbackEl = document.getElementById('payment-feedback');
     const loadingEl = document.getElementById('payment-loading');
     const container = document.getElementById('payment-brick-container');
+    const pixBox = document.getElementById('pix-on-page');
+    const pixImg = document.getElementById('pix-qr-img');
+    const pixCode = document.getElementById('pix-copy-code');
+    const pixCopyBtn = document.getElementById('pix-copy-btn');
 
     function showFeedback(message, isError) {
         feedbackEl.hidden = false;
@@ -70,6 +83,56 @@
     function getCsrfToken() {
         const match = document.cookie.match(/csrftoken=([^;]+)/);
         return match ? decodeURIComponent(match[1]) : '';
+    }
+
+    function aguardarPagamentoPix() {
+        const poll = async () => {
+            try {
+                const res = await fetch(`/api/pedidos/${pedidoId}/status/`, { credentials: 'same-origin' });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.status === 'aprovado') {
+                        window.location.href = `/pedidos/${pedidoId}/processando/`;
+                        return;
+                    }
+                    if (data.status === 'recusado' || data.status === 'cancelado') {
+                        showFeedback('Pagamento não confirmado. Tente novamente.', true);
+                        return;
+                    }
+                }
+            } catch (err) {
+                /* tenta de novo */
+            }
+            setTimeout(poll, 3000);
+        };
+        poll();
+    }
+
+    function mostrarPixNaPagina(payload) {
+        const pix = payload.pix || {};
+        loadingEl.hidden = true;
+        container.hidden = true;
+        pixBox.hidden = false;
+        if (pix.qr_code_base64) {
+            pixImg.src = 'data:image/png;base64,' + pix.qr_code_base64;
+            pixImg.hidden = false;
+        }
+        pixCode.value = pix.qr_code || '';
+        showFeedback('Pague o Pix nesta tela. A página confirma sozinha depois do pagamento.', false);
+        aguardarPagamentoPix();
+    }
+
+    if (pixCopyBtn) {
+        pixCopyBtn.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(pixCode.value);
+                pixCopyBtn.textContent = 'Código copiado';
+            } catch (err) {
+                pixCode.select();
+                document.execCommand('copy');
+                pixCopyBtn.textContent = 'Código copiado';
+            }
+        });
     }
 
     async function iniciarBrick() {
@@ -149,6 +212,10 @@
                             const payload = await res.json().catch(() => ({}));
                             if (!res.ok) {
                                 throw new Error(payload.detail || 'Não foi possível processar o pagamento.');
+                            }
+                            if (payload.pix && payload.pix.qr_code) {
+                                mostrarPixNaPagina(payload);
+                                return;
                             }
                             window.location.href = `/pedidos/${pedidoId}/processando/`;
                         }).catch((err) => {

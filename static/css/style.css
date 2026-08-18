@@ -1229,6 +1229,56 @@ footer::before {
     color: var(--ink-soft);
 }
 
+.pix-on-page {
+    margin-top: var(--space-3);
+    padding: var(--space-3);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--card);
+    text-align: center;
+}
+
+.pix-on-page h2 {
+    margin: 0 0 var(--space-2);
+    font-size: var(--fs-h2);
+}
+
+.pix-qr-img {
+    display: block;
+    width: min(260px, 80vw);
+    height: auto;
+    margin: var(--space-3) auto;
+    background: #fff;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.pix-copy-label {
+    display: block;
+    text-align: left;
+    margin-bottom: 6px;
+    font-size: var(--fs-small);
+}
+
+.pix-copy-code {
+    width: 100%;
+    font-family: ui-monospace, monospace;
+    font-size: 0.8rem;
+    padding: 10px;
+    margin-bottom: var(--space-2);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    color: var(--ink);
+    resize: vertical;
+}
+
+.pix-wait {
+    margin-top: var(--space-2);
+    font-style: italic;
+    color: var(--ink-soft);
+}
+
 .spinner {
     width: 36px;
     height: 36px;

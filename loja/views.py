@@ -35,6 +35,7 @@ from .mercadopago_service import (
     buscar_pagamento,
     criar_pagamento_com_brick,
     criar_preferencia_pagamento,
+    dados_pix_do_pagamento,
     sincronizar_pedido_com_mercadopago,
     validar_assinatura_webhook,
 )
@@ -860,8 +861,9 @@ class ProcessarPagamentoBrickView(APIView):
 
         return Response({
             'status': payment.get('status'),
-            'payment_id': payment.get('id'),
+            'payment_id': str(payment.get('id') or ''),
             'pedido_id': pedido.pk,
+            'pix': dados_pix_do_pagamento(payment),
         })
 
 

@@ -518,3 +518,47 @@ class ProcessarPagamentoBrickViewTests(TestCase):
         pedido_arg, form_arg = mock_criar.call_args[0]
         self.assertEqual(pedido_arg.pk, self.pedido.pk)
         self.assertEqual(form_arg['token'], 'tok_test')
+
+    @patch('loja.views.criar_pagamento_com_brick')
+    def test_pix_devolve_qr_na_resposta(self, mock_criar):
+        mock_criar.return_value = {
+            'id': 555,
+            'status': 'pending',
+            'point_of_interaction': {
+                'transaction_data': {
+                    'qr_code': '00020126580014br.gov.bcb.pix',
+                    'qr_code_base64': 'abc123',
+                }
+            },
+        }
+        response = self.client.post(self.url, {
+            'payment_method_id': 'pix',
+            'payer': {'email': 'comprador@example.com'},
+        }, format='json')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['pix']['qr_code'], '00020126580014br.gov.bcb.pix')
+        self.assertEqual(response.data['payment_id'], '555')
+
+
+class PayloadBrickTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='comprador', password='senha', email='comprador@example.com',
+        )
+        self.pedido = Pedido.objects.create(cliente=self.user, valor_total=Decimal('1.00'))
+
+    def test_remove_entity_type_invalido_do_pix(self):
+        from loja.mercadopago_service import montar_payload_pagamento_brick
+
+        payload = montar_payload_pagamento_brick(self.pedido, {
+            'payment_method_id': 'pix',
+            'payer': {
+                'email': '0.1.2.5mateus@gmail.com',
+                'entity_type': 'guest',
+            },
+            'token': None,
+        })
+        self.assertEqual(payload['payment_method_id'], 'pix')
+        self.assertEqual(payload['payer']['email'], '0.1.2.5mateus@gmail.com')
+        self.assertNotIn('entity_type', payload['payer'])
+        self.assertNotIn('token', payload)

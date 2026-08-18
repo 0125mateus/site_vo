@@ -1,10 +1,12 @@
 import hashlib
 import hmac
 import logging
+import uuid
 from decimal import Decimal
 
 import mercadopago
 from django.conf import settings
+from mercadopago.config import RequestOptions
 
 logger = logging.getLogger(__name__)
 
@@ -82,29 +84,95 @@ def criar_preferencia_pagamento(pedido):
     return str(preference_id)
 
 
+def _json_dict(value):
+    if isinstance(value, dict):
+        return {str(k): _json_dict(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_json_dict(v) for v in value]
+    return value
+
+
+def _mensagem_erro_mp(response):
+    body = response.get('response') or {}
+    if isinstance(body, dict):
+        causes = body.get('cause') or []
+        if causes and isinstance(causes, list) and isinstance(causes[0], dict):
+            desc = causes[0].get('description') or causes[0].get('code')
+            if desc:
+                return str(desc)
+        if body.get('message'):
+            return str(body['message'])
+    return 'Não foi possível processar o pagamento. Tente novamente.'
+
+
+def montar_payload_pagamento_brick(pedido, form_data):
+    """Monta o body da API de pagamentos sem campos inválidos do Brick."""
+    form_data = _json_dict(form_data) if isinstance(form_data, dict) else {}
+    method = str(
+        form_data.get('payment_method_id') or form_data.get('paymentMethodId') or ''
+    ).strip().lower()
+    if not method:
+        raise MercadoPagoAPIError('Forma de pagamento não informada.')
+
+    raw_payer = form_data.get('payer') if isinstance(form_data.get('payer'), dict) else {}
+    email = str(raw_payer.get('email') or getattr(pedido.cliente, 'email', '') or '').strip()
+    if not email:
+        raise MercadoPagoAPIError('Informe um e-mail para gerar o Pix.')
+
+    payer = {'email': email}
+    ident = raw_payer.get('identification')
+    if isinstance(ident, dict) and ident.get('type') and ident.get('number'):
+        payer['identification'] = {
+            'type': str(ident['type']),
+            'number': str(ident['number']).replace('.', '').replace('-', ''),
+        }
+    entity_type = raw_payer.get('entity_type')
+    if entity_type in ('individual', 'association'):
+        payer['entity_type'] = entity_type
+    for key in ('first_name', 'last_name'):
+        if raw_payer.get(key):
+            payer[key] = raw_payer[key]
+
+    payload = {
+        'transaction_amount': float(pedido.valor_total),
+        'payment_method_id': method,
+        'payer': payer,
+        'external_reference': str(pedido.pk),
+        'description': f'Pedido #{pedido.pk} — Vinil & Página',
+        'notification_url': f"{settings.SITE_URL.rstrip('/')}/api/webhooks/mercadopago/",
+    }
+    if form_data.get('token'):
+        payload['token'] = form_data['token']
+    if form_data.get('installments') not in (None, ''):
+        payload['installments'] = int(form_data['installments'])
+    if form_data.get('issuer_id') not in (None, ''):
+        payload['issuer_id'] = form_data['issuer_id']
+    return payload
+
+
+def dados_pix_do_pagamento(payment):
+    tx = ((payment or {}).get('point_of_interaction') or {}).get('transaction_data') or {}
+    qr_code = tx.get('qr_code')
+    if not qr_code:
+        return None
+    return {
+        'qr_code': qr_code,
+        'qr_code_base64': tx.get('qr_code_base64') or '',
+        'ticket_url': tx.get('ticket_url') or '',
+    }
+
+
 def criar_pagamento_com_brick(pedido, form_data):
     """Cria o pagamento na API do MP a partir do formData do Payment Brick."""
     if not isinstance(form_data, dict) or not form_data:
         raise MercadoPagoAPIError('Dados de pagamento inválidos.')
 
     sdk = get_mercadopago_sdk()
-    site_url = settings.SITE_URL.rstrip('/')
-    payload = dict(form_data)
-    payload['transaction_amount'] = float(pedido.valor_total)
-    payload['external_reference'] = str(pedido.pk)
-    payload['notification_url'] = f'{site_url}/api/webhooks/mercadopago/'
-    payload['description'] = f'Pedido #{pedido.pk} — Vinil & Página'
+    payload = montar_payload_pagamento_brick(pedido, form_data)
+    options = RequestOptions(custom_headers={'X-Idempotency-Key': str(uuid.uuid4())})
 
-    payer = payload.get('payer') if isinstance(payload.get('payer'), dict) else {}
-    if not payer.get('email'):
-        payer['email'] = (
-            getattr(pedido.cliente, 'email', '')
-            or f'pedido{pedido.pk}@vinil-e-pagina.onrender.com'
-        )
-    payload['payer'] = payer
-
-    logger.info('Criando pagamento Brick para pedido %s', pedido.pk)
-    response = sdk.payment().create(payload)
+    logger.info('Criando pagamento Brick para pedido %s método=%s', pedido.pk, payload.get('payment_method_id'))
+    response = sdk.payment().create(payload, options)
     if response.get('status') not in (200, 201):
         logger.error(
             'Erro ao criar pagamento Brick pedido %s: status=%s body=%s',
@@ -112,7 +180,7 @@ def criar_pagamento_com_brick(pedido, form_data):
             response.get('status'),
             response.get('response'),
         )
-        raise MercadoPagoAPIError('Não foi possível processar o pagamento. Tente novamente.')
+        raise MercadoPagoAPIError(_mensagem_erro_mp(response))
 
     payment = response['response']
     aplicar_pagamento_ao_pedido(pedido, payment)
