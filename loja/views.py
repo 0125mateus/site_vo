@@ -33,6 +33,7 @@ from .mercadopago_service import (
     MercadoPagoAPIError,
     aplicar_pagamento_ao_pedido,
     buscar_pagamento,
+    criar_pagamento_com_brick,
     criar_preferencia_pagamento,
     sincronizar_pedido_com_mercadopago,
     validar_assinatura_webhook,
@@ -835,8 +836,32 @@ class CriarPreferenciaPagamentoView(APIView):
             return Response({'detail': str(exc)}, status=status.HTTP_502_BAD_GATEWAY)
 
         return Response({
-            'preference_id': preference_id,
-            'public_key': settings.MERCADOPAGO_PUBLIC_KEY,
+            'preference_id': str(preference_id),
+            'public_key': str(settings.MERCADOPAGO_PUBLIC_KEY or ''),
+        })
+
+
+class ProcessarPagamentoBrickView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pedido_id):
+        pedido = get_object_or_404(Pedido, pk=pedido_id, cliente=request.user)
+
+        if pedido.status != Pedido.STATUS_AGUARDANDO:
+            return Response(
+                {'detail': 'Este pedido não está aguardando pagamento.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            payment = criar_pagamento_com_brick(pedido, request.data)
+        except MercadoPagoAPIError as exc:
+            return Response({'detail': str(exc)}, status=status.HTTP_502_BAD_GATEWAY)
+
+        return Response({
+            'status': payment.get('status'),
+            'payment_id': payment.get('id'),
+            'pedido_id': pedido.pk,
         })
 
 

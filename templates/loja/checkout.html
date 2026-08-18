@@ -94,15 +94,36 @@
             }
 
             const data = await response.json();
-            const mp = new MercadoPago(data.public_key, { locale: 'pt-BR' });
-            const bricksBuilder = mp.bricks();
+            const publicKeyFromApi = String(data.public_key || publicKey || '');
+            const preferenceId = data.preference_id ? String(data.preference_id) : '';
+            if (!publicKeyFromApi) {
+                throw new Error('Pagamento indisponível no momento. Tente novamente mais tarde.');
+            }
 
-            await bricksBuilder.create('payment', container, {
-                initialization: {
-                    amount: Number('{{ pedido_valor_js }}'),
-                    preferenceId: data.preference_id,
-                },
+            const mp = new MercadoPago(publicKeyFromApi, { locale: 'pt-BR' });
+            const bricksBuilder = mp.bricks();
+            const initialization = {
+                amount: Number('{{ pedido_valor_js }}'),
+            };
+            if (preferenceId) {
+                initialization.preferenceId = preferenceId;
+            }
+            const payerEmail = "{{ request.user.email|escapejs }}";
+            if (payerEmail) {
+                initialization.payer = { email: payerEmail };
+            }
+
+            await bricksBuilder.create('payment', 'payment-brick-container', {
+                initialization: initialization,
                 customization: {
+                    paymentMethods: {
+                        creditCard: 'all',
+                        debitCard: 'all',
+                        prepaidCard: 'all',
+                        ticket: 'all',
+                        bankTransfer: 'all',
+                        mercadoPago: 'all',
+                    },
                     visual: {
                         style: {
                             theme: 'default',
@@ -113,14 +134,35 @@
                     onReady: () => {
                         feedbackEl.hidden = true;
                     },
-                    onSubmit: () => {
+                    onSubmit: ({ formData }) => {
                         loadingEl.hidden = false;
                         container.setAttribute('aria-busy', 'true');
+                        return fetch(`/api/pedidos/${pedidoId}/processar/`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': getCsrfToken(),
+                            },
+                            credentials: 'same-origin',
+                            body: JSON.stringify(formData),
+                        }).then(async (res) => {
+                            const payload = await res.json().catch(() => ({}));
+                            if (!res.ok) {
+                                throw new Error(payload.detail || 'Não foi possível processar o pagamento.');
+                            }
+                            window.location.href = `/pedidos/${pedidoId}/processando/`;
+                        }).catch((err) => {
+                            loadingEl.hidden = true;
+                            container.removeAttribute('aria-busy');
+                            showFeedback(err.message || 'Erro ao processar o pagamento.', true);
+                            throw err;
+                        });
                     },
-                    onError: () => {
+                    onError: (error) => {
                         loadingEl.hidden = true;
                         container.removeAttribute('aria-busy');
-                        showFeedback('Ocorreu um erro ao processar o pagamento. Verifique os dados e tente novamente.', true);
+                        const msg = (error && error.message) ? error.message : 'Ocorreu um erro ao processar o pagamento. Verifique os dados e tente novamente.';
+                        showFeedback(msg, true);
                     },
                 },
             });

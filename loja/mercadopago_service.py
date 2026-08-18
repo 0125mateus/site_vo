@@ -77,9 +77,46 @@ def criar_preferencia_pagamento(pedido):
     if not preference_id:
         raise MercadoPagoAPIError('Resposta inválida do gateway de pagamento.')
 
-    pedido.mercadopago_preference_id = preference_id
+    pedido.mercadopago_preference_id = str(preference_id)
     pedido.save(update_fields=['mercadopago_preference_id'])
-    return preference_id
+    return str(preference_id)
+
+
+def criar_pagamento_com_brick(pedido, form_data):
+    """Cria o pagamento na API do MP a partir do formData do Payment Brick."""
+    if not isinstance(form_data, dict) or not form_data:
+        raise MercadoPagoAPIError('Dados de pagamento inválidos.')
+
+    sdk = get_mercadopago_sdk()
+    site_url = settings.SITE_URL.rstrip('/')
+    payload = dict(form_data)
+    payload['transaction_amount'] = float(pedido.valor_total)
+    payload['external_reference'] = str(pedido.pk)
+    payload['notification_url'] = f'{site_url}/api/webhooks/mercadopago/'
+    payload['description'] = f'Pedido #{pedido.pk} — Vinil & Página'
+
+    payer = payload.get('payer') if isinstance(payload.get('payer'), dict) else {}
+    if not payer.get('email'):
+        payer['email'] = (
+            getattr(pedido.cliente, 'email', '')
+            or f'pedido{pedido.pk}@vinil-e-pagina.onrender.com'
+        )
+    payload['payer'] = payer
+
+    logger.info('Criando pagamento Brick para pedido %s', pedido.pk)
+    response = sdk.payment().create(payload)
+    if response.get('status') not in (200, 201):
+        logger.error(
+            'Erro ao criar pagamento Brick pedido %s: status=%s body=%s',
+            pedido.pk,
+            response.get('status'),
+            response.get('response'),
+        )
+        raise MercadoPagoAPIError('Não foi possível processar o pagamento. Tente novamente.')
+
+    payment = response['response']
+    aplicar_pagamento_ao_pedido(pedido, payment)
+    return payment
 
 
 def buscar_pagamento(payment_id):

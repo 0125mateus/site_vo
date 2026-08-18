@@ -480,3 +480,41 @@ class CheckoutPagamentoJsTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Number('1.00')")
         self.assertNotContains(response, 'amount: 1,00')
+        self.assertContains(response, "create('payment', 'payment-brick-container'")
+
+
+class ProcessarPagamentoBrickViewTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            username='comprador', password='senha123', email='comprador@example.com',
+        )
+        self.client.force_authenticate(user=self.user)
+        self.produto = Produto.objects.create(
+            titulo='Livro Teste', preco=Decimal('39.90'), estoque=5,
+        )
+        self.pedido = Pedido.objects.create(
+            cliente=self.user, valor_total=Decimal('39.90'),
+        )
+        ItemPedido.objects.create(
+            pedido=self.pedido,
+            produto=self.produto,
+            quantidade=1,
+            preco_unitario=self.produto.preco,
+        )
+        self.url = reverse('processar_pagamento_brick', kwargs={'pedido_id': self.pedido.pk})
+
+    @patch('loja.views.criar_pagamento_com_brick')
+    def test_processa_formdata_do_brick(self, mock_criar):
+        mock_criar.return_value = {'id': 999, 'status': 'approved'}
+        response = self.client.post(self.url, {
+            'token': 'tok_test',
+            'payment_method_id': 'master',
+            'installments': 1,
+            'payer': {'email': 'comprador@example.com'},
+        }, format='json')
+        self.assertEqual(response.status_code, 200)
+        mock_criar.assert_called_once()
+        pedido_arg, form_arg = mock_criar.call_args[0]
+        self.assertEqual(pedido_arg.pk, self.pedido.pk)
+        self.assertEqual(form_arg['token'], 'tok_test')

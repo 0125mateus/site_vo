@@ -10,6 +10,11 @@ urlpatterns = [
         name='criar_preferencia_pagamento',
     ),
     path(
+        'pedidos/<int:pedido_id>/processar/',
+        views.ProcessarPagamentoBrickView.as_view(),
+        name='processar_pagamento_brick',
+    ),
+    path(
         'pedidos/<int:pedido_id>/status/',
         views.PedidoStatusView.as_view(),
         name='pedido_status',
