@@ -1,18 +1,12 @@
-/* Gestão — painel alinhado à estética sebo / disqueira */
+/* Gestão — painel Hollywood premium */
 
 .gestao-body {
     min-height: 100vh;
     min-height: 100dvh;
     background-color: var(--paper);
     background-image:
-        radial-gradient(ellipse at 8% 0%, rgba(166, 132, 47, 0.07), transparent 42%),
+        radial-gradient(ellipse 70% 45% at 50% -5%, var(--spotlight-gold), transparent 50%),
         linear-gradient(180deg, var(--paper) 0%, var(--paper-deep) 100%);
-}
-
-.gestao-layout {
-    display: grid;
-    grid-template-columns: 260px 1fr;
-    min-height: 100dvh;
 }
 
 .gestao-sidebar {
@@ -22,10 +16,16 @@
     display: flex;
     flex-direction: column;
     padding: var(--space-3) var(--space-2);
-    background: linear-gradient(180deg, rgba(247, 240, 226, 0.98), rgba(237, 228, 208, 0.95));
-    border-right: 1px solid var(--line);
-    box-shadow: 4px 0 24px rgba(42, 31, 24, 0.04);
+    background: linear-gradient(180deg, rgba(22, 19, 16, 0.99), rgba(12, 10, 9, 0.98));
+    border-right: 1px solid var(--line-gold);
+    box-shadow: 4px 0 32px rgba(0, 0, 0, 0.45);
     z-index: 100;
+}
+
+.gestao-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: 100dvh;
 }
 
 .gestao-brand {
@@ -75,14 +75,15 @@
 }
 
 .gestao-side-link:hover {
-    background: rgba(110, 44, 44, 0.06);
-    color: var(--wine);
+    background: rgba(201, 169, 98, 0.1);
+    color: var(--gold-soft);
 }
 
 .gestao-side-link.is-active {
-    background: var(--ink);
-    color: var(--paper);
-    box-shadow: 3px 3px 0 var(--gold-soft);
+    background: linear-gradient(135deg, rgba(201, 169, 98, 0.22), rgba(180, 35, 74, 0.15));
+    color: var(--gold-bright);
+    border: 1px solid var(--line-gold);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
 .gestao-side-link--muted {
@@ -141,9 +142,9 @@
     align-items: center;
     gap: var(--space-2);
     padding: var(--space-2);
-    border-bottom: 1px solid var(--line);
-    background: rgba(247, 240, 226, 0.95);
-    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--line-gold);
+    background: rgba(22, 19, 16, 0.98);
+    backdrop-filter: blur(12px);
 }
 
 .gestao-menu-btn {
@@ -237,13 +238,13 @@
 
 .gestao-stat-card {
     background: var(--card);
-    border: 1px solid var(--line);
+    border: 1px solid var(--line-gold);
     padding: var(--space-3);
     border-radius: var(--radius-sm);
     display: flex;
     flex-direction: column;
     gap: 8px;
-    box-shadow: 4px 4px 0 rgba(42, 31, 24, 0.06);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
     position: relative;
 }
 
@@ -253,16 +254,17 @@
     top: 0;
     left: var(--space-2);
     right: var(--space-2);
-    height: 2px;
-    background: repeating-linear-gradient(90deg, var(--ink) 0 2px, transparent 2px 5px);
-    opacity: 0.15;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold-soft), transparent);
+    opacity: 0.5;
 }
 
 .gestao-stat-num {
     font-size: 2rem;
     font-weight: 600;
-    color: var(--wine);
+    color: var(--gold-soft);
     font-family: var(--font-display);
+    text-shadow: 0 0 24px var(--glow-gold);
 }
 
 .gestao-stat-label {
@@ -304,9 +306,9 @@
 .gestao-table-wrap {
     overflow-x: auto;
     background: var(--card);
-    border: 1px solid var(--line);
+    border: 1px solid var(--line-gold);
     border-radius: var(--radius-sm);
-    box-shadow: 4px 4px 0 rgba(42, 31, 24, 0.05);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
 .gestao-table {
@@ -538,9 +540,10 @@
 .gestao-form select {
     width: 100%;
     padding: 10px 12px;
-    border: 1px solid var(--line-strong);
+    border: 1px solid var(--input-border);
     border-radius: var(--radius-sm);
-    background: var(--paper);
+    background: var(--input-bg);
+    color: var(--input-text);
     font-family: var(--font-body);
     font-size: var(--fs-small);
 }
@@ -548,8 +551,9 @@
 .gestao-form input:focus,
 .gestao-form textarea:focus,
 .gestao-form select:focus {
-    outline: 2px solid rgba(110, 44, 44, 0.2);
+    outline: 2px solid rgba(212, 176, 106, 0.35);
     outline-offset: 1px;
+    border-color: var(--gold-soft);
 }
 
 .password-field {
@@ -969,7 +973,7 @@ body.gestao-nav-open {
 }
 
 .gestao-table tbody tr:nth-child(even) {
-    background: rgba(42, 31, 24, 0.025);
+    background: rgba(201, 169, 98, 0.04);
 }
 
 .gestao-thumb img {
@@ -1014,19 +1018,20 @@ body.gestao-nav-open {
 .gestao-filters select {
     margin-left: 8px;
     padding: 6px 10px;
-    border: 1px solid var(--line-strong);
+    border: 1px solid var(--input-border);
     border-radius: var(--radius-sm);
-    background: var(--paper);
+    background: var(--input-bg);
+    color: var(--input-text);
     font: inherit;
     font-size: var(--fs-small);
 }
 
 .gestao-form {
     background: var(--card);
-    border: 1px solid var(--line);
+    border: 1px solid var(--line-gold);
     border-radius: var(--radius-sm);
     padding: var(--space-4);
-    box-shadow: 4px 4px 0 rgba(42, 31, 24, 0.05);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
 .gestao-form--wide {
