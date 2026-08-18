@@ -60,9 +60,6 @@ def criar_preferencia_pagamento(pedido):
         },
         'auto_return': 'approved',
         'binary_mode': False,
-        'payment_methods': {
-            'default_payment_method_id': 'pix',
-        },
         'external_reference': str(pedido.pk),
         'notification_url': f'{site_url}/api/webhooks/mercadopago/',
     }
@@ -72,11 +69,12 @@ def criar_preferencia_pagamento(pedido):
 
     if response.get('status') not in (200, 201):
         logger.error(
-            'Erro ao criar preferência para pedido %s: status=%s',
+            'Erro ao criar preferência para pedido %s: status=%s body=%s',
             pedido.pk,
             response.get('status'),
+            response.get('response'),
         )
-        raise MercadoPagoAPIError('Não foi possível iniciar o pagamento. Tente novamente.')
+        raise MercadoPagoAPIError(_mensagem_erro_mp(response))
 
     preference = response['response']
     preference_id = preference.get('id')
