@@ -1279,6 +1279,17 @@ footer::before {
     color: var(--ink-soft);
 }
 
+.checkout-mp-hint {
+    margin: var(--space-3) 0 var(--space-2);
+    color: var(--ink-soft);
+    font-size: var(--fs-small);
+}
+
+.checkout-mp-link {
+    display: inline-flex;
+    margin-top: var(--space-2);
+}
+
 .spinner {
     width: 36px;
     height: 36px;

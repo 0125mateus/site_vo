@@ -832,13 +832,18 @@ class CriarPreferenciaPagamentoView(APIView):
         pedido.recalcular_valor_total()
 
         try:
-            preference_id = criar_preferencia_pagamento(pedido)
+            pref = criar_preferencia_pagamento(pedido)
         except MercadoPagoAPIError as exc:
             return Response({'detail': str(exc)}, status=status.HTTP_502_BAD_GATEWAY)
 
+        if isinstance(pref, str):
+            pref = {'preference_id': pref, 'init_point': '', 'sandbox_init_point': ''}
+
         return Response({
-            'preference_id': str(preference_id),
+            'preference_id': str(pref.get('preference_id') or ''),
             'public_key': str(settings.MERCADOPAGO_PUBLIC_KEY or ''),
+            'init_point': pref.get('init_point') or '',
+            'sandbox_init_point': pref.get('sandbox_init_point') or '',
         })
 
 

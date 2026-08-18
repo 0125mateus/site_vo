@@ -133,12 +133,17 @@ class CriarPreferenciaPagamentoViewTests(TestCase):
     @patch('loja.views.criar_preferencia_pagamento')
     @override_settings(MERCADOPAGO_PUBLIC_KEY='TEST_PUBLIC_KEY')
     def test_cria_preferencia_com_sucesso(self, mock_criar):
-        mock_criar.return_value = 'pref-123'
+        mock_criar.return_value = {
+            'preference_id': 'pref-123',
+            'init_point': 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=pref-123',
+            'sandbox_init_point': '',
+        }
 
         response = self.client.post(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['preference_id'], 'pref-123')
         self.assertEqual(response.data['public_key'], 'TEST_PUBLIC_KEY')
+        self.assertIn('mercadopago.com', response.data['init_point'])
 
 
 class AssistenteAPITests(TestCase):
@@ -478,9 +483,8 @@ class CheckoutPagamentoJsTests(TestCase):
     def test_valor_no_javascript_usa_ponto(self):
         response = self.client.get(reverse('checkout', kwargs={'pedido_id': self.pedido.pk}))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Number('1.00')")
+        self.assertContains(response, "create('wallet', 'payment-brick-container'")
         self.assertNotContains(response, 'amount: 1,00')
-        self.assertContains(response, "create('payment', 'payment-brick-container'")
 
 
 class ProcessarPagamentoBrickViewTests(TestCase):

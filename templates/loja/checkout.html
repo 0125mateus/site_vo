@@ -43,19 +43,12 @@
             <p class="checkout-resumo">Pedido #{{ pedido.id }} — Total: <strong class="mono">R$ {{ pedido.valor_total }}</strong></p>
         </div>
 
+        <p class="checkout-mp-hint">Pix, cartão e saldo Mercado Pago. O QR do Pix aparece na tela segura do Mercado Pago — não enviamos código por e-mail.</p>
         <div id="payment-brick-container" class="payment-brick-wrapper"></div>
-        <div id="pix-on-page" class="pix-on-page" hidden>
-            <h2>Pague com Pix nesta tela</h2>
-            <p>Escaneie o QR Code ou copie o código. O Pix não é enviado por e-mail.</p>
-            <img id="pix-qr-img" class="pix-qr-img" alt="QR Code Pix" hidden>
-            <label class="pix-copy-label" for="pix-copy-code">Pix copia e cola</label>
-            <textarea id="pix-copy-code" class="pix-copy-code" readonly rows="4"></textarea>
-            <button type="button" id="pix-copy-btn" class="btn btn-primary">Copiar código Pix</button>
-            <p class="pix-wait">Aguardando a confirmação do pagamento…</p>
-        </div>
+        <a id="mp-pay-link" class="btn btn-primary checkout-mp-link" hidden>Pagar com Pix ou cartão</a>
         <div id="payment-feedback" class="payment-feedback" hidden></div>
         <div id="payment-loading" class="payment-loading" hidden>
-            <p>Processando pagamento…</p>
+            <p>Abrindo o pagamento…</p>
         </div>
     </section>
 </div>
@@ -68,11 +61,7 @@
     const publicKey = "{{ mercadopago_public_key|escapejs }}";
     const feedbackEl = document.getElementById('payment-feedback');
     const loadingEl = document.getElementById('payment-loading');
-    const container = document.getElementById('payment-brick-container');
-    const pixBox = document.getElementById('pix-on-page');
-    const pixImg = document.getElementById('pix-qr-img');
-    const pixCode = document.getElementById('pix-copy-code');
-    const pixCopyBtn = document.getElementById('pix-copy-btn');
+    const payLink = document.getElementById('mp-pay-link');
 
     function showFeedback(message, isError) {
         feedbackEl.hidden = false;
@@ -85,57 +74,13 @@
         return match ? decodeURIComponent(match[1]) : '';
     }
 
-    function aguardarPagamentoPix() {
-        const poll = async () => {
-            try {
-                const res = await fetch(`/api/pedidos/${pedidoId}/status/`, { credentials: 'same-origin' });
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.status === 'aprovado') {
-                        window.location.href = `/pedidos/${pedidoId}/processando/`;
-                        return;
-                    }
-                    if (data.status === 'recusado' || data.status === 'cancelado') {
-                        showFeedback('Pagamento não confirmado. Tente novamente.', true);
-                        return;
-                    }
-                }
-            } catch (err) {
-                /* tenta de novo */
-            }
-            setTimeout(poll, 3000);
-        };
-        poll();
+    function ativarLinkPagamento(url) {
+        if (!url || !payLink) return;
+        payLink.href = url;
+        payLink.hidden = false;
     }
 
-    function mostrarPixNaPagina(payload) {
-        const pix = payload.pix || {};
-        loadingEl.hidden = true;
-        container.hidden = true;
-        pixBox.hidden = false;
-        if (pix.qr_code_base64) {
-            pixImg.src = 'data:image/png;base64,' + pix.qr_code_base64;
-            pixImg.hidden = false;
-        }
-        pixCode.value = pix.qr_code || '';
-        showFeedback('Pague o Pix nesta tela. A página confirma sozinha depois do pagamento.', false);
-        aguardarPagamentoPix();
-    }
-
-    if (pixCopyBtn) {
-        pixCopyBtn.addEventListener('click', async () => {
-            try {
-                await navigator.clipboard.writeText(pixCode.value);
-                pixCopyBtn.textContent = 'Código copiado';
-            } catch (err) {
-                pixCode.select();
-                document.execCommand('copy');
-                pixCopyBtn.textContent = 'Código copiado';
-            }
-        });
-    }
-
-    async function iniciarBrick() {
+    async function iniciarCheckout() {
         if (!publicKey) {
             showFeedback('Pagamento indisponível no momento. Tente novamente mais tarde.', true);
             return;
@@ -159,86 +104,49 @@
             const data = await response.json();
             const publicKeyFromApi = String(data.public_key || publicKey || '');
             const preferenceId = data.preference_id ? String(data.preference_id) : '';
-            if (!publicKeyFromApi) {
+            const initPoint = data.init_point || data.sandbox_init_point || '';
+            ativarLinkPagamento(initPoint);
+
+            if (!publicKeyFromApi || !preferenceId) {
+                if (initPoint) {
+                    loadingEl.hidden = false;
+                    window.location.href = initPoint;
+                    return;
+                }
                 throw new Error('Pagamento indisponível no momento. Tente novamente mais tarde.');
             }
 
             const mp = new MercadoPago(publicKeyFromApi, { locale: 'pt-BR' });
-            const bricksBuilder = mp.bricks();
-            const initialization = {
-                amount: Number('{{ pedido_valor_js }}'),
-            };
-            if (preferenceId) {
-                initialization.preferenceId = preferenceId;
-            }
-            const payerEmail = "{{ request.user.email|escapejs }}";
-            if (payerEmail) {
-                initialization.payer = { email: payerEmail };
-            }
-
-            await bricksBuilder.create('payment', 'payment-brick-container', {
-                initialization: initialization,
+            await mp.bricks().create('wallet', 'payment-brick-container', {
+                initialization: {
+                    preferenceId: preferenceId,
+                    redirectMode: 'self',
+                },
                 customization: {
-                    paymentMethods: {
-                        creditCard: 'all',
-                        debitCard: 'all',
-                        prepaidCard: 'all',
-                        ticket: 'all',
-                        bankTransfer: 'all',
-                        mercadoPago: 'all',
-                    },
-                    visual: {
-                        style: {
-                            theme: 'default',
-                        },
+                    theme: 'default',
+                    customStyle: {
+                        valueProp: 'security_safety',
                     },
                 },
                 callbacks: {
                     onReady: () => {
                         feedbackEl.hidden = true;
                     },
-                    onSubmit: ({ formData }) => {
-                        loadingEl.hidden = false;
-                        container.setAttribute('aria-busy', 'true');
-                        return fetch(`/api/pedidos/${pedidoId}/processar/`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRFToken': getCsrfToken(),
-                            },
-                            credentials: 'same-origin',
-                            body: JSON.stringify(formData),
-                        }).then(async (res) => {
-                            const payload = await res.json().catch(() => ({}));
-                            if (!res.ok) {
-                                throw new Error(payload.detail || 'Não foi possível processar o pagamento.');
-                            }
-                            if (payload.pix && payload.pix.qr_code) {
-                                mostrarPixNaPagina(payload);
-                                return;
-                            }
-                            window.location.href = `/pedidos/${pedidoId}/processando/`;
-                        }).catch((err) => {
-                            loadingEl.hidden = true;
-                            container.removeAttribute('aria-busy');
-                            showFeedback(err.message || 'Erro ao processar o pagamento.', true);
-                            throw err;
-                        });
-                    },
-                    onError: (error) => {
-                        loadingEl.hidden = true;
-                        container.removeAttribute('aria-busy');
-                        const msg = (error && error.message) ? error.message : 'Ocorreu um erro ao processar o pagamento. Verifique os dados e tente novamente.';
-                        showFeedback(msg, true);
+                    onError: () => {
+                        if (initPoint) {
+                            window.location.href = initPoint;
+                            return;
+                        }
+                        showFeedback('Não foi possível abrir o botão de pagamento. Use o botão abaixo.', true);
                     },
                 },
             });
         } catch (error) {
-            showFeedback(error.message || 'Erro ao carregar o formulário de pagamento.', true);
+            showFeedback(error.message || 'Erro ao carregar o pagamento.', true);
         }
     }
 
-    iniciarBrick();
+    iniciarCheckout();
 })();
 </script>
 {% endblock %}

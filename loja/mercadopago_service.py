@@ -81,7 +81,11 @@ def criar_preferencia_pagamento(pedido):
 
     pedido.mercadopago_preference_id = str(preference_id)
     pedido.save(update_fields=['mercadopago_preference_id'])
-    return str(preference_id)
+    return {
+        'preference_id': str(preference_id),
+        'init_point': preference.get('init_point') or '',
+        'sandbox_init_point': preference.get('sandbox_init_point') or '',
+    }
 
 
 def _json_dict(value):
