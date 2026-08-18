@@ -1,37 +1,37 @@
 /* Vinil & Página — estética Hollywood premium / cinema boutique */
 
 :root {
-    /* Hollywood premium — escuro elegante + superfícies claras para leitura */
-    --paper: #221E1A;
-    --paper-deep: #161310;
-    --card: #2E2924;
-    --card-elevated: #38322C;
-    --surface-light: #F7F0E4;
-    --surface-light-muted: #EBE2D4;
-    --ink: #F8F0E4;
-    --ink-soft: #C4B8A8;
+    /* Hollywood premium — tom quente mais claro, ainda elegante */
+    --paper: #3A342E;
+    --paper-deep: #2C2722;
+    --card: #454038;
+    --card-elevated: #504840;
+    --surface-light: #FAF4EA;
+    --surface-light-muted: #F0E6D8;
+    --ink: #FBF5EC;
+    --ink-soft: #D4C8BA;
     --text-on-light: #1C1612;
     --text-muted-on-light: #5E5248;
     --input-bg: #FFFDF9;
     --input-text: #1C1612;
-    --input-border: rgba(28, 22, 18, 0.2);
+    --input-border: rgba(28, 22, 18, 0.18);
     --wine: #C42D52;
     --wine-deep: #8E1F3D;
-    --leather: #3A3028;
-    --leather-soft: #5A4A3E;
+    --leather: #4A4038;
+    --leather-soft: #6A5A4E;
     --gold: #D4B06A;
     --gold-soft: #E8C98A;
     --gold-bright: #F5E6B8;
     --forest: #5A9A7A;
-    --line: rgba(248, 240, 228, 0.12);
-    --line-strong: rgba(201, 169, 98, 0.28);
-    --line-gold: rgba(212, 176, 106, 0.45);
-    --shadow: rgba(0, 0, 0, 0.35);
-    --shadow-deep: rgba(0, 0, 0, 0.55);
-    --overlay: rgba(0, 0, 0, 0.5);
-    --spotlight-gold: rgba(212, 176, 106, 0.14);
-    --spotlight-wine: rgba(196, 45, 82, 0.08);
-    --glow-gold: rgba(212, 176, 106, 0.4);
+    --line: rgba(251, 245, 236, 0.14);
+    --line-strong: rgba(212, 176, 106, 0.32);
+    --line-gold: rgba(212, 176, 106, 0.5);
+    --shadow: rgba(0, 0, 0, 0.28);
+    --shadow-deep: rgba(0, 0, 0, 0.42);
+    --overlay: rgba(0, 0, 0, 0.45);
+    --spotlight-gold: rgba(212, 176, 106, 0.22);
+    --spotlight-wine: rgba(196, 45, 82, 0.06);
+    --glow-gold: rgba(212, 176, 106, 0.45);
     --bottom-nav-offset: calc(4.75rem + env(safe-area-inset-bottom, 0px));
 
     --parchment: var(--ink);
@@ -76,9 +76,9 @@
 body {
     background-color: var(--paper);
     background-image:
-        radial-gradient(ellipse 80% 50% at 50% -10%, var(--spotlight-gold), transparent 55%),
-        radial-gradient(ellipse 60% 40% at 100% 30%, var(--spotlight-wine), transparent 50%),
-        radial-gradient(ellipse 50% 35% at 0% 70%, rgba(201, 169, 98, 0.06), transparent 45%),
+        radial-gradient(ellipse 90% 55% at 50% -8%, var(--spotlight-gold), transparent 58%),
+        radial-gradient(ellipse 65% 45% at 100% 25%, var(--spotlight-wine), transparent 52%),
+        radial-gradient(ellipse 55% 40% at 0% 65%, rgba(212, 176, 106, 0.1), transparent 48%),
         linear-gradient(180deg, var(--paper) 0%, var(--paper-deep) 100%);
     color: var(--ink);
     font-family: var(--font-body);
@@ -100,7 +100,7 @@ body::before {
     position: fixed;
     inset: 0;
     z-index: 0;
-    opacity: 0.035;
+    opacity: 0.025;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
