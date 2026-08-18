@@ -99,7 +99,7 @@
 
             await bricksBuilder.create('payment', container, {
                 initialization: {
-                    amount: {{ pedido.valor_total }},
+                    amount: Number('{{ pedido_valor_js }}'),
                     preferenceId: data.preference_id,
                 },
                 customization: {

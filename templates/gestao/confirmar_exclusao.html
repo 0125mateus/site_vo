@@ -5,12 +5,21 @@
 {% block content %}
 <section class="gestao-confirm">
     <h1>Confirmar exclusão</h1>
-    <p>Tem certeza que deseja excluir <strong>{{ objeto.titulo }}</strong>?</p>
+    <p>Tem certeza que deseja excluir <strong>{{ objeto.titulo|default:objeto }}</strong>?</p>
+    {% if tem_pedidos %}
+    <p class="gestao-confirm-warn">Este item já aparece em pedidos. Não pode ser apagado. Desative para tirá-lo da loja sem perder o histórico.</p>
+    {% else %}
     <p class="gestao-confirm-warn">Esta ação não pode ser desfeita.</p>
+    {% endif %}
 
     <form method="post" class="gestao-form-actions">
         {% csrf_token %}
-        <button type="submit" class="btn btn-danger">Sim, excluir</button>
+        {% if not tem_pedidos %}
+        <button type="submit" name="acao" value="excluir" class="btn btn-danger">Sim, excluir</button>
+        {% endif %}
+        {% if pode_desativar %}
+        <button type="submit" name="acao" value="desativar" class="btn btn-ghost">Desativar na loja</button>
+        {% endif %}
         <a href="{% url voltar_url %}" class="btn btn-ghost">Cancelar</a>
     </form>
 </section>

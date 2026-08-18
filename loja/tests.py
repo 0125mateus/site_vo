@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.utils import timezone
 from rest_framework.test import APIClient
 
-from .models import ItemPedido, Livro, Musica, Pagamento, Pedido, PlanoClube, Produto
+from .models import ItemPedido, Livro, MidiaAudiovisual, Musica, Pagamento, Pedido, PlanoClube, Produto
 
 User = get_user_model()
 
@@ -409,3 +409,74 @@ class MediaUploadPathTests(TestCase):
         produto = Produto(pk=7, titulo='x', preco=Decimal('1'))
         path = produto_imagem_upload_path(produto, 'Capa Com Espaço.JPG')
         self.assertEqual(path, 'produtos/7/capa-com-espaco.jpg')
+
+
+class GestaoExcluirMidiaTests(TestCase):
+    def setUp(self):
+        self.gestor = User.objects.create_user(
+            username='gestor', password='senha', is_staff=True,
+        )
+        self.cliente = User.objects.create_user(username='cliente', password='senha')
+        self.midia = MidiaAudiovisual.objects.create(
+            titulo='Filme Teste',
+            preco=Decimal('29.90'),
+            estoque=3,
+            tipo=MidiaAudiovisual.Tipo.FILME,
+        )
+        self.url = reverse('gestao_midia_excluir', kwargs={'pk': self.midia.pk})
+        self.client.force_login(self.gestor)
+
+    def test_excluir_midia_sem_pedido(self):
+        response = self.client.post(self.url, {'acao': 'excluir'})
+        self.assertRedirects(response, reverse('gestao_midias_lista'))
+        self.assertFalse(MidiaAudiovisual.objects.filter(pk=self.midia.pk).exists())
+
+    def test_excluir_midia_com_pedido_nao_quebra(self):
+        pedido = Pedido.objects.create(cliente=self.cliente, valor_total=Decimal('29.90'))
+        ItemPedido.objects.create(
+            pedido=pedido,
+            produto=self.midia,
+            quantidade=1,
+            preco_unitario=self.midia.preco,
+        )
+        response = self.client.post(self.url, {'acao': 'excluir'})
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(MidiaAudiovisual.objects.filter(pk=self.midia.pk).exists())
+
+    def test_desativar_midia_com_pedido(self):
+        pedido = Pedido.objects.create(cliente=self.cliente, valor_total=Decimal('29.90'))
+        ItemPedido.objects.create(
+            pedido=pedido,
+            produto=self.midia,
+            quantidade=1,
+            preco_unitario=self.midia.preco,
+        )
+        response = self.client.post(self.url, {'acao': 'desativar'})
+        self.assertRedirects(response, reverse('gestao_midias_lista'))
+        self.midia.refresh_from_db()
+        self.assertFalse(self.midia.ativo)
+
+
+class CheckoutPagamentoJsTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='cliente', password='senha')
+        self.produto = Produto.objects.create(
+            titulo='luna24', preco=Decimal('1.00'), estoque=5, ativo=True,
+        )
+        self.pedido = Pedido.objects.create(
+            cliente=self.user,
+            valor_total=Decimal('1.00'),
+        )
+        ItemPedido.objects.create(
+            pedido=self.pedido,
+            produto=self.produto,
+            quantidade=1,
+            preco_unitario=self.produto.preco,
+        )
+        self.client.force_login(self.user)
+
+    def test_valor_no_javascript_usa_ponto(self):
+        response = self.client.get(reverse('checkout', kwargs={'pedido_id': self.pedido.pk}))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Number('1.00')")
+        self.assertNotContains(response, 'amount: 1,00')

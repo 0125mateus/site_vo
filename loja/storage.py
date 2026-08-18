@@ -18,6 +18,19 @@ def usando_nuvem() -> bool:
 
 
 @deconstructible
+class SafeFileSystemStorage(FileSystemStorage):
+    """Não quebra o site se o arquivo já sumiu do disco (Render) ou o nome for uma URL."""
+
+    def delete(self, name):
+        if not name or str(name).startswith(('http://', 'https://')):
+            return
+        try:
+            super().delete(name)
+        except Exception:
+            logger.warning('Não foi possível apagar arquivo local %s', name)
+
+
+@deconstructible
 class CloudinaryAutoStorage(Storage):
     """Envia capa, trailer e arquivos com resource_type=auto (imagem, vídeo ou raw)."""
 
@@ -74,19 +87,22 @@ class CloudinaryAutoStorage(Storage):
     def delete(self, name):
         if not name:
             return
-        self._config()
-        import cloudinary.uploader
+        try:
+            self._config()
+            import cloudinary.uploader
 
-        public_id = self._public_id_from_name(name)
-        for resource_type in ('image', 'video', 'raw'):
-            try:
-                cloudinary.uploader.destroy(
-                    public_id,
-                    resource_type=resource_type,
-                    invalidate=True,
-                )
-            except Exception:
-                logger.debug('Cloudinary destroy %s/%s ignorado', resource_type, public_id)
+            public_id = self._public_id_from_name(name)
+            for resource_type in ('image', 'video', 'raw'):
+                try:
+                    cloudinary.uploader.destroy(
+                        public_id,
+                        resource_type=resource_type,
+                        invalidate=True,
+                    )
+                except Exception:
+                    logger.debug('Cloudinary destroy %s/%s ignorado', resource_type, public_id)
+        except Exception:
+            logger.warning('Falha ao remover mídia no Cloudinary: %s', name)
 
     def _public_id_from_name(self, name: str) -> str:
         if str(name).startswith(('http://', 'https://')):
@@ -111,4 +127,4 @@ class CloudinaryAutoStorage(Storage):
 def media_storage():
     if usando_nuvem():
         return CloudinaryAutoStorage()
-    return FileSystemStorage()
+    return SafeFileSystemStorage()

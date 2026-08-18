@@ -799,6 +799,7 @@ def checkout(request, pedido_id):
         'promos': promos,
         'subtotal_bruto': subtotal_bruto,
         'mercadopago_public_key': settings.MERCADOPAGO_PUBLIC_KEY,
+        'pedido_valor_js': format(pedido.valor_total, 'f'),
     })
 
 

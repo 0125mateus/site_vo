@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView
-from django.db.models import Avg, Sum
+from django.db.models import Avg, ProtectedError, Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
@@ -22,7 +22,7 @@ from .forms_gestao import (
     TestarIntencaoForm,
 )
 from .gestao_services import ESTOQUE_BAIXO_LIMITE, gerar_descricao_produto, importar_catalogo_csv, produtos_estoque_baixo
-from .models import FraseTreinoAssistente, Livro, MidiaAudiovisual, Musica, Pedido, PlanoClube
+from .models import FraseTreinoAssistente, ItemPedido, Livro, MidiaAudiovisual, Musica, Pedido, PlanoClube
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +42,49 @@ def _salvar_form_produto(request, form, sucesso_msg, redirect_name):
         return False
     messages.success(request, sucesso_msg)
     return redirect(redirect_name)
+
+
+def _excluir_item_catalogo(request, objeto, lista_url, rotulo):
+    titulo = objeto.titulo
+    tem_pedidos = ItemPedido.objects.filter(produto_id=objeto.pk).exists()
+    if request.method == 'POST':
+        if request.POST.get('acao') == 'desativar':
+            objeto.ativo = False
+            objeto.save(update_fields=['ativo'])
+            messages.success(request, f'{rotulo} "{titulo}" desativado e oculto da loja.')
+            return redirect(lista_url)
+        if tem_pedidos:
+            messages.error(
+                request,
+                f'Não dá para excluir "{titulo}" porque já existe em um pedido. '
+                'Desative o item para tirá-lo da loja sem apagar o histórico de vendas.',
+            )
+            return redirect(request.path)
+        try:
+            objeto.delete()
+        except ProtectedError:
+            messages.error(
+                request,
+                f'Não dá para excluir "{titulo}" porque já existe em um pedido. '
+                'Desative o item para tirá-lo da loja.',
+            )
+            return redirect(request.path)
+        except Exception:
+            logger.exception('Falha ao excluir %s pk=%s', rotulo, objeto.pk)
+            messages.error(
+                request,
+                f'Não foi possível excluir "{titulo}". Tente desativar o item.',
+            )
+            return redirect(request.path)
+        messages.success(request, f'{rotulo} "{titulo}" removido.')
+        return redirect(lista_url)
+    return render(request, 'gestao/confirmar_exclusao.html', {
+        'objeto': objeto,
+        'tipo': rotulo.lower(),
+        'voltar_url': lista_url,
+        'tem_pedidos': tem_pedidos,
+        'pode_desativar': True,
+    })
 
 
 def gestor_required(view_func):
@@ -142,16 +185,7 @@ def disco_editar(request, pk):
 @gestor_required
 def disco_excluir(request, pk):
     disco = get_object_or_404(Musica, pk=pk)
-    if request.method == 'POST':
-        titulo = disco.titulo
-        disco.delete()
-        messages.success(request, f'Disco "{titulo}" removido.')
-        return redirect('gestao_discos_lista')
-    return render(request, 'gestao/confirmar_exclusao.html', {
-        'objeto': disco,
-        'tipo': 'disco',
-        'voltar_url': 'gestao_discos_lista',
-    })
+    return _excluir_item_catalogo(request, disco, 'gestao_discos_lista', 'Disco')
 
 
 @gestor_required
@@ -197,16 +231,7 @@ def livro_editar(request, pk):
 @gestor_required
 def livro_excluir(request, pk):
     livro = get_object_or_404(Livro, pk=pk)
-    if request.method == 'POST':
-        titulo = livro.titulo
-        livro.delete()
-        messages.success(request, f'Livro "{titulo}" removido.')
-        return redirect('gestao_livros_lista')
-    return render(request, 'gestao/confirmar_exclusao.html', {
-        'objeto': livro,
-        'tipo': 'livro',
-        'voltar_url': 'gestao_livros_lista',
-    })
+    return _excluir_item_catalogo(request, livro, 'gestao_livros_lista', 'Livro')
 
 
 @gestor_required
@@ -252,16 +277,7 @@ def midia_editar(request, pk):
 @gestor_required
 def midia_excluir(request, pk):
     midia = get_object_or_404(MidiaAudiovisual, pk=pk)
-    if request.method == 'POST':
-        titulo = midia.titulo
-        midia.delete()
-        messages.success(request, f'Mídia "{titulo}" removida.')
-        return redirect('gestao_midias_lista')
-    return render(request, 'gestao/confirmar_exclusao.html', {
-        'objeto': midia,
-        'tipo': 'mídia',
-        'voltar_url': 'gestao_midias_lista',
-    })
+    return _excluir_item_catalogo(request, midia, 'gestao_midias_lista', 'Mídia')
 
 
 @gestor_required
