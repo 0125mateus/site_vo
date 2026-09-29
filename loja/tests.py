@@ -145,6 +145,40 @@ class CriarPreferenciaPagamentoViewTests(TestCase):
         self.assertEqual(response.data['public_key'], 'TEST_PUBLIC_KEY')
         self.assertIn('mercadopago.com', response.data['init_point'])
         self.assertEqual(response.data['checkout_url'], response.data['init_point'])
+        self.assertFalse(response.data['sandbox'])
+
+    @patch('loja.views.criar_preferencia_pagamento')
+    @override_settings(MERCADOPAGO_SANDBOX=False, MERCADOPAGO_PUBLIC_KEY='APP_USR_PUBLIC')
+    def test_producao_usa_init_point_mesmo_com_url_sandbox(self, mock_criar):
+        live = 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=pref-live'
+        sandbox = 'https://sandbox.mercadopago.com.br/checkout/v1/redirect?pref_id=pref-live'
+        mock_criar.return_value = {
+            'preference_id': 'pref-live',
+            'init_point': live,
+            'sandbox_init_point': sandbox,
+            'checkout_url': sandbox,
+        }
+
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['checkout_url'], live)
+        self.assertFalse(response.data['sandbox'])
+
+    @patch('loja.views.criar_preferencia_pagamento')
+    @override_settings(MERCADOPAGO_SANDBOX=True, MERCADOPAGO_PUBLIC_KEY='TEST_PUBLIC_KEY')
+    def test_sandbox_usa_url_de_teste(self, mock_criar):
+        live = 'https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=pref-test'
+        sandbox = 'https://sandbox.mercadopago.com.br/checkout/v1/redirect?pref_id=pref-test'
+        mock_criar.return_value = {
+            'preference_id': 'pref-test',
+            'init_point': live,
+            'sandbox_init_point': sandbox,
+        }
+
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['checkout_url'], sandbox)
+        self.assertTrue(response.data['sandbox'])
 
 
 class AssistenteAPITests(TestCase):

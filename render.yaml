@@ -23,6 +23,8 @@ services:
         value: "https://vinil-e-pagina.onrender.com,https://*.onrender.com"
       - key: CREATE_GESTOR
         value: "1"
+      - key: GESTOR_PASSWORD
+        sync: false
       - key: DATABASE_URL
         sync: false
       - key: SITE_URL
@@ -33,6 +35,8 @@ services:
         sync: false
       - key: MERCADOPAGO_WEBHOOK_SECRET
         sync: false
+      - key: MERCADOPAGO_SANDBOX
+        value: "False"
       - key: OPENAI_API_KEY
         sync: false
       - key: CLOUDINARY_URL

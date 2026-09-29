@@ -1,7 +1,11 @@
-from django.contrib.auth import get_user_model
+import os
+
+from django.conf import settings
+from django.contrib.auth import authenticate, get_user_model
 from django.core.management.base import BaseCommand
 
 User = get_user_model()
+SENHA_PADRAO = 'gestor123'
 
 
 class Command(BaseCommand):
@@ -14,16 +18,35 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         username = options['username']
-        if User.objects.filter(username=username).exists():
-            self.stdout.write(self.style.WARNING(f'Usuário "{username}" já existe.'))
+        password = os.environ.get('GESTOR_PASSWORD') or options['password']
+
+        if not settings.DEBUG and password == SENHA_PADRAO:
+            self.stderr.write(self.style.ERROR(
+                'Senha padrão recusada em produção. Defina GESTOR_PASSWORD no Render.'
+            ))
+            return
+
+        existente = User.objects.filter(username=username).first()
+        if existente:
+            if (
+                not settings.DEBUG
+                and authenticate(username=username, password=SENHA_PADRAO)
+            ):
+                self.stderr.write(self.style.ERROR(
+                    f'O usuário "{username}" ainda usa a senha padrão. '
+                    'Troque em /gestao/ antes de vender.'
+                ))
+            else:
+                self.stdout.write(self.style.WARNING(f'Usuário "{username}" já existe.'))
             return
 
         user = User.objects.create_superuser(
             username=username,
             email=options['email'],
-            password=options['password'],
+            password=password,
         )
         self.stdout.write(self.style.SUCCESS(f'Gestor criado: {user.username}'))
-        self.stdout.write(f'  Senha: {options["password"]}')
-        self.stdout.write('  Acesse: http://localhost:8000/gestao/entrar/')
+        if settings.DEBUG:
+            self.stdout.write(f'  Senha: {password}')
+        self.stdout.write('  Acesse: /gestao/entrar/')
         self.stdout.write(self.style.WARNING('  Troque a senha depois do primeiro acesso.'))

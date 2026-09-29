@@ -137,6 +137,8 @@ REST_FRAMEWORK = {
 MERCADOPAGO_ACCESS_TOKEN = env('MERCADOPAGO_ACCESS_TOKEN', default='')
 MERCADOPAGO_PUBLIC_KEY = env('MERCADOPAGO_PUBLIC_KEY', default='')
 MERCADOPAGO_WEBHOOK_SECRET = env('MERCADOPAGO_WEBHOOK_SECRET', default='')
+# True só no sandbox. Em produção (DEBUG=False) o checkout cobra de verdade.
+MERCADOPAGO_SANDBOX = env.bool('MERCADOPAGO_SANDBOX', default=DEBUG)
 SITE_URL = env('SITE_URL', default='http://localhost:8000')
 
 EMAIL_HOST = env('EMAIL_HOST', default='')

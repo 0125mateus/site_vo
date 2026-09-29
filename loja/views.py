@@ -36,6 +36,7 @@ from .mercadopago_service import (
     criar_pagamento_com_brick,
     criar_preferencia_pagamento,
     dados_pix_do_pagamento,
+    escolher_url_checkout,
     sincronizar_pedido_com_mercadopago,
     validar_assinatura_webhook,
 )
@@ -801,6 +802,7 @@ def checkout(request, pedido_id):
         'promos': promos,
         'subtotal_bruto': subtotal_bruto,
         'mercadopago_public_key': settings.MERCADOPAGO_PUBLIC_KEY,
+        'mercadopago_sandbox': settings.MERCADOPAGO_SANDBOX,
         'pedido_valor_js': format(pedido.valor_total, 'f'),
     })
 
@@ -846,7 +848,7 @@ class CriarPreferenciaPagamentoView(APIView):
 
         sandbox = pref.get('sandbox_init_point') or ''
         live = pref.get('init_point') or ''
-        checkout_url = pref.get('checkout_url') or sandbox or live
+        checkout_url, em_sandbox = escolher_url_checkout(live, sandbox)
 
         return Response({
             'preference_id': str(pref.get('preference_id') or ''),
@@ -854,6 +856,7 @@ class CriarPreferenciaPagamentoView(APIView):
             'init_point': live,
             'sandbox_init_point': sandbox,
             'checkout_url': checkout_url,
+            'sandbox': em_sandbox,
         })
 
 

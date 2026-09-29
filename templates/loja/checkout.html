@@ -43,7 +43,9 @@
             <p class="checkout-resumo">Pedido #{{ pedido.id }} — Total: <strong class="mono">R$ {{ pedido.valor_total }}</strong></p>
         </div>
 
-        <p class="checkout-mp-hint">Use as <strong>credenciais de produção</strong> no Render para pagar com sua conta real e ver o Pix. Credencial de teste com conta real gera o erro “uma das partes é de teste”.</p>
+        {% if mercadopago_sandbox %}
+        <p class="checkout-mp-hint">Ambiente de teste: este pagamento não cobra de verdade.</p>
+        {% endif %}
         <div id="payment-brick-container" class="payment-brick-wrapper"></div>
         <a id="mp-pay-link" class="btn btn-primary checkout-mp-link" hidden>Pagar com Pix ou cartão</a>
         <div id="payment-feedback" class="payment-feedback" hidden></div>
@@ -104,8 +106,8 @@
             const data = await response.json();
             const publicKeyFromApi = String(data.public_key || publicKey || '');
             const preferenceId = data.preference_id ? String(data.preference_id) : '';
-            const checkoutUrl = data.checkout_url || data.sandbox_init_point || data.init_point || '';
-            const isSandbox = Boolean(data.sandbox_init_point);
+            const checkoutUrl = data.checkout_url || (data.sandbox ? data.sandbox_init_point : data.init_point) || '';
+            const isSandbox = data.sandbox === true;
             ativarLinkPagamento(checkoutUrl);
 
             if (isSandbox && checkoutUrl) {

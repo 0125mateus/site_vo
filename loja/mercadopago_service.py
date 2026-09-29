@@ -85,12 +85,23 @@ def criar_preferencia_pagamento(pedido):
     pedido.save(update_fields=['mercadopago_preference_id'])
     init_point = preference.get('init_point') or ''
     sandbox_init_point = preference.get('sandbox_init_point') or ''
+    checkout_url, sandbox = escolher_url_checkout(init_point, sandbox_init_point)
     return {
         'preference_id': str(preference_id),
         'init_point': init_point,
         'sandbox_init_point': sandbox_init_point,
-        'checkout_url': sandbox_init_point or init_point,
+        'checkout_url': checkout_url,
+        'sandbox': sandbox,
     }
+
+
+def escolher_url_checkout(init_point, sandbox_init_point):
+    """Produção usa init_point. Sandbox só quando MERCADOPAGO_SANDBOX=True."""
+    init_point = init_point or ''
+    sandbox_init_point = sandbox_init_point or ''
+    if settings.MERCADOPAGO_SANDBOX and sandbox_init_point:
+        return sandbox_init_point, True
+    return (init_point or sandbox_init_point), False
 
 
 def _json_dict(value):
