@@ -1,0 +1,28 @@
+{% extends "gestao/base_gestao.html" %}
+
+{% block title %}Excluir clientes — Gestão{% endblock %}
+
+{% block content %}
+<section class="gestao-confirm">
+    <h1>Excluir clientes</h1>
+    <p>Confira quem será apagado. Quem já tem pedido permanece, para não sumir o histórico de vendas.</p>
+    <ul class="saas-rank">
+        {% for cliente in clientes %}
+        <li>
+            <span>{{ cliente.get_full_name|default:cliente.username }} <span class="mono">({{ cliente.username }})</span></span>
+            <span class="mono">{% if cliente.pedidos.exists %}tem pedido{% else %}sem pedido{% endif %}</span>
+        </li>
+        {% endfor %}
+    </ul>
+    <form method="post" class="gestao-form-actions">
+        {% csrf_token %}
+        <input type="hidden" name="novos" value="{{ novos }}">
+        <input type="hidden" name="q" value="{{ q }}">
+        {% for cliente in clientes %}
+        <input type="hidden" name="ids" value="{{ cliente.pk }}">
+        {% endfor %}
+        <button type="submit" name="acao" value="excluir" class="btn btn-danger">Sim, excluir</button>
+        <a href="{% url 'gestao_clientes' %}?novos={{ novos }}&q={{ q }}" class="btn btn-ghost">Cancelar</a>
+    </form>
+</section>
+{% endblock %}

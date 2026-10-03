@@ -1,0 +1,66 @@
+{% extends "gestao/base_gestao.html" %}
+
+{% block title %}Aluguéis — Gestão{% endblock %}
+
+{% block content %}
+<div class="gestao-page-head">
+    <div>
+        <h1>Aluguéis</h1>
+        <p class="gestao-page-desc">A data de devolução prevista vem do pedido. O sistema ainda não guarda uma data de devolução recebida, por isso o filtro “Devolvidos” fica vazio de propósito.</p>
+    </div>
+</div>
+
+<form class="gestao-filters" method="get">
+    <label>
+        <span class="mono">Busca</span>
+        <input type="search" name="q" value="{{ q }}" placeholder="Cliente ou produto">
+    </label>
+    <label>
+        <span class="mono">Status</span>
+        <select name="situacao" onchange="this.form.submit()">
+            <option value=""{% if not situacao %} selected{% endif %}>Todos</option>
+            <option value="ativos"{% if situacao == 'ativos' %} selected{% endif %}>Ativos</option>
+            <option value="vencendo"{% if situacao == 'vencendo' %} selected{% endif %}>Vencendo</option>
+            <option value="atrasados"{% if situacao == 'atrasados' %} selected{% endif %}>Atrasados</option>
+            <option value="hoje"{% if situacao == 'hoje' %} selected{% endif %}>Devolução hoje</option>
+            <option value="devolvidos"{% if situacao == 'devolvidos' %} selected{% endif %}>Devolvidos</option>
+        </select>
+    </label>
+    <button type="submit" class="btn btn-ghost btn-sm">Filtrar</button>
+</form>
+
+{% if situacao == 'devolvidos' %}
+<p class="gestao-empty">Não há registro de devolução recebida. O banco só guarda a data prevista em cada item de aluguel.</p>
+{% elif itens %}
+<div class="gestao-table-wrap">
+    <table class="gestao-table">
+        <thead>
+            <tr>
+                <th>Cliente</th>
+                <th>Produto</th>
+                <th>Pedido</th>
+                <th>Vencimento</th>
+                <th>Dias</th>
+                <th>Valor</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in itens %}
+            <tr class="{% if row.codigo == 'atrasado' %}is-late{% endif %}">
+                <td>{{ row.item.pedido.cliente.username }}</td>
+                <td>{{ row.item.produto.titulo }}</td>
+                <td><a href="{% url 'gestao_pedido_detalhe' row.item.pedido.pk %}">#{{ row.item.pedido.id }}</a></td>
+                <td class="mono">{% if row.item.data_devolucao %}{{ row.item.data_devolucao|date:"d/m/Y" }}{% else %}—{% endif %}</td>
+                <td class="mono">{% if row.dias != None %}{{ row.dias }}{% else %}—{% endif %}</td>
+                <td class="mono">R$ {{ row.item.subtotal }}</td>
+                <td><span class="gestao-badge gestao-badge--{{ row.codigo }}">{{ row.rotulo }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="gestao-empty">Nenhum aluguel neste filtro.</p>
+{% endif %}
+{% endblock %}

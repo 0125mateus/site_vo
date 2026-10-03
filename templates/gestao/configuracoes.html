@@ -1,0 +1,24 @@
+{% extends "gestao/base_gestao.html" %}
+
+{% block title %}Configurações — Gestão{% endblock %}
+
+{% block content %}
+<section class="gestao-hero">
+    <h1>Configurações</h1>
+    <p>Atalhos do que a loja já administra hoje. Nada aqui cria uma opção fictícia.</p>
+</section>
+<div class="saas-links">
+    <a class="gestao-panel" href="{% url 'gestao_planos_clube_lista' %}">
+        <h2>Planos do clube</h2>
+        <p>Preço, desconto e ordem dos planos.</p>
+    </a>
+    <a class="gestao-panel" href="{% url 'gestao_importar_catalogo' %}">
+        <h2>Importar CSV</h2>
+        <p>Cadastro em lote de discos e livros.</p>
+    </a>
+    <a class="gestao-panel" href="{% url 'gestao_assistente_frases' %}">
+        <h2>Frases do assistente</h2>
+        <p>Treino do classificador de intenção.</p>
+    </a>
+</div>
+{% endblock %}

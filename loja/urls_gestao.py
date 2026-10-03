@@ -4,6 +4,15 @@ from . import views_gestao
 
 urlpatterns = [
     path('', views_gestao.dashboard, name='gestao_dashboard'),
+    path('produtos/', views_gestao.produtos_lista, name='gestao_produtos'),
+    path('clientes/', views_gestao.clientes_lista, name='gestao_clientes'),
+    path('clientes/excluir/', views_gestao.clientes_excluir, name='gestao_clientes_excluir'),
+    path('clientes/<int:pk>/', views_gestao.cliente_detalhe, name='gestao_cliente_detalhe'),
+    path('estoque/', views_gestao.estoque_lista, name='gestao_estoque'),
+    path('alugueis/', views_gestao.alugueis_lista, name='gestao_alugueis'),
+    path('relatorios/', views_gestao.relatorios, name='gestao_relatorios'),
+    path('configuracoes/', views_gestao.configuracoes, name='gestao_configuracoes'),
+    path('busca/', views_gestao.busca, name='gestao_busca'),
     path('entrar/', views_gestao.GestaoLoginView.as_view(), name='gestao_entrar'),
     path('sair/', views_gestao.GestaoLogoutView.as_view(), name='gestao_sair'),
     path('discos/', views_gestao.discos_lista, name='gestao_discos_lista'),

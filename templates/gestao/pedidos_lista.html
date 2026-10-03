@@ -12,6 +12,10 @@
 
 <form class="gestao-filters" method="get">
     <label>
+        <span class="mono">Busca</span>
+        <input type="search" name="q" value="{{ q }}" placeholder="Cliente, produto ou número">
+    </label>
+    <label>
         <span class="mono">Status</span>
         <select name="status" onchange="this.form.submit()">
             <option value=""{% if not filtro_status %} selected{% endif %}>Todos</option>
@@ -20,6 +24,7 @@
             {% endfor %}
         </select>
     </label>
+    <button type="submit" class="btn btn-ghost btn-sm">Buscar</button>
 </form>
 
 {% if pedidos %}
@@ -30,7 +35,9 @@
                 <th>#</th>
                 <th>Cliente</th>
                 <th>Data</th>
-                <th>Itens</th>
+                <th>Produto</th>
+                <th>Tipo</th>
+                <th>Pagamento</th>
                 <th>Total</th>
                 <th>Status</th>
                 <th></th>
@@ -42,7 +49,19 @@
                 <td class="mono">{{ pedido.id }}</td>
                 <td>{{ pedido.cliente.username }}</td>
                 <td class="mono">{{ pedido.criado_em|date:"d/m/Y H:i" }}</td>
-                <td class="mono">{{ pedido.itens.count }}</td>
+                <td>
+                    {% for item in pedido.itens.all %}
+                    {% if forloop.first %}{{ item.produto.titulo }}{% if pedido.itens.all|length > 1 %} +{{ pedido.itens.all|length|add:"-1" }}{% endif %}{% endif %}
+                    {% empty %}—
+                    {% endfor %}
+                </td>
+                <td>
+                    {% for item in pedido.itens.all %}
+                    {% if forloop.first %}{{ item.get_modalidade_display }}{% endif %}
+                    {% empty %}—
+                    {% endfor %}
+                </td>
+                <td>{% if pedido.pagamento %}{{ pedido.pagamento.metodo_pagamento|default:pedido.pagamento.status }}{% else %}—{% endif %}</td>
                 <td class="mono">R$ {{ pedido.valor_total }}</td>
                 <td>
                     <span class="gestao-badge gestao-badge--{{ pedido.status }}">{{ pedido.get_status_display }}</span>

@@ -1,0 +1,45 @@
+<section class="gestao-panel">
+    <div class="gestao-panel-head">
+        <h2>{{ titulo }}</h2>
+        {% if legenda %}
+        <span class="ops-legend">
+            <i class="ops-dot" style="background: {{ cor }}"></i> {{ legenda }}
+            {% if legenda2 %}<i class="ops-dot" style="background: {{ cor2 }}"></i> {{ legenda2 }}{% endif %}
+        </span>
+        {% endif %}
+    </div>
+    <svg class="ops-svg" viewBox="0 0 320 128" role="img" aria-label="{{ titulo }}">
+        <line x1="8" y1="108" x2="312" y2="108" stroke="rgba(255,255,255,0.12)" />
+        {% if tipo == 'linha' %}
+        <polyline points="{{ grafico.linha }}" fill="none" stroke="{{ cor }}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" />
+        {% for ponto in grafico.pontos %}
+        <circle cx="{{ ponto.cx }}" cy="{{ ponto.y }}" r="3" fill="{{ cor }}">
+            <title>{{ ponto.label }}: {{ ponto.total }}</title>
+        </circle>
+        {% endfor %}
+        {% elif tipo == 'dupla' %}
+        {% for ponto in grafico.pontos %}
+        <rect x="{{ ponto.x }}" y="{{ ponto.y }}" width="{{ grafico.meia }}" height="{{ ponto.h }}" rx="2" fill="{{ cor }}">
+            <title>Vendas {{ ponto.label }}: {{ ponto.total }}</title>
+        </rect>
+        <rect x="{{ ponto.cx }}" y="{{ ponto.y2 }}" width="{{ grafico.meia }}" height="{{ ponto.h2 }}" rx="2" fill="{{ cor2 }}">
+            <title>Aluguéis {{ ponto.label }}: {{ ponto.total2 }}</title>
+        </rect>
+        {% endfor %}
+        {% else %}
+        {% for ponto in grafico.pontos %}
+        <rect x="{{ ponto.x }}" y="{{ ponto.y }}" width="{{ grafico.largura }}" height="{{ ponto.h }}" rx="2" fill="{{ cor }}">
+            <title>{{ ponto.label }}: {{ ponto.total }}</title>
+        </rect>
+        {% endfor %}
+        {% endif %}
+    </svg>
+    <div class="ops-svg-ticks">
+        {% for ponto in grafico.pontos %}
+        <span>{% if ponto.mostrar %}{{ ponto.tick }}{% endif %}</span>
+        {% endfor %}
+    </div>
+    {% if not grafico.tem_dados %}
+    <p class="gestao-empty">Ainda não existem dados suficientes para este período.</p>
+    {% endif %}
+</section>

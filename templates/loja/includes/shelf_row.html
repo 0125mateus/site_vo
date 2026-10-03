@@ -8,6 +8,8 @@
         <span class="tag mono">{{ total }} {{ total_label }}{{ total|pluralize }}</span>
         {% endif %}
     </div>
+    <div class="shelf-wrap">
+        <button type="button" class="shelf-arrow shelf-arrow--prev" data-shelf-dir="-1" aria-label="Anterior">‹</button>
     <div class="shelf">
         {% for entry in itens %}
         {% if entry.produto %}
@@ -18,6 +20,8 @@
         {% empty %}
         <p class="shelf-empty">Nenhum item disponível no momento.</p>
         {% endfor %}
+    </div>
+        <button type="button" class="shelf-arrow shelf-arrow--next" data-shelf-dir="1" aria-label="Próximo">›</button>
     </div>
     {% if ver_todos_url %}
     <p class="shelf-more">

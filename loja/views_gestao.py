@@ -1,18 +1,23 @@
 import logging
 from functools import wraps
 
+import csv
+from datetime import datetime
+
 from django.contrib import messages
-from django.contrib.auth import logout
+from django.contrib.auth import get_user_model, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView
-from django.db.models import Avg, ProtectedError, Sum
-from django.http import JsonResponse
+from django.db.models import ProtectedError, Q
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from .assistant_intent import INTENT_LABELS_CLIENTE, INTENT_LABELS_GESTOR, classify_intent
 from .forms_gestao import (
+    AcessoClienteForm,
     FraseTreinoForm,
     ImportarCatalogoForm,
     LivroForm,
@@ -21,8 +26,40 @@ from .forms_gestao import (
     PlanoClubeForm,
     TestarIntencaoForm,
 )
-from .gestao_services import ESTOQUE_BAIXO_LIMITE, gerar_descricao_produto, importar_catalogo_csv, produtos_estoque_baixo
-from .models import FraseTreinoAssistente, ItemPedido, Livro, MidiaAudiovisual, Musica, Pedido, PlanoClube
+from .gestao_services import ESTOQUE_BAIXO_LIMITE, gerar_descricao_produto, importar_catalogo_csv
+from .models import (
+    FraseTreinoAssistente,
+    ItemPedido,
+    Livro,
+    MidiaAudiovisual,
+    ModalidadeComercial,
+    Musica,
+    Pedido,
+    PlanoClube,
+    Produto,
+)
+from .painel_gestao import (
+    alertas_contagem,
+    buscar,
+    cards_do_periodo,
+    categorias_periodo,
+    clientes_queryset,
+    clientes_top,
+    filtrar_estoque,
+    insight_venda,
+    itens_atencao,
+    linha_produto,
+    mapas_categoria,
+    produtos_parados,
+    queryset_alugueis,
+    ranking,
+    resolver_periodo,
+    resumo_hoje,
+    serie_entre,
+    series_painel,
+    status_aluguel,
+    ultimas_atividades,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -121,24 +158,48 @@ class GestaoLogoutView(LogoutView):
 
 @gestor_required
 def dashboard(request):
-    aprovados = Pedido.objects.filter(status=Pedido.STATUS_APROVADO)
-    agg = aprovados.aggregate(total=Sum('valor_total'), ticket=Avg('valor_total'))
+    periodo = resolver_periodo(request.GET)
+    hora = timezone.localtime().hour
+    if hora < 12:
+        saudacao = 'Bom dia'
+    elif hora < 18:
+        saudacao = 'Boa tarde'
+    else:
+        saudacao = 'Boa noite'
+    inicio, fim = periodo['inicio'], periodo['fim']
+    serie, tem_serie = serie_entre(inicio, fim)
+    graficos = series_painel(inicio, fim)
+    fatias, gradiente = categorias_periodo(inicio, fim)
     return render(request, 'gestao/dashboard.html', {
-        'total_discos': Musica.objects.count(),
-        'total_livros': Livro.objects.count(),
-        'total_midias': MidiaAudiovisual.objects.count(),
-        'discos_ativos': Musica.objects.filter(ativo=True).count(),
-        'livros_ativos': Livro.objects.filter(ativo=True).count(),
-        'midias_ativas': MidiaAudiovisual.objects.filter(ativo=True).count(),
-        'pedidos_pendentes': Pedido.objects.filter(
-            status__in=[Pedido.STATUS_AGUARDANDO, Pedido.STATUS_EM_ANALISE],
-        ).count(),
-        'pedidos_aprovados': aprovados.count(),
-        'total_vendas': agg['total'] or 0,
-        'ticket_medio': agg['ticket'] or 0,
-        'ultimos_pedidos': Pedido.objects.select_related('cliente').order_by('-criado_em')[:6],
-        'estoque_baixo': produtos_estoque_baixo()[:8],
-        'estoque_limite': ESTOQUE_BAIXO_LIMITE,
+        'saudacao': saudacao,
+        'periodo': periodo,
+        'periodos': (
+            ('hoje', 'Hoje'),
+            ('ontem', 'Ontem'),
+            ('7', 'Últimos 7 dias'),
+            ('30', 'Últimos 30 dias'),
+            ('mes', 'Este mês'),
+            ('mes_anterior', 'Mês anterior'),
+            ('90', 'Últimos 90 dias'),
+            ('personalizado', 'Personalizado'),
+        ),
+        'cards': cards_do_periodo(inicio, fim, periodo['anterior_inicio'], periodo['anterior_fim']),
+        'serie': serie,
+        'tem_serie': tem_serie,
+        'graficos': graficos,
+        'fatias': fatias,
+        'gradiente': gradiente,
+        'mais_vendidos': ranking(ModalidadeComercial.VENDA, inicio=inicio, fim=fim),
+        'mais_alugados': ranking(ModalidadeComercial.ALUGUEL, inicio=inicio, fim=fim),
+        'atencao': itens_atencao(),
+        'hoje': resumo_hoje(),
+        'parados': produtos_parados(inicio, fim),
+        'tem_catalogo': Produto.objects.filter(ativo=True).exists(),
+        'clientes_top': clientes_top(inicio, fim),
+        'insight': insight_venda(inicio, fim, periodo['anterior_inicio'], periodo['anterior_fim']),
+        'atividades': ultimas_atividades(),
+        'ultimos_pedidos': Pedido.objects.select_related('cliente').prefetch_related('itens__produto').order_by('-criado_em')[:5],
+        'alugueis_andamento': queryset_alugueis('ativos')[:5],
     })
 
 
@@ -332,12 +393,19 @@ def assistente_frase_excluir(request, pk):
 @gestor_required
 def pedidos_lista(request):
     status = request.GET.get('status', '')
-    pedidos = Pedido.objects.select_related('cliente').prefetch_related('itens').order_by('-criado_em')
+    q = (request.GET.get('q') or '').strip()
+    pedidos = Pedido.objects.select_related('cliente', 'pagamento').prefetch_related('itens__produto').order_by('-criado_em')
     if status:
         pedidos = pedidos.filter(status=status)
+    if q:
+        filtro = Q(cliente__username__icontains=q) | Q(cliente__email__icontains=q) | Q(itens__produto__titulo__icontains=q)
+        if q.isdigit():
+            filtro |= Q(pk=int(q))
+        pedidos = pedidos.filter(filtro).distinct()
     return render(request, 'gestao/pedidos_lista.html', {
         'pedidos': pedidos,
         'filtro_status': status,
+        'q': q,
         'status_choices': Pedido.STATUS_CHOICES,
     })
 
@@ -419,3 +487,228 @@ def importar_catalogo(request):
         'form': form,
         'resultado': resultado,
     })
+
+
+def _produtos_filtrados(q):
+    qs = Produto.objects.order_by('titulo')
+    if q:
+        qs = qs.filter(titulo__icontains=q)
+    mapas = mapas_categoria()
+    return [linha_produto(produto, mapas) for produto in qs]
+
+
+@gestor_required
+def produtos_lista(request):
+    q = (request.GET.get('q') or '').strip()
+    return render(request, 'gestao/produtos.html', {
+        'linhas': _produtos_filtrados(q),
+        'q': q,
+    })
+
+
+@gestor_required
+def estoque_lista(request):
+    q = (request.GET.get('q') or '').strip()
+    situacao = request.GET.get('situacao', '')
+    if situacao not in ('', 'baixo', 'sem', 'disponivel'):
+        situacao = ''
+    qs = Produto.objects.order_by('titulo')
+    if q:
+        qs = qs.filter(titulo__icontains=q)
+    return render(request, 'gestao/estoque.html', {
+        'linhas': filtrar_estoque(qs, situacao),
+        'q': q,
+        'situacao': situacao,
+        'limite': ESTOQUE_BAIXO_LIMITE,
+    })
+
+
+@gestor_required
+def alugueis_lista(request):
+    situacao = request.GET.get('situacao', '')
+    q = (request.GET.get('q') or '').strip()
+    if situacao not in ('', 'ativos', 'vencendo', 'atrasados', 'devolvidos', 'hoje'):
+        situacao = ''
+    hoje = timezone.localdate()
+    itens = []
+    if situacao != 'devolvidos':
+        qs = queryset_alugueis(situacao)
+        if q:
+            qs = qs.filter(
+                Q(produto__titulo__icontains=q)
+                | Q(pedido__cliente__username__icontains=q)
+                | Q(pedido__cliente__email__icontains=q)
+            )
+        for item in qs:
+            codigo, rotulo = status_aluguel(item, hoje)
+            dias = None
+            if item.data_devolucao:
+                dias = (item.data_devolucao - hoje).days
+            itens.append({'item': item, 'codigo': codigo, 'rotulo': rotulo, 'dias': dias})
+    return render(request, 'gestao/alugueis.html', {
+        'itens': itens,
+        'situacao': situacao,
+        'q': q,
+        'hoje': hoje,
+    })
+
+
+@gestor_required
+def clientes_lista(request):
+    q = (request.GET.get('q') or '').strip()
+    novos = request.GET.get('novos', '')
+    if novos not in ('', 'hoje', 'todos'):
+        novos = ''
+    return render(request, 'gestao/clientes.html', {
+        'clientes': clientes_queryset(q, novos),
+        'q': q,
+        'novos': novos,
+    })
+
+
+@gestor_required
+def clientes_excluir(request):
+    if request.method != 'POST':
+        return redirect('gestao_clientes')
+    User = get_user_model()
+    ids = request.POST.getlist('ids')
+    escolhidos = User.objects.filter(pk__in=ids, is_staff=False).exclude(pk=request.user.pk)
+    voltar = redirect(f"{reverse('gestao_clientes')}?novos={request.POST.get('novos', '')}&q={request.POST.get('q', '')}")
+    if request.POST.get('acao') == 'excluir':
+        apagados = []
+        bloqueados = []
+        for usuario in escolhidos:
+            if usuario.pedidos.exists():
+                bloqueados.append(usuario.username)
+                continue
+            nome = usuario.username
+            usuario.delete()
+            apagados.append(nome)
+        if apagados:
+            messages.success(request, 'Excluído: ' + ', '.join(apagados) + '.')
+        if bloqueados:
+            messages.error(
+                request,
+                'Não excluído, porque já tem pedido: ' + ', '.join(bloqueados) + '.',
+            )
+        if not apagados and not bloqueados:
+            messages.error(request, 'Nenhum cliente selecionado.')
+        return voltar
+    if not escolhidos.exists():
+        messages.error(request, 'Nenhum cliente selecionado.')
+        return voltar
+    return render(request, 'gestao/clientes_excluir.html', {
+        'clientes': escolhidos,
+        'novos': request.POST.get('novos', ''),
+        'q': request.POST.get('q', ''),
+    })
+
+
+@gestor_required
+def cliente_detalhe(request, pk):
+    usuario = get_object_or_404(get_user_model(), pk=pk, is_staff=False)
+    form = AcessoClienteForm(request.POST or None, usuario=usuario)
+    if request.method == 'POST' and form.is_valid():
+        form.salvar()
+        messages.success(request, f'Senha de {usuario.username} atualizada. A senha anterior deixa de valer.')
+        return redirect('gestao_cliente_detalhe', pk=usuario.pk)
+    pedidos = Pedido.objects.filter(cliente=usuario).prefetch_related('itens__produto').order_by('-criado_em')
+    return render(request, 'gestao/cliente_detalhe.html', {
+        'cliente_loja': usuario,
+        'pedidos': pedidos,
+        'acesso_form': form,
+    })
+
+
+def _parse_data(valor):
+    if not valor:
+        return None
+    try:
+        return datetime.strptime(valor, '%Y-%m-%d').date()
+    except ValueError:
+        return None
+
+
+@gestor_required
+def relatorios(request):
+    hoje = timezone.localdate()
+    inicio = _parse_data(request.GET.get('inicio')) or hoje.replace(day=1)
+    fim = _parse_data(request.GET.get('fim')) or hoje
+    if fim < inicio:
+        inicio, fim = fim, inicio
+    tipo = request.GET.get('tipo', '')
+    if tipo not in ('', 'venda', 'aluguel'):
+        tipo = ''
+    q = (request.GET.get('q') or '').strip()
+    itens = ItemPedido.objects.filter(
+        pedido__status=Pedido.STATUS_APROVADO,
+        pedido__criado_em__date__gte=inicio,
+        pedido__criado_em__date__lte=fim,
+    ).select_related('produto', 'pedido__cliente')
+    if tipo:
+        itens = itens.filter(modalidade=tipo)
+    if q:
+        itens = itens.filter(produto__titulo__icontains=q)
+    if request.GET.get('export') == 'csv':
+        resposta = HttpResponse(content_type='text/csv; charset=utf-8')
+        resposta['Content-Disposition'] = 'attachment; filename="relatorio-vinil-pagina.csv"'
+        resposta.write('\ufeff')
+        writer = csv.writer(resposta)
+        writer.writerow(['Data', 'Pedido', 'Cliente', 'Produto', 'Tipo', 'Quantidade', 'Valor'])
+        for item in itens.order_by('-pedido__criado_em'):
+            writer.writerow([
+                item.pedido.criado_em.strftime('%d/%m/%Y'),
+                item.pedido_id,
+                item.pedido.cliente.username,
+                item.produto.titulo,
+                item.get_modalidade_display(),
+                item.quantidade,
+                item.subtotal,
+            ])
+        return resposta
+    from decimal import Decimal
+
+    from django.db.models import Sum
+
+    total = sum((item.subtotal for item in itens), Decimal('0.00'))
+    vendas = itens.filter(modalidade=ModalidadeComercial.VENDA).count()
+    alugueis = itens.filter(modalidade=ModalidadeComercial.ALUGUEL).count()
+    pedidos_n = itens.values('pedido_id').distinct().count()
+    ticket = (total / pedidos_n) if pedidos_n else Decimal('0.00')
+
+    def _top(modalidade):
+        return list(
+            itens.filter(modalidade=modalidade)
+            .values('produto__titulo')
+            .annotate(qtd=Sum('quantidade'))
+            .order_by('-qtd', 'produto__titulo')[:5]
+        )
+
+    return render(request, 'gestao/relatorios.html', {
+        'inicio': inicio,
+        'fim': fim,
+        'tipo': tipo,
+        'q': q,
+        'total': total,
+        'vendas': vendas,
+        'alugueis': alugueis,
+        'pedidos_n': pedidos_n,
+        'ticket': ticket,
+        'mais_vendidos': _top(ModalidadeComercial.VENDA),
+        'mais_alugados': _top(ModalidadeComercial.ALUGUEL),
+        'itens': itens.order_by('-pedido__criado_em')[:80],
+    })
+
+
+@gestor_required
+def configuracoes(request):
+    return render(request, 'gestao/configuracoes.html')
+
+
+@gestor_required
+def busca(request):
+    q = (request.GET.get('q') or '').strip()
+    grupos = buscar(q)
+    if request.GET.get('formato') == 'json':
+        return JsonResponse(grupos)
+    return render(request, 'gestao/busca.html', {'q': q, 'grupos': grupos})

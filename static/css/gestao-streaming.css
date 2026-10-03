@@ -1,0 +1,909 @@
+/* Gestão com a mesma linguagem visual da loja. Não altera o menu nem os formulários. */
+
+.gestao-body {
+    --paper: #08090B;
+    --paper-deep: #08090B;
+    --card: #171A20;
+    --card-elevated: #1E222A;
+    --ink: #FFFFFF;
+    --ink-soft: #A7ACB5;
+    --gold: #D4AF68;
+    --gold-soft: #F2D58A;
+    --gold-bright: #F2D58A;
+    --wine: #E50914;
+    --line: rgba(255, 255, 255, 0.08);
+    --line-gold: rgba(212, 175, 104, 0.35);
+    --line-strong: rgba(255, 255, 255, 0.14);
+    --input-bg: #111318;
+    --input-text: #FFFFFF;
+    --input-border: rgba(255, 255, 255, 0.12);
+    --font-display: "Playfair Display", Georgia, serif;
+    --font-body: Manrope, "Work Sans", system-ui, sans-serif;
+    background: #08090B;
+    background-image: none;
+    color: #fff;
+    font-family: var(--font-body);
+}
+
+.gestao-body::before,
+.gestao-body::after {
+    opacity: 0.04;
+}
+
+.gestao-sidebar {
+    background: rgba(17, 19, 24, 0.96);
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 8px 0 32px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(16px);
+}
+
+.gestao-brand {
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+.gestao-brand .mark {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at 50% 50%, #08090B 0 4px, transparent 5px),
+        repeating-radial-gradient(circle at 50% 50%, #1a1a1a 0 1px, #111 2px 3px);
+    border: 2px solid #D4AF68;
+    box-shadow: inset 0 0 0 6px #111318;
+}
+
+.gestao-brand-text strong {
+    font-family: var(--font-body);
+    color: #D4AF68;
+    font-weight: 700;
+}
+
+.gestao-nav-label {
+    color: #A7ACB5;
+    letter-spacing: 0.12em;
+}
+
+.gestao-side-link {
+    border-radius: 10px;
+    color: #A7ACB5;
+}
+
+.gestao-side-link:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+}
+
+.gestao-side-link.is-active {
+    background: rgba(212, 175, 104, 0.12);
+    color: #F2D58A;
+    border: 1px solid rgba(212, 175, 104, 0.28);
+    box-shadow: none;
+}
+
+.gestao-sidebar-foot {
+    border-top-color: rgba(255, 255, 255, 0.06);
+}
+
+.gestao-logout-btn {
+    color: #E50914;
+}
+
+.gestao-mobile-bar {
+    background: rgba(8, 9, 11, 0.92);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(12px);
+}
+
+.gestao-menu-btn {
+    background: #171A20;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.gestao-hero h1,
+.gestao-page-head h1,
+.gestao-login-card h1 {
+    font-family: "Playfair Display", Georgia, serif;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+.gestao-hero p,
+.gestao-page-desc,
+.gestao-stat-label {
+    color: #A7ACB5;
+}
+
+.gestao-stat-card,
+.gestao-panel,
+.gestao-pedido-card,
+.gestao-login-card,
+.gestao-table-wrap {
+    background: #171A20;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+}
+
+.gestao-stat-card::before {
+    border-radius: 14px 0 0 14px;
+}
+
+.gestao-stat-num {
+    color: #fff;
+}
+
+.gestao-body .btn-primary {
+    background: linear-gradient(180deg, #f2d58a, #d4af68);
+    color: #1a1408;
+    border: 0;
+    border-radius: 999px;
+    font-weight: 700;
+}
+
+.gestao-body .btn-ghost {
+    background: rgba(255, 255, 255, 0.04);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+}
+
+.gestao-body .btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.gestao-table th {
+    color: #A7ACB5;
+    background: #111318;
+}
+
+.gestao-table td {
+    border-color: rgba(255, 255, 255, 0.06);
+    color: #fff;
+}
+
+.gestao-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.gestao-form input[type="text"],
+.gestao-form input[type="number"],
+.gestao-form input[type="password"],
+.gestao-form input[type="email"],
+.gestao-form input[type="url"],
+.gestao-form textarea,
+.gestao-form select,
+.gestao-filters select,
+.gestao-login input {
+    background: #111318;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+}
+
+.gestao-form input::placeholder,
+.gestao-form textarea::placeholder {
+    color: #A7ACB5;
+}
+
+.gestao-badge {
+    border-radius: 999px;
+}
+
+.gestao-badge--recusado,
+.gestao-badge--cancelado,
+.gestao-message--error {
+    color: #ffb4b8;
+}
+
+.gestao-body .assistant-widget {
+    font-family: Manrope, sans-serif;
+}
+
+.gestao-body .assistant-fab {
+    flex-direction: row-reverse;
+    gap: 12px;
+    padding: 0 0 0 14px;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    color: #fff;
+    border-radius: 0;
+}
+
+.gestao-body .assistant-fab-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    line-height: 1.15;
+}
+
+.gestao-body .assistant-fab-kicker {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.gestao-body .assistant-fab-label {
+    font-size: 11px;
+    color: #A7ACB5;
+    font-weight: 500;
+}
+
+.gestao-body .assistant-fab-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: radial-gradient(circle at 35% 30%, #f2d58a, #d4af68 55%, #a7843e);
+    color: #1a1408;
+    font-size: 18px;
+    box-shadow: 0 10px 28px rgba(212, 175, 104, 0.35);
+}
+
+.gestao-body .assistant-panel {
+    background: #171A20;
+    color: #fff;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.gestao-body .assistant-header {
+    background: #111318;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .gestao-side-link,
+    .gestao-body .btn {
+        transition: none;
+    }
+}
+
+.gestao-side-nav {
+    overflow: auto;
+    padding-right: 4px;
+}
+
+.gestao-topbar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    padding: 12px 22px;
+    background: rgba(17, 19, 24, 0.88);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(16px);
+}
+
+.gestao-menu-btn {
+    display: none;
+}
+
+.gestao-topbar-titles {
+    display: flex;
+    flex-direction: column;
+    min-width: 120px;
+    line-height: 1.15;
+}
+
+.gestao-topbar-brand {
+    color: #D4AF68;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.gestao-topbar-page {
+    font-size: 15px;
+}
+
+.gestao-search {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #111318;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    padding: 0 14px;
+    min-width: 0;
+}
+
+.gestao-search input {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: #fff;
+    padding: 10px 0;
+    font: inherit;
+}
+
+.gestao-search input:focus {
+    outline: none;
+}
+
+.gestao-search-icon {
+    width: 16px;
+    height: 16px;
+    color: #A7ACB5;
+    flex: none;
+}
+
+.gestao-search-panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: #171A20;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 10px 12px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+    z-index: 50;
+}
+
+.gestao-search-panel p {
+    margin: 10px 0 4px;
+    color: #D4AF68;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.gestao-search-panel ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.gestao-search-panel a {
+    display: block;
+    padding: 6px 0;
+    color: #fff;
+}
+
+.gestao-notifs {
+    position: relative;
+}
+
+.gestao-notifs-btn {
+    list-style: none;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #171A20;
+    position: relative;
+}
+
+.gestao-notifs-btn::-webkit-details-marker {
+    display: none;
+}
+
+.gestao-notifs-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    background: #E50914;
+    color: #fff;
+    font-size: 11px;
+    display: grid;
+    place-items: center;
+    padding: 0 4px;
+}
+
+.gestao-notifs-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    width: min(320px, 80vw);
+    background: #171A20;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 8px;
+    z-index: 60;
+}
+
+.gestao-notifs-menu a,
+.gestao-notifs-menu p {
+    display: block;
+    padding: 10px;
+    color: #fff;
+    border-radius: 10px;
+}
+
+.gestao-notifs-menu a:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.gestao-topbar-user {
+    color: #A7ACB5;
+    font-size: 13px;
+}
+
+.saas-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin: 8px 0 22px;
+}
+
+.saas-kpi {
+    background: rgba(23, 26, 32, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.saas-kpi-value {
+    font-size: 1.55rem;
+    letter-spacing: -0.03em;
+}
+
+.saas-kpi-label {
+    color: #A7ACB5;
+    font-size: 13px;
+}
+
+.saas-kpi-delta {
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.saas-kpi-delta.is-up {
+    color: #3DDC97;
+}
+
+.saas-kpi-delta.is-down,
+.saas-kpi--alert .saas-kpi-value {
+    color: #ff8d93;
+}
+
+.saas-kpi--warn .saas-kpi-value {
+    color: #F2D58A;
+}
+
+.saas-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.saas-pills {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.saas-pills a {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+    padding: 4px 10px;
+    color: #A7ACB5;
+    font-size: 12px;
+}
+
+.saas-pills a.is-on {
+    background: #D4AF68;
+    color: #1a1408;
+    border-color: #D4AF68;
+}
+
+.saas-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 180px;
+    overflow-x: auto;
+    padding-top: 8px;
+}
+
+.saas-chart-col {
+    flex: 1 0 18px;
+    min-width: 18px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 6px;
+}
+
+.saas-chart-bar {
+    display: block;
+    width: 100%;
+    max-width: 28px;
+    border-radius: 6px 6px 2px 2px;
+    background: linear-gradient(180deg, #F2D58A, #D4AF68);
+    min-height: 0;
+}
+
+.saas-chart-tick {
+    color: #A7ACB5;
+    font-size: 10px;
+    white-space: nowrap;
+}
+
+.saas-alerts,
+.saas-rank {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.saas-alerts p,
+.saas-rank li {
+    color: #A7ACB5;
+}
+
+.saas-alerts a {
+    color: #F2D58A;
+    font-size: 13px;
+}
+
+.saas-rank li {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.saas-links {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.saas-links a h2 {
+    margin: 0 0 6px;
+    font-size: 1.15rem;
+}
+
+.saas-links a p {
+    margin: 0;
+    color: #A7ACB5;
+}
+
+.gestao-inline-form {
+    display: inline;
+}
+
+.gestao-text-btn {
+    border: 0;
+    background: none;
+    color: #F2D58A;
+    cursor: pointer;
+    font: inherit;
+    padding: 0;
+}
+
+.gestao-badge--baixo,
+.gestao-badge--vencendo,
+.gestao-badge--em_analise {
+    color: #F2D58A;
+    border-color: rgba(242, 213, 138, 0.4);
+}
+
+.gestao-badge--sem,
+.gestao-badge--atrasado {
+    color: #ffb4b8;
+    border-color: rgba(229, 9, 20, 0.45);
+}
+
+.gestao-badge--ok,
+.gestao-badge--ativo {
+    color: #8ef0c2;
+    border-color: rgba(61, 220, 151, 0.35);
+}
+
+tr.is-late {
+    background: rgba(229, 9, 20, 0.08);
+}
+
+.gestao-table-wrap {
+    overflow-x: auto;
+}
+
+@media (max-width: 1100px) {
+    .saas-kpis,
+    .saas-links {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .saas-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .gestao-topbar-user {
+        display: none;
+    }
+}
+
+@media (max-width: 1100px) and (min-width: 901px) {
+    .gestao-layout {
+        grid-template-columns: 76px 1fr;
+    }
+
+    .gestao-brand-text,
+    .gestao-side-text,
+    .gestao-sidebar-user span {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+    }
+
+    .gestao-logout-btn {
+        font-size: 11px;
+    }
+
+    .gestao-side-link,
+    .gestao-brand {
+        justify-content: center;
+    }
+
+    .gestao-logout-form {
+        position: static;
+    }
+}
+
+.ops-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: 16px;
+    align-items: start;
+}
+
+.ops-hero {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: flex-end;
+}
+
+.ops-period {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.ops-period select,
+.ops-period input[type="date"] {
+    background: #111318;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    padding: 8px 10px;
+}
+
+.ops-kpis {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.ops-donut-row {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.ops-donut {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    flex: none;
+    box-shadow: inset 0 0 0 28px #171A20;
+}
+
+.ops-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 6px;
+}
+
+.ops-alerts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.ops-alert {
+    border-radius: 14px;
+    padding: 14px;
+    background: #111318;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ops-alert--critico {
+    border-color: rgba(229, 9, 20, 0.45);
+}
+
+.ops-alert--atencao {
+    border-color: rgba(242, 213, 138, 0.45);
+}
+
+.ops-alert p {
+    color: #A7ACB5;
+    margin: 6px 0 10px;
+}
+
+.ops-alert-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.ops-alert-actions a {
+    color: #F2D58A;
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.ops-today {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.ops-today a,
+.ops-today div {
+    background: #111318;
+    border-radius: 12px;
+    padding: 12px;
+    min-width: 0;
+}
+
+.ops-today span {
+    display: block;
+    font-size: 1.3rem;
+}
+
+.ops-today small {
+    color: #A7ACB5;
+}
+
+.ops-feed {
+    list-style: none;
+    margin: 12px 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ops-feed time {
+    display: block;
+    color: #A7ACB5;
+    font-size: 12px;
+}
+
+.ops-charts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.ops-svg {
+    width: 100%;
+    height: 170px;
+    display: block;
+}
+
+.ops-svg-ticks {
+    display: flex;
+    gap: 2px;
+    color: #A7ACB5;
+    font-size: 10px;
+    min-height: 14px;
+}
+
+.ops-svg-ticks span {
+    flex: 1;
+    text-align: center;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.ops-legend {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #A7ACB5;
+    font-size: 12px;
+}
+
+.ops-insight {
+    margin: 12px 0 0;
+    color: #F2D58A;
+}
+
+.ops-side {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: sticky;
+    top: 76px;
+}
+
+.ops-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.ops-actions a {
+    display: block;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: #111318;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    color: #fff;
+}
+
+.ops-actions a:hover {
+    border-color: rgba(212, 175, 104, 0.45);
+    color: #F2D58A;
+}
+
+@media (max-width: 1100px) {
+    .ops-shell,
+    .ops-alerts,
+    .ops-today,
+    .ops-charts {
+        grid-template-columns: 1fr;
+    }
+
+    .ops-side {
+        position: static;
+    }
+
+    .ops-hero {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+@media (max-width: 900px) {
+    .gestao-menu-btn {
+        display: inline-flex;
+    }
+
+    .gestao-topbar {
+        flex-wrap: wrap;
+        padding: 10px 12px;
+    }
+
+    .gestao-search {
+        order: 5;
+        flex: 1 1 100%;
+    }
+
+    .saas-kpis,
+    .saas-links {
+        grid-template-columns: 1fr;
+    }
+}

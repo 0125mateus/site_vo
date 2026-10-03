@@ -1,0 +1,62 @@
+{% extends "gestao/base_gestao.html" %}
+
+{% block title %}Estoque — Gestão{% endblock %}
+
+{% block content %}
+<div class="gestao-page-head">
+    <div>
+        <h1>Estoque</h1>
+        <p class="gestao-page-desc">Mínimo atual: {{ limite }} unidades. O histórico de entrada e saída ainda não existe no banco.</p>
+    </div>
+</div>
+
+<form class="gestao-filters" method="get">
+    <label>
+        <span class="mono">Produto</span>
+        <input type="search" name="q" value="{{ q }}" placeholder="Buscar produto">
+    </label>
+    <label>
+        <span class="mono">Situação</span>
+        <select name="situacao" onchange="this.form.submit()">
+            <option value=""{% if not situacao %} selected{% endif %}>Todos</option>
+            <option value="baixo"{% if situacao == 'baixo' %} selected{% endif %}>Baixo</option>
+            <option value="sem"{% if situacao == 'sem' %} selected{% endif %}>Sem estoque</option>
+            <option value="disponivel"{% if situacao == 'disponivel' %} selected{% endif %}>Disponível</option>
+        </select>
+    </label>
+    <button type="submit" class="btn btn-ghost btn-sm">Filtrar</button>
+</form>
+
+{% if linhas %}
+<div class="gestao-table-wrap">
+    <table class="gestao-table">
+        <thead>
+            <tr>
+                <th>Produto</th>
+                <th>Categoria</th>
+                <th>Estoque atual</th>
+                <th>Estoque mínimo</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for linha in linhas %}
+            <tr>
+                <td><strong>{{ linha.produto.titulo }}</strong></td>
+                <td>{{ linha.categoria }}</td>
+                <td class="mono">{{ linha.estoque_atual }}</td>
+                <td class="mono">{{ limite }}</td>
+                <td><span class="gestao-badge gestao-badge--{{ linha.status }}">{{ linha.status_label }}</span></td>
+                <td class="gestao-actions">
+                    {% if linha.editar_url %}<a href="{{ linha.editar_url }}">Ajustar</a>{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="gestao-empty">Nenhum produto nesta situação.</p>
+{% endif %}
+{% endblock %}

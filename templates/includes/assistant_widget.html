@@ -1,7 +1,10 @@
 <div class="assistant-widget" id="assistant-widget" data-audience="{{ assistant_audience|default:'cliente' }}">
     <button type="button" class="assistant-fab" id="assistant-fab" aria-label="Abrir assistente">
-        <span class="assistant-fab-icon" aria-hidden="true">◉</span>
-        <span class="assistant-fab-label">{% if assistant_audience == 'gestor' %}Ajuda{% else %}Curadoria{% endif %}</span>
+        <span class="assistant-fab-copy">
+            <span class="assistant-fab-kicker">{% if assistant_audience == 'gestor' %}Ajuda{% else %}Assistente{% endif %}</span>
+            <span class="assistant-fab-label">{% if assistant_audience == 'gestor' %}Painel{% else %}Curadoria personalizada{% endif %}</span>
+        </span>
+        <span class="assistant-fab-icon" aria-hidden="true">✦</span>
     </button>
 
     <div class="assistant-panel" id="assistant-panel" hidden>

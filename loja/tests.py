@@ -601,3 +601,113 @@ class PayloadBrickTests(TestCase):
         self.assertEqual(payload['payer']['email'], '0.1.2.5mateus@gmail.com')
         self.assertNotIn('entity_type', payload['payer'])
         self.assertNotIn('token', payload)
+
+
+class GestaoPainelTests(TestCase):
+    def setUp(self):
+        self.gestor = User.objects.create_user(
+            username='gestor_painel', password='senha', is_staff=True, first_name='Mateus',
+        )
+        self.cliente = User.objects.create_user(
+            username='cliente_painel', password='senha', email='cliente_painel@example.com',
+        )
+        self.disco = Musica.objects.create(
+            titulo='Abbey Road', artista='Beatles', preco=Decimal('40.00'),
+            estoque=1, disponivel_venda=True, ativo=True,
+        )
+        self.pedido = Pedido.objects.create(
+            cliente=self.cliente,
+            status=Pedido.STATUS_APROVADO,
+            valor_total=Decimal('40.00'),
+        )
+        ItemPedido.objects.create(
+            pedido=self.pedido,
+            produto=self.disco,
+            modalidade='venda',
+            quantidade=2,
+            preco_unitario=Decimal('40.00'),
+        )
+
+    def test_anonimo_nao_ve_o_painel(self):
+        response = self.client.get(reverse('gestao_dashboard'))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/gestao/entrar/', response.url)
+
+    def test_cliente_comum_nao_entra(self):
+        self.client.force_login(self.cliente)
+        response = self.client.get(reverse('gestao_estoque'))
+        self.assertEqual(response.status_code, 302)
+
+    def test_dashboard_mostra_venda_real(self):
+        self.client.force_login(self.gestor)
+        response = self.client.get(reverse('gestao_dashboard'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Abbey Road')
+        self.assertContains(response, 'Mateus')
+        self.assertContains(response, '40')
+
+    def test_sem_historico_nao_inventa_percentual(self):
+        from loja.painel_gestao import cards_dashboard
+
+        cards = cards_dashboard()
+        self.assertIsNone(cards['faturamento_var'])
+        self.assertEqual(cards['vendas_mes'], 2)
+
+    def test_periodo_vazio_avisa(self):
+        self.pedido.status = Pedido.STATUS_CANCELADO
+        self.pedido.save(update_fields=['status'])
+        self.client.force_login(self.gestor)
+        response = self.client.get(reverse('gestao_dashboard') + '?periodo=7')
+        self.assertContains(response, 'Ainda não existem dados suficientes para este período.')
+
+    def test_ontem_nao_herda_venda_de_hoje(self):
+        self.client.force_login(self.gestor)
+        response = self.client.get(reverse('gestao_dashboard') + '?periodo=ontem')
+        self.assertContains(response, 'Ainda não existem dados suficientes para este período.')
+        self.assertContains(response, 'Resumo de hoje')
+        self.assertContains(response, 'Precisa da sua atenção')
+
+    def test_gestor_redefine_senha_sem_expor_a_antiga(self):
+        self.client.force_login(self.gestor)
+        url = reverse('gestao_cliente_detalhe', kwargs={'pk': self.cliente.pk})
+        response = self.client.get(url)
+        self.assertContains(response, self.cliente.username)
+        self.assertNotContains(response, 'senha123')
+        response = self.client.post(url, {
+            'nova_senha': 'NovaSenha-123',
+            'confirmar_senha': 'NovaSenha-123',
+        })
+        self.assertRedirects(response, url)
+        self.cliente.refresh_from_db()
+        self.assertEqual(self.cliente.username, 'cliente_painel')
+        self.assertTrue(self.cliente.check_password('NovaSenha-123'))
+        self.assertFalse(self.cliente.check_password('senha'))
+
+    def test_exclui_cliente_sem_pedido_e_preserva_quem_comprou(self):
+        sem_pedido = User.objects.create_user(username='so_cadastro', password='senha')
+        self.client.force_login(self.gestor)
+        url = reverse('gestao_clientes_excluir')
+        resposta = self.client.post(url, {'ids': [sem_pedido.pk, self.cliente.pk]})
+        self.assertEqual(resposta.status_code, 200)
+        self.assertContains(resposta, 'so_cadastro')
+        self.assertContains(resposta, 'tem pedido')
+        self.client.post(url, {
+            'acao': 'excluir',
+            'ids': [sem_pedido.pk, self.cliente.pk],
+        })
+        self.assertFalse(User.objects.filter(pk=sem_pedido.pk).exists())
+        self.assertTrue(User.objects.filter(pk=self.cliente.pk).exists())
+
+    def test_resumo_de_hoje_conta_a_venda(self):
+        from loja.painel_gestao import resumo_hoje
+
+        hoje = resumo_hoje()
+        self.assertEqual(hoje['vendas'], 2)
+        self.assertEqual(hoje['pedidos'], 1)
+
+    def test_relatorio_csv_so_para_gestor(self):
+        self.client.force_login(self.gestor)
+        response = self.client.get(reverse('gestao_relatorios') + '?export=csv')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('text/csv', response['Content-Type'])
+        self.assertIn('Abbey Road', response.content.decode('utf-8'))

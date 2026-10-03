@@ -148,3 +148,40 @@ class ImportarCatalogoForm(forms.Form):
         label='Arquivo CSV',
         help_text='Colunas: tipo,titulo,preco,artista|autor,estoque',
     )
+
+
+class AcessoClienteForm(forms.Form):
+    nova_senha = forms.CharField(
+        label='Nova senha',
+        widget=forms.PasswordInput(attrs={'autocomplete': 'new-password'}),
+    )
+    confirmar_senha = forms.CharField(
+        label='Confirmar nova senha',
+        widget=forms.PasswordInput(attrs={'autocomplete': 'new-password'}),
+    )
+
+    def __init__(self, *args, usuario=None, **kwargs):
+        self.usuario = usuario
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        dados = super().clean()
+        senha = dados.get('nova_senha') or ''
+        confirma = dados.get('confirmar_senha') or ''
+        if senha and confirma and senha != confirma:
+            self.add_error('confirmar_senha', 'A confirmação não confere com a nova senha.')
+            return dados
+        if not senha:
+            return dados
+        from django.contrib.auth.password_validation import validate_password
+        from django.core.exceptions import ValidationError
+
+        try:
+            validate_password(senha, self.usuario)
+        except ValidationError as exc:
+            self.add_error('nova_senha', exc)
+        return dados
+
+    def salvar(self):
+        self.usuario.set_password(self.cleaned_data['nova_senha'])
+        self.usuario.save(update_fields=['password'])

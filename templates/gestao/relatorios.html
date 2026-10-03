@@ -1,0 +1,108 @@
+{% extends "gestao/base_gestao.html" %}
+
+{% block title %}Relatórios — Gestão{% endblock %}
+
+{% block content %}
+<div class="gestao-page-head">
+    <div>
+        <h1>Relatórios</h1>
+        <p class="gestao-page-desc">Somente pedidos aprovados entre as datas escolhidas.</p>
+    </div>
+</div>
+
+<form class="gestao-filters" method="get">
+    <label>
+        <span class="mono">Data inicial</span>
+        <input type="date" name="inicio" value="{{ inicio|date:'Y-m-d' }}">
+    </label>
+    <label>
+        <span class="mono">Data final</span>
+        <input type="date" name="fim" value="{{ fim|date:'Y-m-d' }}">
+    </label>
+    <label>
+        <span class="mono">Tipo</span>
+        <select name="tipo">
+            <option value=""{% if not tipo %} selected{% endif %}>Todos</option>
+            <option value="venda"{% if tipo == 'venda' %} selected{% endif %}>Venda</option>
+            <option value="aluguel"{% if tipo == 'aluguel' %} selected{% endif %}>Aluguel</option>
+        </select>
+    </label>
+    <label>
+        <span class="mono">Produto</span>
+        <input type="search" name="q" value="{{ q }}" placeholder="Título">
+    </label>
+    <button type="submit" class="btn btn-ghost btn-sm">Aplicar</button>
+    <button type="submit" name="export" value="csv" class="btn btn-primary btn-sm">Exportar CSV</button>
+</form>
+
+<div class="saas-kpis">
+    <article class="saas-kpi">
+        <span class="saas-kpi-value mono">R$ {{ total|floatformat:2 }}</span>
+        <span class="saas-kpi-label">Faturamento</span>
+    </article>
+    <article class="saas-kpi">
+        <span class="saas-kpi-value mono">{{ vendas }}</span>
+        <span class="saas-kpi-label">Itens de venda</span>
+    </article>
+    <article class="saas-kpi">
+        <span class="saas-kpi-value mono">{{ alugueis }}</span>
+        <span class="saas-kpi-label">Itens de aluguel</span>
+    </article>
+    <article class="saas-kpi">
+        <span class="saas-kpi-value mono">R$ {{ ticket|floatformat:2 }}</span>
+        <span class="saas-kpi-label">Ticket médio</span>
+    </article>
+</div>
+
+<div class="saas-grid">
+    <section class="gestao-panel">
+        <h2>Mais vendidos no período</h2>
+        {% if mais_vendidos %}
+        <ol class="saas-rank">
+            {% for item in mais_vendidos %}
+            <li><span>{{ forloop.counter }}. {{ item.produto__titulo }}</span><span class="mono">{{ item.qtd }}</span></li>
+            {% endfor %}
+        </ol>
+        {% else %}
+        <p class="gestao-empty">Sem vendas neste filtro.</p>
+        {% endif %}
+    </section>
+    <section class="gestao-panel">
+        <h2>Mais alugados no período</h2>
+        {% if mais_alugados %}
+        <ol class="saas-rank">
+            {% for item in mais_alugados %}
+            <li><span>{{ forloop.counter }}. {{ item.produto__titulo }}</span><span class="mono">{{ item.qtd }}</span></li>
+            {% endfor %}
+        </ol>
+        {% else %}
+        <p class="gestao-empty">Sem aluguéis neste filtro.</p>
+        {% endif %}
+    </section>
+</div>
+
+{% if itens %}
+<div class="gestao-table-wrap">
+    <table class="gestao-table">
+        <thead>
+            <tr><th>Data</th><th>Pedido</th><th>Cliente</th><th>Produto</th><th>Tipo</th><th>Qtd</th><th>Valor</th></tr>
+        </thead>
+        <tbody>
+            {% for item in itens %}
+            <tr>
+                <td class="mono">{{ item.pedido.criado_em|date:"d/m/Y" }}</td>
+                <td><a href="{% url 'gestao_pedido_detalhe' item.pedido.pk %}">#{{ item.pedido.id }}</a></td>
+                <td>{{ item.pedido.cliente.username }}</td>
+                <td>{{ item.produto.titulo }}</td>
+                <td>{{ item.get_modalidade_display }}</td>
+                <td class="mono">{{ item.quantidade }}</td>
+                <td class="mono">R$ {{ item.subtotal }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="gestao-empty">Nenhum item aprovado neste período.</p>
+{% endif %}
+{% endblock %}

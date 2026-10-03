@@ -7,11 +7,12 @@
     <title>{% block title %}Gestão — Vinil & Página{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/style.css' %}?v={{ STATIC_VERSION }}">
     <link rel="stylesheet" href="{% static 'css/gestao.css' %}?v={{ STATIC_VERSION }}">
     <link rel="stylesheet" href="{% static 'css/assistant.css' %}?v={{ STATIC_VERSION }}">
     {% block extra_head %}{% endblock %}
+    <link rel="stylesheet" href="{% static 'css/gestao-streaming.css' %}?v={{ STATIC_VERSION }}">
 </head>
 <body class="gestao-body">
     {% with url_name=request.resolver_match.url_name|default:'' %}
@@ -19,7 +20,7 @@
     <div class="gestao-layout" id="gestao-layout">
         <div class="gestao-sidebar-backdrop" id="gestao-sidebar-backdrop" hidden data-gestao-nav-close></div>
         <aside class="gestao-sidebar" id="gestao-sidebar" aria-label="Menu de gestão">
-            <a href="{% url 'gestao_dashboard' %}" class="gestao-brand logo">
+            <a href="{% url 'gestao_dashboard' %}" class="gestao-brand logo" title="Dashboard">
                 <span class="mark" aria-hidden="true"></span>
                 <span class="gestao-brand-text">
                     <strong>Gestão</strong>
@@ -28,53 +29,105 @@
             </a>
 
             <nav class="gestao-side-nav">
-                <p class="gestao-nav-label mono">Painel</p>
-                <a href="{% url 'gestao_dashboard' %}" class="gestao-side-link{% if url_name == 'gestao_dashboard' %} is-active{% endif %}">
-                    {% include 'includes/icon.html' with icon='dashboard' class='gestao-side-icon' %} Início
+                <a href="{% url 'gestao_dashboard' %}" class="gestao-side-link{% if url_name == 'gestao_dashboard' %} is-active{% endif %}" title="Dashboard">
+                    {% include 'includes/icon.html' with icon='dashboard' class='gestao-side-icon' %}
+                    <span class="gestao-side-text">Dashboard</span>
                 </a>
-                <a href="{% url 'gestao_pedidos_lista' %}" class="gestao-side-link{% if url_name == 'gestao_pedidos_lista' or url_name == 'gestao_pedido_detalhe' %} is-active{% endif %}">
-                    {% include 'includes/icon.html' with icon='orders' class='gestao-side-icon' %} Pedidos
+                <a href="{% url 'gestao_produtos' %}" class="gestao-side-link{% if gestao_nav_produtos %} is-active{% endif %}" title="Produtos">
+                    {% include 'includes/icon.html' with icon='library' class='gestao-side-icon' %}
+                    <span class="gestao-side-text">Produtos</span>
                 </a>
-
-                <p class="gestao-nav-label mono">Catálogo</p>
-                <a href="{% url 'gestao_discos_lista' %}" class="gestao-side-link{% if url_name == 'gestao_discos_lista' or url_name == 'gestao_disco_criar' or url_name == 'gestao_disco_editar' or url_name == 'gestao_disco_excluir' %} is-active{% endif %}">
-                    {% include 'includes/icon.html' with icon='music' class='gestao-side-icon' %} Discos
+                <a href="{% url 'gestao_pedidos_lista' %}" class="gestao-side-link{% if url_name == 'gestao_pedidos_lista' or url_name == 'gestao_pedido_detalhe' %} is-active{% endif %}" title="Pedidos">
+                    {% include 'includes/icon.html' with icon='orders' class='gestao-side-icon' %}
+                    <span class="gestao-side-text">Pedidos</span>
                 </a>
-                <a href="{% url 'gestao_livros_lista' %}" class="gestao-side-link{% if url_name == 'gestao_livros_lista' or url_name == 'gestao_livro_criar' or url_name == 'gestao_livro_editar' or url_name == 'gestao_livro_excluir' %} is-active{% endif %}">
-                    {% include 'includes/icon.html' with icon='book' class='gestao-side-icon' %} Livros
+                <a href="{% url 'gestao_clientes' %}" class="gestao-side-link{% if url_name == 'gestao_clientes' or url_name == 'gestao_cliente_detalhe' %} is-active{% endif %}" title="Clientes">
+                    {% include 'includes/icon.html' with icon='users' class='gestao-side-icon' %}
+                    <span class="gestao-side-text">Clientes</span>
                 </a>
-                <a href="{% url 'gestao_midias_lista' %}" class="gestao-side-link{% if url_name == 'gestao_midias_lista' or url_name == 'gestao_midia_criar' or url_name == 'gestao_midia_editar' or url_name == 'gestao_midia_excluir' %} is-active{% endif %}">
-                    {% include 'includes/icon.html' with icon='film' class='gestao-side-icon' %} Filmes / DVDs
+                <a href="{% url 'gestao_estoque' %}" class="gestao-side-link{% if url_name == 'gestao_estoque' %} is-active{% endif %}" title="Estoque">
+                    {% include 'includes/icon.html' with icon='box' class='gestao-side-icon' %}
+                    <span class="gestao-side-text">Estoque</span>
                 </a>
-                <a href="{% url 'gestao_importar_catalogo' %}" class="gestao-side-link{% if url_name == 'gestao_importar_catalogo' %} is-active{% endif %}">
-                    {% include 'includes/icon.html' with icon='upload' class='gestao-side-icon' %} Importar CSV
+                <a href="{% url 'gestao_alugueis' %}" class="gestao-side-link{% if url_name == 'gestao_alugueis' %} is-active{% endif %}" title="Aluguéis">
+                    {% include 'includes/icon.html' with icon='rent' class='gestao-side-icon' %}
+                    <span class="gestao-side-text">Aluguéis</span>
                 </a>
-
-                <p class="gestao-nav-label mono">Ferramentas</p>
-                <a href="{% url 'gestao_planos_clube_lista' %}" class="gestao-side-link{% if url_name == 'gestao_planos_clube_lista' or url_name == 'gestao_plano_clube_criar' or url_name == 'gestao_plano_clube_editar' %} is-active{% endif %}">
-                    {% include 'includes/icon.html' with icon='club' class='gestao-side-icon' %} Clube
+                <a href="{% url 'gestao_relatorios' %}" class="gestao-side-link{% if url_name == 'gestao_relatorios' %} is-active{% endif %}" title="Relatórios">
+                    {% include 'includes/icon.html' with icon='chart' class='gestao-side-icon' %}
+                    <span class="gestao-side-text">Relatórios</span>
                 </a>
-                <a href="{% url 'gestao_assistente_frases' %}" class="gestao-side-link{% if url_name == 'gestao_assistente_frases' or url_name == 'gestao_assistente_frase_excluir' %} is-active{% endif %}">
-                    {% include 'includes/icon.html' with icon='assistant' class='gestao-side-icon' %} Assistente IA
+                <a href="{% url 'gestao_assistente_frases' %}" class="gestao-side-link{% if url_name == 'gestao_assistente_frases' or url_name == 'gestao_assistente_frase_excluir' %} is-active{% endif %}" title="Assistente">
+                    {% include 'includes/icon.html' with icon='assistant' class='gestao-side-icon' %}
+                    <span class="gestao-side-text">Assistente</span>
+                </a>
+                <a href="{% url 'gestao_configuracoes' %}" class="gestao-side-link{% if url_name == 'gestao_configuracoes' or url_name == 'gestao_planos_clube_lista' or url_name == 'gestao_plano_clube_criar' or url_name == 'gestao_plano_clube_editar' %} is-active{% endif %}" title="Configurações">
+                    {% include 'includes/icon.html' with icon='settings' class='gestao-side-icon' %}
+                    <span class="gestao-side-text">Configurações</span>
                 </a>
             </nav>
 
             <div class="gestao-sidebar-foot">
-                <a href="{% url 'home' %}" class="gestao-side-link gestao-side-link--muted" target="_blank" rel="noopener">Ver loja ↗</a>
+                <a href="{% url 'home' %}" class="gestao-side-link gestao-side-link--muted" target="_blank" rel="noopener" title="Ver loja">
+                    {% include 'includes/icon.html' with icon='login' class='gestao-side-icon' %}
+                    <span class="gestao-side-text">Ver loja ↗</span>
+                </a>
                 <div class="gestao-sidebar-user">
-                    <span class="mono">{{ user.username }}</span>
+                    <span class="mono gestao-side-text">{{ user.username }}</span>
                     <form method="post" action="{% url 'gestao_sair' %}" class="gestao-logout-form">
                         {% csrf_token %}
-                        <button type="submit" class="gestao-logout-btn">Sair</button>
+                        <button type="submit" class="gestao-logout-btn" title="Sair">Sair</button>
                     </form>
                 </div>
             </div>
         </aside>
 
         <div class="gestao-workspace">
-            <header class="gestao-mobile-bar">
+            <header class="gestao-topbar">
                 <button type="button" class="gestao-menu-btn" id="gestao-menu-open" aria-label="Abrir menu">{% include 'includes/icon.html' with icon='menu' class='gestao-menu-icon' %}</button>
-                <span class="gestao-mobile-title">Gestão</span>
+                <div class="gestao-topbar-titles">
+                    <span class="gestao-topbar-brand">Vinil &amp; Página</span>
+                    <strong class="gestao-topbar-page">{{ gestao_titulo|default:"Gestão" }}</strong>
+                </div>
+                <form class="gestao-search" action="{% url 'gestao_busca' %}" method="get" role="search">
+                    <label class="sr-only" for="gestao-busca">Buscar no painel</label>
+                    {% include 'includes/icon.html' with icon='search' class='gestao-search-icon' %}
+                    <input type="search" id="gestao-busca" name="q" placeholder="Produtos, pedidos, clientes, aluguéis" autocomplete="off" data-busca-url="{% url 'gestao_busca' %}">
+                    <div class="gestao-search-panel" id="gestao-busca-resultados" hidden></div>
+                </form>
+                <details class="gestao-notifs">
+                    <summary class="gestao-notifs-btn" aria-label="Notificações">
+                        {% include 'includes/icon.html' with icon='bell' class='gestao-side-icon' %}
+                        {% if gestao_alertas_total %}
+                        <span class="gestao-notifs-badge">{{ gestao_alertas_total }}</span>
+                        {% endif %}
+                    </summary>
+                    <div class="gestao-notifs-menu">
+                        {% if gestao_alertas.pedidos_pendentes %}
+                        <a href="{% url 'gestao_pedidos_lista' %}?status=aguardando_pagamento">Novo fluxo: {{ gestao_alertas.pedidos_pendentes }} pedido{{ gestao_alertas.pedidos_pendentes|pluralize }} pendente{{ gestao_alertas.pedidos_pendentes|pluralize }}</a>
+                        {% endif %}
+                        {% if gestao_alertas.estoque_baixo %}
+                        <a href="{% url 'gestao_estoque' %}?situacao=baixo">Estoque baixo: {{ gestao_alertas.estoque_baixo }} produto{{ gestao_alertas.estoque_baixo|pluralize }}</a>
+                        {% endif %}
+                        {% if gestao_alertas.sem_estoque %}
+                        <a href="{% url 'gestao_estoque' %}?situacao=sem">Sem estoque: {{ gestao_alertas.sem_estoque }} produto{{ gestao_alertas.sem_estoque|pluralize }}</a>
+                        {% endif %}
+                        {% if gestao_alertas.alugueis_atrasados %}
+                        <a href="{% url 'gestao_alugueis' %}?situacao=atrasados">Aluguel atrasado: {{ gestao_alertas.alugueis_atrasados }}</a>
+                        {% endif %}
+                        {% if gestao_alertas.alugueis_vencendo %}
+                        <a href="{% url 'gestao_alugueis' %}?situacao=vencendo">Aluguel vencendo: {{ gestao_alertas.alugueis_vencendo }}</a>
+                        {% endif %}
+                        {% if gestao_alertas.pedidos_analise %}
+                        <a href="{% url 'gestao_pedidos_lista' %}?status=em_analise">Pagamento em análise: {{ gestao_alertas.pedidos_analise }}</a>
+                        {% endif %}
+                        {% if not gestao_alertas_total %}
+                        <p>Nenhum alerta no momento.</p>
+                        {% endif %}
+                    </div>
+                </details>
+                <span class="gestao-topbar-user mono">{{ user.username }}</span>
+                <a href="{% url 'home' %}" class="btn btn-ghost btn-sm" target="_blank" rel="noopener">Ver loja</a>
             </header>
     {% endif %}
 
@@ -101,6 +154,7 @@
     {% include 'includes/assistant_widget.html' with assistant_audience='gestor' %}
     <script src="{% static 'js/assistant.js' %}?v={{ STATIC_VERSION }}"></script>
     <script src="{% static 'js/gestao-nav.js' %}?v={{ STATIC_VERSION }}"></script>
+    <script src="{% static 'js/gestao-busca.js' %}?v={{ STATIC_VERSION }}"></script>
     {% endif %}
     {% block extra_js %}{% endblock %}
 </body>

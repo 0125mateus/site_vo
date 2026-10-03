@@ -59,7 +59,10 @@
             <form method="post" action="{% url 'adicionar_carrinho' item.id %}" class="js-add-cart">
                 {% csrf_token %}
                 <input type="hidden" name="modalidade" value="venda">
-                <button type="submit" class="btn btn-primary btn-sm">Comprar</button>
+                <button type="submit" class="btn btn-primary btn-sm btn-card-cart" aria-label="Comprar">
+                    {% include 'includes/icon.html' with icon='cart' class='btn-card-cart-icon' %}
+                    <span class="sr-only">Comprar</span>
+                </button>
             </form>
             {% endif %}
             {% if item.disponivel_aluguel and item.estoque_aluguel > 0 and item.preco_aluguel > 0 %}

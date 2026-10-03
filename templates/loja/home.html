@@ -4,42 +4,43 @@
 {% block title %}Vinil & Página — venda e aluguel{% endblock %}
 
 {% block content %}
-<div class="wrap">
-    <section class="hero">
-        <div>
-            <div class="eyebrow mono">Venda e aluguel · discos, livros, filmes e DVDs</div>
-            <h1>Onde a agulha<br>encontra a <em>lombada</em>.</h1>
-            <p>Compre para ficar ou alugue por alguns dias. Catálogo físico e digital, curado por gente — sem algoritmo.</p>
-            <div class="hero-actions">
-                <a class="btn btn-primary" href="#novidades">Explorar catálogo</a>
-                <a class="btn btn-ghost" href="#midias">Filmes e DVDs</a>
-            </div>
-        </div>
-        <div class="record-visual">
-            <div class="record">
-                <div class="label">VINIL &amp;<br>PÁGINA</div>
-            </div>
-            <div class="book-lean"><span>Edição rara</span></div>
-        </div>
-    </section>
+{% if midias %}
+{% include 'loja/includes/hero_destaque.html' with item=midias.0 tipo='midia' %}
+{% elif musicas %}
+{% include 'loja/includes/hero_destaque.html' with item=musicas.0 tipo='musica' %}
+{% elif livros %}
+{% include 'loja/includes/hero_destaque.html' with item=livros.0 tipo='livro' %}
+{% elif novidades %}
+{% include 'loja/includes/hero_destaque.html' with item=novidades.0.produto tipo=novidades.0.tipo %}
+{% else %}
+<section class="hero hero--cinema hero--empty">
+    <div class="hero-shade" aria-hidden="true"></div>
+    <div class="wrap hero-copy">
+        <div class="eyebrow mono">Vinil &amp; Página</div>
+        <h1>Onde a agulha encontra a lombada.</h1>
+        <p>Compre para ficar ou alugue por alguns dias. O catálogo aparece aqui assim que houver títulos ativos.</p>
+    </div>
+</section>
+{% endif %}
 
+<div class="wrap stream-home">
     {% include 'loja/includes/continue_row.html' %}
 
-    {% include 'loja/includes/shelf_row.html' with section_id='novidades' catalog_class='catalog--destaques' eyebrow='Curadoria' titulo='Novidades' itens=novidades ver_todos_url='' %}
+    {% include 'loja/includes/shelf_row.html' with section_id='novidades' catalog_class='catalog--destaques' eyebrow='' titulo='Novidades' itens=novidades ver_todos_url='' %}
 
-    {% include 'loja/includes/shelf_row.html' with section_id='para-alugar' catalog_class='catalog--aluguel' eyebrow='Streaming físico' titulo='Para alugar' itens=para_aluguel ver_todos_url='' %}
+    {% include 'loja/includes/shelf_row.html' with section_id='para-alugar' catalog_class='catalog--aluguel' eyebrow='' titulo='Para alugar' itens=para_aluguel ver_todos_url='' %}
 
-    {% include 'loja/includes/shelf_row.html' with section_id='discos' catalog_class='catalog--discos' eyebrow='Vinil · Disqueira' titulo='Na prateleira dos discos' itens=musicas tipo='musica' total=total_musicas total_label='título' ver_todos_url='/discos/' %}
+    {% include 'loja/includes/shelf_row.html' with section_id='discos' catalog_class='catalog--discos' eyebrow='' titulo='Vinis em destaque' itens=musicas tipo='musica' total=total_musicas total_label='título' ver_todos_url='/discos/' %}
 
-    {% include 'loja/includes/shelf_row.html' with section_id='livros' catalog_class='catalog--livros' eyebrow='Sebo · Lombadas' titulo='Na prateleira dos livros' itens=livros tipo='livro' total=total_livros total_label='título' ver_todos_url='/livros/' %}
+    {% include 'loja/includes/shelf_row.html' with section_id='livros' catalog_class='catalog--livros' eyebrow='' titulo='Livros para descobrir' itens=livros tipo='livro' total=total_livros total_label='título' ver_todos_url='/livros/' %}
 
-    {% include 'loja/includes/shelf_row.html' with section_id='midias' catalog_class='catalog--midias' eyebrow='Cinema · DVD / Blu-ray' titulo='Filmes, DVDs e vídeos' itens=midias tipo='midia' total=total_midias total_label='título' ver_todos_url='/filmes/' %}
+    {% include 'loja/includes/shelf_row.html' with section_id='midias' catalog_class='catalog--midias' eyebrow='' titulo='Filmes e DVDs' itens=midias tipo='midia' total=total_midias total_label='título' ver_todos_url='/filmes/' %}
 
     <section class="featured featured--duo" id="curadoria">
         <div class="feat-card" id="destaques">
             <div class="kicker mono">Como funciona</div>
             <h3>Comprar ou alugar — você escolhe.</h3>
-            <p>Na venda, o item é seu. No aluguel, você paga o período (ex.: 7 dias) e devolve. Tudo pelo mesmo carrinho e pagamento.</p>
+            <p>Na venda, o item é seu. No aluguel, você paga o período e devolve. Tudo pelo mesmo carrinho e pagamento.</p>
         </div>
         <div class="feat-card">
             <div class="kicker mono">Combo &amp; Clube</div>

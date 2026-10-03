@@ -1,0 +1,93 @@
+{% extends "gestao/base_gestao.html" %}
+
+{% block title %}Clientes — Gestão{% endblock %}
+
+{% block content %}
+<div class="gestao-page-head">
+    <div>
+        <h1>Clientes</h1>
+        <p class="gestao-page-desc">
+            {% if novos == 'hoje' %}Cadastros de hoje, com ou sem pedido.
+            {% elif novos == 'todos' %}Todos os cadastros da loja, inclusive quem ainda não comprou.
+            {% else %}Quem já fez pedido. Para ver quem acabou de criar conta, use o filtro Novos hoje.
+            {% endif %}
+            Telefone não é um campo do cadastro atual.
+        </p>
+    </div>
+</div>
+
+<form class="gestao-filters" method="get">
+    <label>
+        <span class="mono">Busca</span>
+        <input type="search" name="q" value="{{ q }}" placeholder="Nome ou e-mail">
+    </label>
+    <label>
+        <span class="mono">Lista</span>
+        <select name="novos" onchange="this.form.submit()">
+            <option value=""{% if not novos %} selected{% endif %}>Com pedido</option>
+            <option value="hoje"{% if novos == 'hoje' %} selected{% endif %}>Novos hoje</option>
+            <option value="todos"{% if novos == 'todos' %} selected{% endif %}>Todos os cadastros</option>
+        </select>
+    </label>
+    <button type="submit" class="btn btn-ghost btn-sm">Buscar</button>
+</form>
+
+{% if clientes %}
+<form method="post" action="{% url 'gestao_clientes_excluir' %}">
+    {% csrf_token %}
+    <input type="hidden" name="novos" value="{{ novos }}">
+    <input type="hidden" name="q" value="{{ q }}">
+    <div class="gestao-page-head">
+        <button type="submit" class="btn btn-danger btn-sm">Excluir selecionados</button>
+    </div>
+<div class="gestao-table-wrap">
+    <table class="gestao-table">
+        <thead>
+            <tr>
+                <th><input type="checkbox" id="clientes-todos" aria-label="Selecionar todos"></th>
+                <th>Nome</th>
+                <th>Cadastro</th>
+                <th>E-mail</th>
+                <th>Telefone</th>
+                <th>Pedidos</th>
+                <th>Total gasto</th>
+                <th>Última compra</th>
+                <th>Aluguéis</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cliente in clientes %}
+            <tr>
+                <td><input type="checkbox" class="js-cliente-check" name="ids" value="{{ cliente.pk }}" aria-label="Selecionar {{ cliente.username }}"></td>
+                <td><a href="{% url 'gestao_cliente_detalhe' cliente.pk %}">{{ cliente.get_full_name|default:cliente.username }}</a></td>
+                <td class="mono">{{ cliente.date_joined|date:"d/m/Y H:i" }}</td>
+                <td>{{ cliente.email|default:"—" }}</td>
+                <td>Não cadastrado</td>
+                <td class="mono">{{ cliente.qtd_pedidos }}</td>
+                <td class="mono">R$ {{ cliente.total_gasto|default:"0.00" }}</td>
+                <td class="mono">{% if cliente.ultima_compra %}{{ cliente.ultima_compra|date:"d/m/Y" }}{% else %}—{% endif %}</td>
+                <td class="mono">{{ cliente.qtd_alugueis }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+</form>
+{% else %}
+<p class="gestao-empty">{% if novos == 'hoje' %}Nenhum cadastro hoje.{% else %}Nenhum cliente nesta lista.{% endif %}</p>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    const todos = document.getElementById('clientes-todos');
+    if (!todos) return;
+    todos.addEventListener('change', function () {
+        document.querySelectorAll('.js-cliente-check').forEach(function (caixa) {
+            caixa.checked = todos.checked;
+        });
+    });
+})();
+</script>
+{% endblock %}

@@ -107,7 +107,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATIC_VERSION = '20260818wallet'
+STATIC_VERSION = '20260929painel'
 
 STORAGES = {
     'default': {
@@ -117,6 +117,10 @@ STORAGES = {
         'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage',
     },
 }
+
+# Em desenvolvimento o WhiteNoise lê a pasta static/ direto, sem collectstatic.
+if DEBUG:
+    WHITENOISE_USE_FINDERS = True
 
 CLOUDINARY_URL = env('CLOUDINARY_URL', default='')
 if CLOUDINARY_URL:

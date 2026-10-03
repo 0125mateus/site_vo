@@ -1,0 +1,63 @@
+{% extends "gestao/base_gestao.html" %}
+
+{% block title %}{{ cliente_loja.username }} — Gestão{% endblock %}
+
+{% block content %}
+<div class="gestao-page-head">
+    <div>
+        <a href="{% url 'gestao_clientes' %}" class="gestao-back">← Clientes</a>
+        <h1>{{ cliente_loja.get_full_name|default:cliente_loja.username }}</h1>
+        <p class="gestao-page-desc">{{ cliente_loja.email|default:"Sem e-mail" }}</p>
+    </div>
+</div>
+
+<section class="gestao-panel">
+    <h2>Login e senha</h2>
+    <p class="gestao-page-desc">Login: <strong class="mono">{{ cliente_loja.username }}</strong>. Esse nome não se edita aqui. A senha original não pode ser lida. Se a cliente esquecer, grave uma nova abaixo e informe a ela.</p>
+    <form method="post" class="gestao-form">
+        {% csrf_token %}
+        <label for="id_nova_senha">Nova senha</label>
+        {{ acesso_form.nova_senha }}
+        {% if acesso_form.nova_senha.errors %}<span class="field-error">{{ acesso_form.nova_senha.errors.0 }}</span>{% endif %}
+
+        <label for="id_confirmar_senha">Confirmar nova senha</label>
+        {{ acesso_form.confirmar_senha }}
+        {% if acesso_form.confirmar_senha.errors %}<span class="field-error">{{ acesso_form.confirmar_senha.errors.0 }}</span>{% endif %}
+
+        <button type="submit" class="btn btn-primary">Definir nova senha</button>
+    </form>
+</section>
+
+{% if pedidos %}
+<div class="gestao-table-wrap">
+    <table class="gestao-table">
+        <thead>
+            <tr>
+                <th>Pedido</th>
+                <th>Data</th>
+                <th>Itens</th>
+                <th>Valor</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pedido in pedidos %}
+            <tr>
+                <td><a href="{% url 'gestao_pedido_detalhe' pedido.pk %}">#{{ pedido.id }}</a></td>
+                <td class="mono">{{ pedido.criado_em|date:"d/m/Y H:i" }}</td>
+                <td>
+                    {% for item in pedido.itens.all %}
+                    {{ item.produto.titulo }} ({{ item.get_modalidade_display }}){% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </td>
+                <td class="mono">R$ {{ pedido.valor_total }}</td>
+                <td><span class="gestao-badge gestao-badge--{{ pedido.status }}">{{ pedido.get_status_display }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="gestao-empty">Este cliente ainda não tem pedidos.</p>
+{% endif %}
+{% endblock %}

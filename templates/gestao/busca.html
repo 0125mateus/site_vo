@@ -1,0 +1,39 @@
+{% extends "gestao/base_gestao.html" %}
+
+{% block title %}Busca — Gestão{% endblock %}
+
+{% block content %}
+<div class="gestao-page-head">
+    <div>
+        <h1>Busca</h1>
+        <p class="gestao-page-desc">{% if q %}Resultados para “{{ q }}”.{% else %}Digite pelo menos 2 letras.{% endif %}</p>
+    </div>
+</div>
+
+{% if q %}
+<section class="gestao-panel">
+    <h2>Produtos</h2>
+    {% if grupos.produtos %}
+    <ul class="saas-rank">{% for item in grupos.produtos %}<li><a href="{{ item.url }}">{{ item.titulo }}</a></li>{% endfor %}</ul>
+    {% else %}<p class="gestao-empty">Nenhum produto.</p>{% endif %}
+</section>
+<section class="gestao-panel">
+    <h2>Clientes</h2>
+    {% if grupos.clientes %}
+    <ul class="saas-rank">{% for item in grupos.clientes %}<li><a href="{{ item.url }}">{{ item.nome }}</a></li>{% endfor %}</ul>
+    {% else %}<p class="gestao-empty">Nenhum cliente.</p>{% endif %}
+</section>
+<section class="gestao-panel">
+    <h2>Pedidos</h2>
+    {% if grupos.pedidos %}
+    <ul class="saas-rank">{% for item in grupos.pedidos %}<li><a href="{{ item.url }}">{{ item.rotulo }}</a></li>{% endfor %}</ul>
+    {% else %}<p class="gestao-empty">Nenhum pedido.</p>{% endif %}
+</section>
+<section class="gestao-panel">
+    <h2>Aluguéis</h2>
+    {% if grupos.alugueis %}
+    <ul class="saas-rank">{% for item in grupos.alugueis %}<li><a href="{{ item.url }}">{{ item.rotulo }}</a></li>{% endfor %}</ul>
+    {% else %}<p class="gestao-empty">Nenhum aluguel.</p>{% endif %}
+</section>
+{% endif %}
+{% endblock %}

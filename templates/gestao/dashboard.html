@@ -1,96 +1,271 @@
 {% extends "gestao/base_gestao.html" %}
 
-{% block title %}Gestão — Início{% endblock %}
+{% block title %}Dashboard — Gestão{% endblock %}
 
 {% block content %}
-<section class="gestao-hero">
-    <span class="section-eyebrow">Painel</span>
-    <h1>Gestão da loja</h1>
-    <p>Cadastre discos, livros, filmes e DVDs enviando arquivos do seu PC — sem mexer no código.</p>
-</section>
+<div class="ops-shell">
+    <div class="ops-main">
+        <section class="gestao-hero ops-hero">
+            <div>
+                <p class="section-eyebrow">Painel de gestão</p>
+                <h1>{{ saudacao }}, {{ user.first_name|default:user.username }}.</h1>
+                <p>Aqui está o resumo da operação. O período abaixo muda indicadores, gráfico e rankings. O resumo de hoje fica fixo no dia corrente.</p>
+            </div>
+            <form class="ops-period" method="get">
+                <label class="mono" for="periodo-global">Período</label>
+                <select id="periodo-global" name="periodo" onchange="this.form.submit()">
+                    {% for valor, rotulo in periodos %}
+                    <option value="{{ valor }}"{% if periodo.chave == valor %} selected{% endif %}>{{ rotulo }}</option>
+                    {% endfor %}
+                </select>
+                {% if periodo.chave == 'personalizado' %}
+                <input type="date" name="inicio" value="{{ periodo.inicio|date:'Y-m-d' }}" aria-label="Data inicial">
+                <input type="date" name="fim" value="{{ periodo.fim|date:'Y-m-d' }}" aria-label="Data final">
+                <button type="submit" class="btn btn-ghost btn-sm">Aplicar</button>
+                {% endif %}
+            </form>
+        </section>
 
-<div class="gestao-stats">
-    <div class="gestao-stat-card gestao-stat-card--accent gestao-stat-card--sales">
-        <span class="gestao-stat-num mono">R$ {{ total_vendas|floatformat:2 }}</span>
-        <span class="gestao-stat-label">Vendas aprovadas ({{ pedidos_aprovados }} pedidos)</span>
-    </div>
-    <div class="gestao-stat-card gestao-stat-card--accent gestao-stat-card--ticket">
-        <span class="gestao-stat-num mono">R$ {{ ticket_medio|floatformat:2 }}</span>
-        <span class="gestao-stat-label">Ticket médio</span>
-    </div>
-    <div class="gestao-stat-card gestao-stat-card--accent gestao-stat-card--pending">
-        <span class="gestao-stat-num mono">{{ pedidos_pendentes }}</span>
-        <span class="gestao-stat-label">Pedidos pendentes</span>
-        <a href="{% url 'gestao_pedidos_lista' %}" class="btn btn-ghost">Ver pedidos</a>
-    </div>
-    <div class="gestao-stat-card">
-        <span class="gestao-stat-num mono">{{ total_discos }}</span>
-        <span class="gestao-stat-label">Discos ({{ discos_ativos }} ativos)</span>
-        <a href="{% url 'gestao_discos_lista' %}" class="btn btn-ghost">Gerenciar</a>
-    </div>
-    <div class="gestao-stat-card">
-        <span class="gestao-stat-num mono">{{ total_livros }}</span>
-        <span class="gestao-stat-label">Livros ({{ livros_ativos }} ativos)</span>
-        <a href="{% url 'gestao_livros_lista' %}" class="btn btn-ghost">Gerenciar</a>
-    </div>
-    <div class="gestao-stat-card">
-        <span class="gestao-stat-num mono">{{ total_midias }}</span>
-        <span class="gestao-stat-label">Filmes/DVDs ({{ midias_ativas }} ativos)</span>
-        <a href="{% url 'gestao_midias_lista' %}" class="btn btn-ghost">Gerenciar</a>
-    </div>
-</div>
+        <div class="saas-kpis ops-kpis">
+            <article class="saas-kpi">
+                <span class="saas-kpi-label">Faturamento · {{ periodo.rotulo }}</span>
+                <span class="saas-kpi-value mono">R$ {{ cards.faturamento|floatformat:2 }}</span>
+                {% if cards.faturamento_var is not None %}
+                <span class="saas-kpi-delta {% if cards.faturamento_var >= 0 %}is-up{% else %}is-down{% endif %}">{{ cards.faturamento_var }}% vs. período anterior</span>
+                {% endif %}
+            </article>
+            <article class="saas-kpi">
+                <span class="saas-kpi-label">Ticket médio</span>
+                <span class="saas-kpi-value mono">R$ {{ cards.ticket_medio|floatformat:2 }}</span>
+            </article>
+            <article class="saas-kpi">
+                <span class="saas-kpi-label">Pedidos recebidos</span>
+                <span class="saas-kpi-value mono">{{ cards.pedidos }}</span>
+                {% if cards.pedidos_var is not None %}
+                <span class="saas-kpi-delta {% if cards.pedidos_var >= 0 %}is-up{% else %}is-down{% endif %}">{{ cards.pedidos_var }}% vs. período anterior</span>
+                {% endif %}
+            </article>
+            <article class="saas-kpi">
+                <span class="saas-kpi-label">Unidades vendidas</span>
+                <span class="saas-kpi-value mono">{{ cards.vendas }}</span>
+                {% if cards.vendas_var is not None %}
+                <span class="saas-kpi-delta {% if cards.vendas_var >= 0 %}is-up{% else %}is-down{% endif %}">{{ cards.vendas_var }}% vs. período anterior</span>
+                {% endif %}
+            </article>
+            <article class="saas-kpi">
+                <span class="saas-kpi-label">Unidades alugadas</span>
+                <span class="saas-kpi-value mono">{{ cards.alugueis }}</span>
+                {% if cards.alugueis_var is not None %}
+                <span class="saas-kpi-delta {% if cards.alugueis_var >= 0 %}is-up{% else %}is-down{% endif %}">{{ cards.alugueis_var }}% vs. período anterior</span>
+                {% endif %}
+            </article>
+            <article class="saas-kpi">
+                <span class="saas-kpi-label">Clientes que compraram</span>
+                <span class="saas-kpi-value mono">{{ cards.clientes_periodo }}</span>
+            </article>
+        </div>
 
-{% if estoque_baixo %}
-<section class="gestao-panel gestao-panel--alert">
-    <h2>Estoque baixo (≤ {{ estoque_limite }})</h2>
-    <ul class="gestao-stock-alert-list">
-        {% for alerta in estoque_baixo %}
-        <li>
-            <strong>{{ alerta.produto.titulo }}</strong>
-            <span class="mono">{{ alerta.tipo }}: {{ alerta.estoque }} un.</span>
-        </li>
-        {% endfor %}
-    </ul>
-</section>
-{% endif %}
+        <div class="ops-charts">
+            {% include "gestao/includes/grafico.html" with titulo="Faturamento" grafico=graficos.faturamento tipo="linha" cor="#D4AF68" legenda=periodo.rotulo %}
+            {% include "gestao/includes/grafico.html" with titulo="Novos clientes" grafico=graficos.clientes tipo="barra" cor="#8ef0c2" legenda="Cadastros" %}
+            {% include "gestao/includes/grafico.html" with titulo="Pedidos" grafico=graficos.pedidos tipo="linha" cor="#7eb6ff" legenda="Recebidos" %}
+            {% include "gestao/includes/grafico.html" with titulo="Vendas e aluguéis" grafico=graficos.movimento tipo="dupla" cor="#D4AF68" cor2="#7eb6ff" legenda="Vendas" legenda2="Aluguéis" %}
+        </div>
+        {% if insight %}<p class="ops-insight">{{ insight }}</p>{% endif %}
 
-{% if ultimos_pedidos %}
-<section class="gestao-panel">
-    <div class="gestao-panel-head">
-        <h2>Últimos pedidos</h2>
-        <a href="{% url 'gestao_pedidos_lista' %}" class="btn btn-ghost btn-sm">Ver todos</a>
+        <div class="saas-grid">
+            <section class="gestao-panel">
+                <h2>Vendas por categoria</h2>
+                {% if fatias %}
+                <div class="ops-donut-row">
+                    <div class="ops-donut" style="background: conic-gradient({{ gradiente }})" role="img" aria-label="Participação das categorias"></div>
+                    <ul class="saas-rank">
+                        {% for fatia in fatias %}
+                        <li><span><i class="ops-dot" style="background: {{ fatia.cor }}"></i> {{ fatia.nome }}</span><span class="mono">{{ fatia.pct }}%</span></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% else %}
+                <p class="gestao-empty">Sem vendas aprovadas neste período.</p>
+                {% endif %}
+            </section>
+        </div>
+
+        <section class="gestao-panel">
+            <h2>Precisa da sua atenção</h2>
+            {% if atencao %}
+            <div class="ops-alerts">
+                {% for item in atencao %}
+                <article class="ops-alert ops-alert--{{ item.nivel }}">
+                    <strong>{{ item.titulo }}</strong>
+                    <p>{{ item.detalhe }}</p>
+                    <div class="ops-alert-actions">
+                        <a href="{{ item.url }}">{{ item.acao }}</a>
+                        {% if item.acao_extra %}<a href="{{ item.url_extra }}">{{ item.acao_extra }}</a>{% endif %}
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="gestao-empty">Nada pendente. Estoque, aluguéis e pedidos estão em dia.</p>
+            {% endif %}
+        </section>
+
+        <section class="gestao-panel">
+            <h2>Resumo de hoje</h2>
+            <div class="ops-today">
+                <a href="{% url 'gestao_relatorios' %}?tipo=venda&inicio={{ hoje.data|date:'Y-m-d' }}&fim={{ hoje.data|date:'Y-m-d' }}">
+                    <span class="mono">{{ hoje.vendas }}</span>
+                    <small>vendas hoje · R$ {{ hoje.faturamento|floatformat:2 }}</small>
+                </a>
+                <a href="{% url 'gestao_pedidos_lista' %}">
+                    <span class="mono">{{ hoje.pedidos }}</span>
+                    <small>pedidos recebidos hoje</small>
+                </a>
+                <a href="{% url 'gestao_alugueis' %}">
+                    <span class="mono">{{ hoje.alugueis }}</span>
+                    <small>aluguéis iniciados hoje</small>
+                </a>
+                <a href="{% url 'gestao_alugueis' %}?situacao=hoje">
+                    <span class="mono">{{ hoje.devolucoes_hoje }}</span>
+                    <small>devoluções previstas hoje</small>
+                </a>
+                <a href="{% url 'gestao_alugueis' %}?situacao=atrasados">
+                    <span class="mono">{{ hoje.devolucoes_atrasadas }}</span>
+                    <small>devoluções atrasadas</small>
+                </a>
+                <a href="{% url 'gestao_clientes' %}?novos=hoje">
+                    <span class="mono">{{ hoje.novos_clientes }}</span>
+                    <small>{% if hoje.novos_clientes == 1 %}novo cliente hoje{% else %}novos clientes hoje{% endif %}</small>
+                </a>
+                <div>
+                    <span class="mono">—</span>
+                    <small>movimentação de estoque não é registrada</small>
+                </div>
+            </div>
+        </section>
+
+        <div class="saas-grid">
+            <section class="gestao-panel">
+                <div class="gestao-panel-head">
+                    <h2>Pedidos recentes</h2>
+                    <a href="{% url 'gestao_pedidos_lista' %}">Ver todos</a>
+                </div>
+                {% if ultimos_pedidos %}
+                <div class="gestao-table-wrap">
+                    <table class="gestao-table gestao-table--compact">
+                        <thead><tr><th>#</th><th>Cliente</th><th>Produto</th><th>Total</th><th>Status</th></tr></thead>
+                        <tbody>
+                            {% for pedido in ultimos_pedidos %}
+                            <tr>
+                                <td><a href="{% url 'gestao_pedido_detalhe' pedido.pk %}">#{{ pedido.id }}</a></td>
+                                <td>{{ pedido.cliente.username }}</td>
+                                <td>{% for item in pedido.itens.all %}{% if forloop.first %}{{ item.produto.titulo }}{% endif %}{% empty %}—{% endfor %}</td>
+                                <td class="mono">R$ {{ pedido.valor_total }}</td>
+                                <td><span class="gestao-badge gestao-badge--{{ pedido.status }}">{{ pedido.get_status_display }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="gestao-empty">Nenhum pedido registrado.</p>
+                {% endif %}
+            </section>
+            <section class="gestao-panel">
+                <div class="gestao-panel-head">
+                    <h2>Aluguéis em andamento</h2>
+                    <a href="{% url 'gestao_alugueis' %}?situacao=ativos">Ver todos</a>
+                </div>
+                {% if alugueis_andamento %}
+                <ul class="saas-rank">
+                    {% for item in alugueis_andamento %}
+                    <li>
+                        <span>{{ item.produto.titulo }} · {{ item.pedido.cliente.username }}</span>
+                        <span class="mono">{% if item.data_devolucao %}{{ item.data_devolucao|date:"d/m" }}{% else %}sem data{% endif %}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="gestao-empty">Nenhum aluguel ativo.</p>
+                {% endif %}
+            </section>
+        </div>
+
+        <div class="saas-grid">
+            <section class="gestao-panel">
+                <h2>Produtos mais vendidos</h2>
+                {% if mais_vendidos %}
+                <ol class="saas-rank">{% for item in mais_vendidos %}<li><span>{{ forloop.counter }}. {{ item.produto__titulo }}</span><span class="mono">{{ item.qtd }} un.</span></li>{% endfor %}</ol>
+                {% else %}<p class="gestao-empty">Ainda não existem vendas aprovadas neste período.</p>{% endif %}
+            </section>
+            <section class="gestao-panel">
+                <h2>Mais alugados</h2>
+                {% if mais_alugados %}
+                <ol class="saas-rank">{% for item in mais_alugados %}<li><span>{{ forloop.counter }}. {{ item.produto__titulo }}</span><span class="mono">{{ item.qtd }} un.</span></li>{% endfor %}</ol>
+                {% else %}<p class="gestao-empty">Ainda não existem aluguéis aprovados neste período.</p>{% endif %}
+            </section>
+        </div>
+
+        <div class="saas-grid">
+            <section class="gestao-panel">
+                <h2>Produtos sem movimentação</h2>
+                {% if parados %}
+                <ul class="saas-rank">{% for produto in parados %}<li><a href="{% url 'gestao_produtos' %}?q={{ produto.titulo }}">{{ produto.titulo }}</a></li>{% endfor %}</ul>
+                {% elif not tem_catalogo %}
+                <p class="gestao-empty">Nenhum produto cadastrado.</p>
+                {% else %}
+                <p class="gestao-empty">Nenhum produto parado neste período.</p>
+                {% endif %}
+            </section>
+            <section class="gestao-panel">
+                <h2>Clientes com maior volume</h2>
+                {% if clientes_top %}
+                <ol class="saas-rank">{% for cliente in clientes_top %}<li><a href="{% url 'gestao_cliente_detalhe' cliente.pk %}">{{ cliente.get_full_name|default:cliente.username }}</a><span class="mono">R$ {{ cliente.total|floatformat:2 }}</span></li>{% endfor %}</ol>
+                {% else %}<p class="gestao-empty">Nenhuma compra aprovada neste período.</p>{% endif %}
+            </section>
+        </div>
+
+        <section class="gestao-panel">
+            <h2>Últimas atividades</h2>
+            {% if atividades %}
+            <ul class="ops-feed">
+                {% for evento in atividades %}
+                <li>
+                    <time class="mono">{{ evento.quando|date:"d/m/Y H:i" }}</time>
+                    <a href="{{ evento.url }}">{{ evento.texto }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+            <p class="gestao-page-desc">Entram pedido, pagamento, cadastro de produto e aluguel iniciado. Alteração de produto, devolução recebida e ajuste de estoque não ficam gravados.</p>
+            {% else %}
+            <p class="gestao-empty">Nenhuma atividade registrada.</p>
+            {% endif %}
+        </section>
     </div>
-    <table class="gestao-table gestao-table--compact">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Cliente</th>
-                <th>Status</th>
-                <th>Total</th>
-                <th>Data</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for pedido in ultimos_pedidos %}
-            <tr>
-                <td><a href="{% url 'gestao_pedido_detalhe' pedido.pk %}">#{{ pedido.id }}</a></td>
-                <td>{{ pedido.cliente.username }}</td>
-                <td>{{ pedido.get_status_display }}</td>
-                <td class="mono">R$ {{ pedido.valor_total }}</td>
-                <td class="mono">{{ pedido.criado_em|date:"d/m/Y H:i" }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</section>
-{% endif %}
 
-<div class="gestao-quick-actions">
-    <a href="{% url 'gestao_disco_criar' %}" class="btn btn-primary">+ Novo disco</a>
-    <a href="{% url 'gestao_livro_criar' %}" class="btn btn-primary">+ Novo livro</a>
-    <a href="{% url 'gestao_midia_criar' %}" class="btn btn-primary">+ Filme / DVD / vídeo</a>
-    <a href="{% url 'gestao_importar_catalogo' %}" class="btn btn-ghost">Importar CSV</a>
-    <a href="{% url 'gestao_planos_clube_lista' %}" class="btn btn-ghost">Planos do clube</a>
-    <a href="{% url 'gestao_assistente_frases' %}" class="btn btn-ghost">Assistente IA</a>
+    <aside class="ops-side">
+        <section class="gestao-panel">
+            <h2>Ações rápidas</h2>
+            <div class="ops-actions">
+                <a href="{% url 'gestao_produtos' %}">+ Novo produto</a>
+                <a href="{% url 'gestao_pedidos_lista' %}">Pedidos</a>
+                <a href="{% url 'gestao_alugueis' %}?situacao=atrasados">Acompanhar aluguéis</a>
+                <a href="{% url 'gestao_estoque' %}">Atualizar estoque</a>
+                <a href="{% url 'gestao_pedidos_lista' %}?status=aguardando_pagamento">Ver pedidos pendentes</a>
+                <a href="{% url 'gestao_alugueis' %}">Ver aluguéis</a>
+                <a href="{% url 'gestao_clientes' %}">Ver clientes</a>
+                <a href="{% url 'gestao_relatorios' %}?inicio={{ periodo.inicio|date:'Y-m-d' }}&fim={{ periodo.fim|date:'Y-m-d' }}">Gerar relatório</a>
+            </div>
+            <p class="gestao-page-desc">Pedido novo nasce na loja, no checkout. Devolução recebida ainda não tem campo no banco.</p>
+        </section>
+        <section class="gestao-panel">
+            <h2>Agora</h2>
+            <p class="saas-kpi-label">Aluguéis ativos</p>
+            <p class="saas-kpi-value mono">{{ cards.alugueis_ativos }}</p>
+            <p class="saas-kpi-label">Produtos em estoque</p>
+            <p class="saas-kpi-value mono">{{ cards.produtos_estoque }}</p>
+        </section>
+    </aside>
 </div>
 {% endblock %}
