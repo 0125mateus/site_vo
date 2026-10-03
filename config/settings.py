@@ -1,6 +1,9 @@
+import sys
 from pathlib import Path
 
 import environ
+
+from config.database import banco_disponivel
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -62,9 +65,26 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-if env('DATABASE_URL', default=None):
+
+def _conectar_postgres(url, timeout):
+    import psycopg2
+
+    conexao = psycopg2.connect(url, connect_timeout=timeout)
+    conexao.close()
+
+
+_database_url = env('DATABASE_URL', default='') or ''
+if _database_url and banco_disponivel(_database_url, _conectar_postgres):
     DATABASES = {'default': env.db('DATABASE_URL')}
+    opcoes = DATABASES['default'].setdefault('OPTIONS', {})
+    opcoes.setdefault('connect_timeout', 5)
 else:
+    if _database_url:
+        print(
+            'AVISO: DATABASE_URL não respondeu em 5s. '
+            'A loja sobe com banco temporário; os dados somem quando a instância free dorme.',
+            file=sys.stderr,
+        )
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
