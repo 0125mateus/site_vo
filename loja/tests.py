@@ -193,9 +193,10 @@ class AssistenteAPITests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn('greeting', response.json())
 
-    def test_init_gestor_requer_staff(self):
+    def test_init_gestor_sem_login(self):
         response = self.client.get(reverse('assistant_init'), {'audience': 'gestor'})
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('greeting', response.json())
 
     def test_chat_cliente_modo_guiado(self):
         response = self.client.post(
@@ -628,15 +629,19 @@ class GestaoPainelTests(TestCase):
             preco_unitario=Decimal('40.00'),
         )
 
-    def test_anonimo_nao_ve_o_painel(self):
+    def test_anonimo_abre_o_painel(self):
         response = self.client.get(reverse('gestao_dashboard'))
-        self.assertEqual(response.status_code, 302)
-        self.assertIn('/gestao/entrar/', response.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Dashboard')
 
-    def test_cliente_comum_nao_entra(self):
+    def test_entrar_vai_para_o_painel(self):
+        response = self.client.get(reverse('gestao_entrar'))
+        self.assertRedirects(response, reverse('gestao_dashboard'))
+
+    def test_cliente_comum_abre_o_estoque(self):
         self.client.force_login(self.cliente)
         response = self.client.get(reverse('gestao_estoque'))
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 200)
 
     def test_dashboard_mostra_venda_real(self):
         self.client.force_login(self.gestor)

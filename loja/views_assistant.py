@@ -21,8 +21,6 @@ def _audience_from_request(request):
 @require_GET
 def assistant_init(request):
     audience = _audience_from_request(request)
-    if audience == 'gestor' and not (request.user.is_authenticated and request.user.is_staff):
-        return JsonResponse({'error': 'Acesso restrito a gestores.'}, status=403)
 
     return JsonResponse({
         'greeting': get_greeting(audience),
@@ -40,8 +38,6 @@ def assistant_chat_view(request):
         return JsonResponse({'error': 'JSON inválido.'}, status=400)
 
     audience = payload.get('audience', 'cliente')
-    if audience == 'gestor' and not (request.user.is_authenticated and request.user.is_staff):
-        return JsonResponse({'error': 'Acesso restrito a gestores.'}, status=403)
 
     message = payload.get('message', '')
     history = payload.get('history', [])

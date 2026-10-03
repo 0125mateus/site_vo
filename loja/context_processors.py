@@ -36,9 +36,6 @@ def carrinho_context(request):
 def _gestao_nav(request):
     if not request.path.startswith('/gestao/'):
         return {}
-    user = getattr(request, 'user', None)
-    if not user or not user.is_authenticated or not user.is_staff:
-        return {}
     from .painel_gestao import PRODUTOS_URLS, alertas_contagem, titulo_pagina
 
     match = getattr(request, 'resolver_match', None)

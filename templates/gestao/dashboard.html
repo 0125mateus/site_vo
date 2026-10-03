@@ -8,7 +8,7 @@
         <section class="gestao-hero ops-hero">
             <div>
                 <p class="section-eyebrow">Painel de gestão</p>
-                <h1>{{ saudacao }}, {{ user.first_name|default:user.username }}.</h1>
+                <h1>{{ saudacao }}{% if user.first_name or user.username %}, {{ user.first_name|default:user.username }}{% endif %}.</h1>
                 <p>Aqui está o resumo da operação. O período abaixo muda indicadores, gráfico e rankings. O resumo de hoje fica fixo no dia corrente.</p>
             </div>
             <form class="ops-period" method="get">

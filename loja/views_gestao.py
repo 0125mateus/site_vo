@@ -5,13 +5,11 @@ import csv
 from datetime import datetime
 
 from django.contrib import messages
-from django.contrib.auth import get_user_model, logout
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.views import LoginView, LogoutView
+from django.contrib.auth import get_user_model
 from django.db.models import ProtectedError, Q
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
@@ -126,34 +124,13 @@ def _excluir_item_catalogo(request, objeto, lista_url, rotulo):
 
 def gestor_required(view_func):
     @wraps(view_func)
-    @login_required(login_url='gestao_entrar')
     def wrapper(request, *args, **kwargs):
-        if not request.user.is_staff:
-            messages.error(request, 'Acesso restrito a gestores da loja.')
-            return redirect('home')
         return view_func(request, *args, **kwargs)
     return wrapper
 
 
-class GestaoLoginView(LoginView):
-    template_name = 'gestao/entrar.html'
-    redirect_authenticated_user = True
-
-    def get_success_url(self):
-        return reverse('gestao_dashboard')
-
-    def form_valid(self, form):
-        response = super().form_valid(form)
-        if not self.request.user.is_staff:
-            logout(self.request)
-            messages.error(self.request, 'Este usuário não tem permissão de gestão.')
-            return redirect('gestao_entrar')
-        messages.success(self.request, f'Bem-vindo, {self.request.user.username}.')
-        return response
-
-
-class GestaoLogoutView(LogoutView):
-    next_page = reverse_lazy('gestao_entrar')
+def gestao_entrar(request):
+    return redirect('gestao_dashboard')
 
 
 @gestor_required

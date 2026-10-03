@@ -16,7 +16,6 @@
 </head>
 <body class="gestao-body">
     {% with url_name=request.resolver_match.url_name|default:'' %}
-    {% if user.is_authenticated and user.is_staff %}
     <div class="gestao-layout" id="gestao-layout">
         <div class="gestao-sidebar-backdrop" id="gestao-sidebar-backdrop" hidden data-gestao-nav-close></div>
         <aside class="gestao-sidebar" id="gestao-sidebar" aria-label="Menu de gestão">
@@ -72,13 +71,6 @@
                     {% include 'includes/icon.html' with icon='login' class='gestao-side-icon' %}
                     <span class="gestao-side-text">Ver loja ↗</span>
                 </a>
-                <div class="gestao-sidebar-user">
-                    <span class="mono gestao-side-text">{{ user.username }}</span>
-                    <form method="post" action="{% url 'gestao_sair' %}" class="gestao-logout-form">
-                        {% csrf_token %}
-                        <button type="submit" class="gestao-logout-btn" title="Sair">Sair</button>
-                    </form>
-                </div>
             </div>
         </aside>
 
@@ -126,12 +118,10 @@
                         {% endif %}
                     </div>
                 </details>
-                <span class="gestao-topbar-user mono">{{ user.username }}</span>
                 <a href="{% url 'home' %}" class="btn btn-ghost btn-sm" target="_blank" rel="noopener">Ver loja</a>
             </header>
-    {% endif %}
 
-            <main class="gestao-main{% if not user.is_authenticated or not user.is_staff %} gestao-main--guest{% endif %}">
+            <main class="gestao-main">
                 <div class="wrap gestao-wrap">
                     {% if messages %}
                     <div class="gestao-messages">
@@ -144,18 +134,14 @@
                 </div>
             </main>
 
-    {% if user.is_authenticated and user.is_staff %}
         </div>
     </div>
-    {% endif %}
     {% endwith %}
 
-    {% if user.is_authenticated and user.is_staff %}
     {% include 'includes/assistant_widget.html' with assistant_audience='gestor' %}
     <script src="{% static 'js/assistant.js' %}?v={{ STATIC_VERSION }}"></script>
     <script src="{% static 'js/gestao-nav.js' %}?v={{ STATIC_VERSION }}"></script>
     <script src="{% static 'js/gestao-busca.js' %}?v={{ STATIC_VERSION }}"></script>
-    {% endif %}
     {% block extra_js %}{% endblock %}
 </body>
 </html>
