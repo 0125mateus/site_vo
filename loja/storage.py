@@ -15,6 +15,8 @@ from django.utils.deconstruct import deconstructible
 
 logger = logging.getLogger(__name__)
 
+LIMITE_ARQUIVO_NUVEM = 48 * 1024 * 1024
+
 
 def usando_nuvem() -> bool:
     if getattr(settings, 'USAR_SUPABASE', False):
@@ -145,6 +147,9 @@ class SupabaseStorage(Storage):
         return str(name).replace('\\', '/').lstrip('/')
 
     def _save(self, name, content):
+        tamanho = getattr(content, 'size', None)
+        if tamanho and tamanho > LIMITE_ARQUIVO_NUVEM:
+            raise RuntimeError('arquivo-grande')
         base, chave, bucket = self._credenciais()
         caminho = self._caminho(name)
         if hasattr(content, 'seek'):

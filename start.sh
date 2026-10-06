@@ -13,4 +13,4 @@ if [ "${CREATE_GESTOR:-1}" = "1" ]; then
   fi
 fi
 
-exec gunicorn config.wsgi:application --bind "0.0.0.0:${PORT:-8000}" --timeout 120 --workers 1
+exec gunicorn config.wsgi:application --bind "0.0.0.0:${PORT:-8000}" --timeout 120 --workers 1 --threads 4

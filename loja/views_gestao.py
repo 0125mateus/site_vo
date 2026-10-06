@@ -67,13 +67,21 @@ def _salvar_form_produto(request, form, sucesso_msg, redirect_name):
         return False
     try:
         form.save()
-    except Exception:
+    except Exception as erro:
         logger.exception('Falha ao salvar arquivo de mídia no gestor')
-        messages.error(
-            request,
-            'Não foi possível enviar o arquivo. A capa aceita JPG, PNG ou WebP. '
-            'O filme completo aceita MP4, MKV, AVI ou ISO.',
-        )
+        texto = str(erro).lower()
+        if 'arquivo-grande' in texto or '413' in texto or 'payload too large' in texto or 'maximum allowed size' in texto:
+            messages.error(
+                request,
+                'O arquivo passou de 48 MB. A nuvem gratuita não guarda um filme inteiro. '
+                'Envie só a capa e coloque o trailer no link do YouTube.',
+            )
+        else:
+            messages.error(
+                request,
+                'Não foi possível enviar o arquivo. A capa aceita JPG, PNG ou WebP. '
+                'O filme completo aceita MP4, MKV, AVI ou ISO de até 48 MB.',
+            )
         return False
     messages.success(request, sucesso_msg)
     return redirect(redirect_name)

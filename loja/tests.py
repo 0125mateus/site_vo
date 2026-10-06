@@ -717,6 +717,22 @@ class GestaoPainelTests(TestCase):
         self.assertIn('text/csv', response['Content-Type'])
         self.assertIn('Abbey Road', response.content.decode('utf-8'))
 
+    def test_arquivo_grande_nao_e_enviado_para_a_nuvem(self):
+        from loja.storage import LIMITE_ARQUIVO_NUVEM, SupabaseStorage
+
+        class ArquivoGrande:
+            size = LIMITE_ARQUIVO_NUVEM + 1
+
+            def read(self):
+                raise AssertionError('o arquivo grande não pode ser lido inteiro')
+
+            def seek(self, pos):
+                return None
+
+        with self.assertRaises(RuntimeError) as ctx:
+            SupabaseStorage()._save('filme.mkv', ArquivoGrande())
+        self.assertIn('arquivo-grande', str(ctx.exception))
+
     @override_settings(DEBUG=True)
     def test_nova_midia_salva_capa_e_arquivo_no_computador(self):
         import io

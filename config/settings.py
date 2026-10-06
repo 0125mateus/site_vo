@@ -38,6 +38,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'loja.middleware.LimiteUploadMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -146,8 +147,9 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # Acima de 20 MB o arquivo vai para disco temporário, sem ocupar a memória inteira.
 FILE_UPLOAD_MAX_MEMORY_SIZE = 20 * 1024 * 1024
-# No computador, um filme em MKV ou ISO pode passar de 500 MB.
-DATA_UPLOAD_MAX_MEMORY_SIZE = (8 if DEBUG else 1) * 1024 * 1024 * 1024
+# No ar, o plano gratuito da nuvem recusa arquivo maior que 50 MB.
+# Acima disso o servidor free cai e a página perde o CSS.
+DATA_UPLOAD_MAX_MEMORY_SIZE = (8 * 1024 if DEBUG else 52) * 1024 * 1024
 
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

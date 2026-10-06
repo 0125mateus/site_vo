@@ -123,6 +123,11 @@
 
             <main class="gestao-main">
                 <div class="wrap gestao-wrap">
+                    {% if request.GET.erro == 'arquivo-grande' %}
+                    <div class="gestao-messages">
+                        <p class="gestao-message gestao-message--error">O arquivo passou de 48 MB. A nuvem gratuita não guarda um filme inteiro. Envie só a capa e coloque o trailer no link do YouTube.</p>
+                    </div>
+                    {% endif %}
                     {% if messages %}
                     <div class="gestao-messages">
                         {% for message in messages %}
