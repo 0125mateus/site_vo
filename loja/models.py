@@ -97,6 +97,15 @@ class Produto(models.Model):
             return self.disponivel_aluguel and self.estoque_aluguel > 0 and self.preco_aluguel > 0
         return self.disponivel_venda and self.estoque > 0 and self.preco > 0
 
+    def ficha_midia(self):
+        """A ficha de filme, mesmo quando a prateleira entrega o produto genérico."""
+        if isinstance(self, MidiaAudiovisual):
+            return self
+        try:
+            return self.midiaaudiovisual
+        except MidiaAudiovisual.DoesNotExist:
+            return None
+
 
 class Musica(Produto):
     artista = models.CharField(max_length=200)

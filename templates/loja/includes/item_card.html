@@ -34,6 +34,16 @@
             <div class="artist">{% if tipo == 'musica' %}{{ item.artista }}{% elif tipo == 'midia' %}{{ item.get_tipo_display }}{% else %}{{ item.autor }}{% endif %}</div>
         </div>
         {% endif %}
+        {% if tipo == 'midia' %}
+        {% with filme=item.ficha_midia %}
+        {% if filme.tem_trailer %}
+        <div class="item-card-trailer" hidden
+             data-trailer-title="{{ filme.titulo }}"
+             {% if filme.trailer %}data-trailer-file="{{ filme.trailer.url }}"{% endif %}
+             {% if filme.trailer_embed_url %}data-trailer-embed="{{ filme.trailer_embed_url }}"{% endif %}></div>
+        {% endif %}
+        {% endwith %}
+        {% endif %}
     </div>
     {% endif %}
     </a>
