@@ -67,7 +67,7 @@
         const file = layer.dataset.trailerFile || '';
         const embed = layer.dataset.trailerEmbed || '';
         const titulo = layer.dataset.trailerTitle || '';
-        const sub = (card.querySelector('.item-card-sub') || {}).textContent || '';
+        const sub = layer.dataset.trailerSub || (card.querySelector('.item-card-sub') || {}).textContent || '';
         const preco = (card.querySelector('.item-price--sale') || {}).textContent || '';
         const link = card.querySelector('.item-card-cover');
 

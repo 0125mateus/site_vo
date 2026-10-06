@@ -39,6 +39,7 @@
         {% if filme.tem_trailer %}
         <div class="item-card-trailer" hidden
              data-trailer-title="{{ filme.titulo }}"
+             data-trailer-sub="{{ filme.get_tipo_display }}{% if filme.diretor %} · {{ filme.diretor }}{% endif %}"
              {% if filme.trailer %}data-trailer-file="{{ filme.trailer.url }}"{% endif %}
              {% if filme.trailer_embed_url %}data-trailer-embed="{{ filme.trailer_embed_url }}"{% endif %}></div>
         {% endif %}
