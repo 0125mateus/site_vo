@@ -657,6 +657,12 @@
     margin-bottom: 8px;
 }
 
+.gestao-image-preview--vertical img {
+    aspect-ratio: 2 / 3;
+    object-fit: contain;
+    background: #0B0C0F;
+}
+
 .gestao-image-preview p {
     font-size: var(--fs-eyebrow);
     color: var(--ink-soft);

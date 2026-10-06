@@ -95,6 +95,7 @@ class MidiaForm(forms.ModelForm):
             }),
             'imagem': forms.ClearableFileInput(attrs={
                 'accept': 'image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp',
+                'data-capa-vertical': '1',
             }),
         }
 

@@ -124,14 +124,14 @@
         <div class="gestao-form-col gestao-form-col--image">
             <label for="id_imagem">Capa / imagem</label>
             {% if objeto and objeto.imagem %}
-            <div class="gestao-image-preview">
+            <div class="gestao-image-preview{% if tipo == 'midia' %} gestao-image-preview--vertical{% endif %}">
                 <img src="{{ objeto.imagem.url }}" alt="Capa atual" onerror="this.style.display='none'">
                 <p class="mono">Capa atual — envie outra para substituir</p>
             </div>
             {% endif %}
             {{ form.imagem }}
             {% if form.imagem.errors %}<span class="field-error">{{ form.imagem.errors.0 }}</span>{% endif %}
-            <p class="gestao-field-hint">JPG, PNG ou WebP. Envie direto do seu PC.</p>
+            <p class="gestao-field-hint">JPG, PNG ou WebP. Envie direto do seu PC.{% if tipo == 'midia' %} Se a imagem for horizontal, ela vira capa vertical sozinha, sem cortar a foto.{% endif %}</p>
             {% if MEDIA_NA_NUVEM %}
             <p class="gestao-field-hint">A capa fica salva na nuvem.</p>
             {% elif ARQUIVOS_NO_COMPUTADOR %}
@@ -189,4 +189,7 @@
 
 {% block extra_js %}
 <script src="{% static 'js/gestao-descricao-ia.js' %}?v={{ STATIC_VERSION }}"></script>
+{% if tipo == 'midia' %}
+<script src="{% static 'js/gestao-capa.js' %}?v={{ STATIC_VERSION }}"></script>
+{% endif %}
 {% endblock %}
