@@ -391,6 +391,29 @@ body.site-with-bottom-nav .sleeve--midia {
     background-size: cover;
 }
 
+body.site-with-bottom-nav .sleeve--image.sleeve--paisagem {
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-color: #0B0C0F;
+}
+
+body.site-with-bottom-nav .item-detail-media img {
+    height: auto;
+    max-height: 78vh;
+    object-fit: contain;
+    background: #0B0C0F;
+}
+
+body.site-with-bottom-nav .item-detail--paisagem .item-detail-media img {
+    aspect-ratio: auto;
+}
+
+@media (min-width: 768px) {
+    body.site-with-bottom-nav .item-detail--paisagem {
+        grid-template-columns: minmax(320px, 600px) 1fr;
+    }
+}
+
 body.site-with-bottom-nav .item-card--livro .spine {
     aspect-ratio: 3 / 4;
     height: auto;

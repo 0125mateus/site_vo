@@ -22,6 +22,27 @@
         });
     });
 
+    const ehPaisagem = (img) => img.naturalWidth > img.naturalHeight * 1.05;
+
+    document.querySelectorAll('.item-detail-media img').forEach((img) => {
+        const marcar = () => {
+            const detalhe = img.closest('.item-detail');
+            if (detalhe && ehPaisagem(img)) detalhe.classList.add('item-detail--paisagem');
+        };
+        if (img.complete && img.naturalWidth) marcar();
+        else img.addEventListener('load', marcar, { once: true });
+    });
+
+    document.querySelectorAll('.item-card .sleeve--image').forEach((sleeve) => {
+        const m = /url\(["']?([^"')]+)["']?\)/.exec(sleeve.style.backgroundImage || '');
+        if (!m) return;
+        const img = new Image();
+        img.addEventListener('load', () => {
+            if (ehPaisagem(img)) sleeve.classList.add('sleeve--paisagem');
+        }, { once: true });
+        img.src = m[1];
+    });
+
     if (!window.matchMedia('(hover: hover) and (prefers-reduced-motion: no-preference)').matches) return;
 
     const pausaTrailerMs = 700;
