@@ -3,8 +3,6 @@ from pathlib import Path
 
 import environ
 
-from config.database import banco_disponivel
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = environ.Env(
@@ -74,18 +72,16 @@ def _conectar_postgres(url, timeout):
     conexao.close()
 
 
-_database_url = env('DATABASE_URL', default='') or ''
-if _database_url and banco_disponivel(_database_url, _conectar_postgres):
+_rodando_testes = len(sys.argv) > 1 and sys.argv[1] == 'test'
+_database_url = '' if _rodando_testes else (env('DATABASE_URL', default='') or '')
+if _database_url:
+    # Postgres online. Sem ele o Render free gravava num SQLite que some no restart.
     DATABASES = {'default': env.db('DATABASE_URL')}
     opcoes = DATABASES['default'].setdefault('OPTIONS', {})
-    opcoes.setdefault('connect_timeout', 5)
+    opcoes.setdefault('connect_timeout', 10)
+    if 'supabase.com' in _database_url and 'sslmode' not in opcoes:
+        opcoes['sslmode'] = 'require'
 else:
-    if _database_url:
-        print(
-            'AVISO: DATABASE_URL não respondeu em 5s. '
-            'A loja sobe com banco temporário; os dados somem quando a instância free dorme.',
-            file=sys.stderr,
-        )
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -127,7 +123,6 @@ CLOUDINARY_URL = env('CLOUDINARY_URL', default='')
 SUPABASE_URL = env('SUPABASE_URL', default='')
 SUPABASE_SERVICE_ROLE_KEY = env('SUPABASE_SERVICE_ROLE_KEY', default='')
 SUPABASE_BUCKET = env('SUPABASE_BUCKET', default='midia')
-_rodando_testes = len(sys.argv) > 1 and sys.argv[1] == 'test'
 USAR_SUPABASE = bool(SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY) and not _rodando_testes
 if USAR_SUPABASE:
     STORAGES['default'] = {

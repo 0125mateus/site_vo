@@ -1,6 +1,6 @@
 # Blueprint Render — Vinil & Página (site_vo)
-# Plano free: só 1 PostgreSQL por conta. Se já tiver banco, no painel cole o
-# DATABASE_URL existente e não crie outro.
+# Catálogo no Postgres do Supabase (IPv4, modo sessão). Cole o mesmo valor no
+# Environment do Render. Não use o Postgres antigo do Render: ele não responde.
 
 services:
   - type: web
