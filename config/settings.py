@@ -123,7 +123,16 @@ if DEBUG:
     WHITENOISE_USE_FINDERS = True
 
 CLOUDINARY_URL = env('CLOUDINARY_URL', default='')
-if CLOUDINARY_URL:
+SUPABASE_URL = env('SUPABASE_URL', default='')
+SUPABASE_SERVICE_ROLE_KEY = env('SUPABASE_SERVICE_ROLE_KEY', default='')
+SUPABASE_BUCKET = env('SUPABASE_BUCKET', default='midia')
+_rodando_testes = len(sys.argv) > 1 and sys.argv[1] == 'test'
+USAR_SUPABASE = bool(SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY) and not _rodando_testes
+if USAR_SUPABASE:
+    STORAGES['default'] = {
+        'BACKEND': 'loja.storage.SupabaseStorage',
+    }
+elif CLOUDINARY_URL and not _rodando_testes:
     STORAGES['default'] = {
         'BACKEND': 'loja.storage.CloudinaryAutoStorage',
     }

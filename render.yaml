@@ -41,3 +41,9 @@ services:
         sync: false
       - key: CLOUDINARY_URL
         sync: false
+      - key: SUPABASE_URL
+        value: "https://zgvypwsyhdvzffolrohn.supabase.co"
+      - key: SUPABASE_BUCKET
+        value: "midia"
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false

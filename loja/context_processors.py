@@ -28,8 +28,12 @@ def carrinho_context(request):
         'favoritos_ids': favoritos_ids,
         'STATIC_VERSION': getattr(settings, 'STATIC_VERSION', '1'),
         'ModalidadeComercial': ModalidadeComercial,
-        'MEDIA_NA_NUVEM': bool(getattr(settings, 'CLOUDINARY_URL', '')),
-        'ARQUIVOS_NO_COMPUTADOR': settings.DEBUG and not getattr(settings, 'CLOUDINARY_URL', ''),
+        'MEDIA_NA_NUVEM': bool(
+            getattr(settings, 'USAR_SUPABASE', False) or getattr(settings, 'CLOUDINARY_URL', '')
+        ),
+        'ARQUIVOS_NO_COMPUTADOR': settings.DEBUG and not (
+            getattr(settings, 'USAR_SUPABASE', False) or getattr(settings, 'CLOUDINARY_URL', '')
+        ),
         **_gestao_nav(request),
     }
 
