@@ -384,9 +384,11 @@ body.site-with-bottom-nav .item-card--musica .sleeve {
 
 body.site-with-bottom-nav .item-card--midia .sleeve,
 body.site-with-bottom-nav .sleeve--midia {
-    aspect-ratio: 16 / 10;
+    aspect-ratio: 2 / 3;
     width: 100%;
     height: auto;
+    background-position: center center;
+    background-size: cover;
 }
 
 body.site-with-bottom-nav .item-card--livro .spine {
