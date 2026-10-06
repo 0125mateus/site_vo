@@ -71,8 +71,8 @@ def _salvar_form_produto(request, form, sucesso_msg, redirect_name):
         logger.exception('Falha ao salvar arquivo de mídia no gestor')
         messages.error(
             request,
-            'Não foi possível enviar o arquivo. Use JPG/PNG para capa, MP4 curto para trailer '
-            '(até ~80 MB) e tente de novo. No ar, a nuvem (CLOUDINARY_URL) precisa estar configurada.',
+            'Não foi possível enviar o arquivo. A capa aceita JPG, PNG ou WebP. '
+            'O filme completo aceita MP4, MKV, AVI ou ISO.',
         )
         return False
     messages.success(request, sucesso_msg)

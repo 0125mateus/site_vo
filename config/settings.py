@@ -135,9 +135,10 @@ SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Uploads maiores (vídeos/DVDs digitais do PC)
-FILE_UPLOAD_MAX_MEMORY_SIZE = 20 * 1024 * 1024  # 20 MB em memória; acima vai para disco
-DATA_UPLOAD_MAX_MEMORY_SIZE = 500 * 1024 * 1024  # 500 MB por requisição
+# Acima de 20 MB o arquivo vai para disco temporário, sem ocupar a memória inteira.
+FILE_UPLOAD_MAX_MEMORY_SIZE = 20 * 1024 * 1024
+# No computador, um filme em MKV ou ISO pode passar de 500 MB.
+DATA_UPLOAD_MAX_MEMORY_SIZE = (8 if DEBUG else 1) * 1024 * 1024 * 1024
 
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

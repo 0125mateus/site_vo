@@ -29,6 +29,7 @@ def carrinho_context(request):
         'STATIC_VERSION': getattr(settings, 'STATIC_VERSION', '1'),
         'ModalidadeComercial': ModalidadeComercial,
         'MEDIA_NA_NUVEM': bool(getattr(settings, 'CLOUDINARY_URL', '')),
+        'ARQUIVOS_NO_COMPUTADOR': settings.DEBUG and not getattr(settings, 'CLOUDINARY_URL', ''),
         **_gestao_nav(request),
     }
 

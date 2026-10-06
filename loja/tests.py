@@ -716,3 +716,43 @@ class GestaoPainelTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn('text/csv', response['Content-Type'])
         self.assertIn('Abbey Road', response.content.decode('utf-8'))
+
+    @override_settings(DEBUG=True)
+    def test_nova_midia_salva_capa_e_arquivo_no_computador(self):
+        import io
+
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from PIL import Image
+
+        quadro = io.BytesIO()
+        Image.new('RGB', (8, 8), 'red').save(quadro, 'PNG')
+        capa = SimpleUploadedFile('capa-cinema.png', quadro.getvalue(), content_type='image/png')
+        filme = SimpleUploadedFile('poderoso-chefao.mkv', b'\x1aE\xdf\xa3filme', content_type='video/x-matroska')
+
+        pagina = self.client.get(reverse('gestao_midia_criar'))
+        self.assertContains(pagina, 'A capa fica salva neste computador')
+        self.assertNotContains(pagina, 'CLOUDINARY_URL')
+
+        resposta = self.client.post(reverse('gestao_midia_criar'), {
+            'titulo': 'O Poderoso Chefao',
+            'tipo': 'dvd',
+            'diretor': 'Francis Ford Coppola',
+            'ano': '1972',
+            'duracao_min': '175',
+            'descricao': 'Sinopse',
+            'preco': '40.00',
+            'estoque': '1',
+            'preco_aluguel': '0',
+            'dias_aluguel': '7',
+            'estoque_aluguel': '0',
+            'disponivel_venda': 'on',
+            'ativo': 'on',
+            'imagem': capa,
+            'arquivo': filme,
+        })
+        self.assertEqual(resposta.status_code, 302)
+        midia = MidiaAudiovisual.objects.get(titulo='O Poderoso Chefao')
+        self.assertTrue(midia.imagem.name.endswith('capa-cinema.png'))
+        self.assertTrue(midia.arquivo.name.endswith('poderoso-chefao.mkv'))
+        self.assertTrue(midia.imagem.storage.exists(midia.imagem.name))
+        self.assertTrue(midia.arquivo.storage.exists(midia.arquivo.name))

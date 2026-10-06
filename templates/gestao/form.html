@@ -132,8 +132,12 @@
             {{ form.imagem }}
             {% if form.imagem.errors %}<span class="field-error">{{ form.imagem.errors.0 }}</span>{% endif %}
             <p class="gestao-field-hint">JPG, PNG ou WebP. Envie direto do seu PC.</p>
-            {% if not MEDIA_NA_NUVEM %}
-            <p class="gestao-field-hint">No ar (Render) os arquivos só ficam salvos se a nuvem estiver ligada (CLOUDINARY_URL). Sem isso a capa some depois do deploy.</p>
+            {% if MEDIA_NA_NUVEM %}
+            <p class="gestao-field-hint">A capa fica salva na nuvem.</p>
+            {% elif ARQUIVOS_NO_COMPUTADOR %}
+            <p class="gestao-field-hint">A capa fica salva neste computador. Ela continua aqui depois que você salvar.</p>
+            {% else %}
+            <p class="gestao-field-hint">Neste site público a capa não fica guardada quando o servidor reinicia. Cadastre em http://127.0.0.1:8001/gestao/ para ela permanecer.</p>
             {% endif %}
 
             {% if tipo == 'midia' %}
@@ -146,7 +150,7 @@
             {% endif %}
             {{ form.trailer }}
             {% if form.trailer.errors %}<span class="field-error">{{ form.trailer.errors.0 }}</span>{% endif %}
-            <p class="gestao-field-hint">MP4 ou WebM curto (prévia). Filmes longos use o campo de arquivo abaixo ou um link do YouTube.</p>
+            <p class="gestao-field-hint">Opcional. MP4 ou WebM curto. Se o filme for longo, use o arquivo completo ou o link do YouTube.</p>
 
             <label for="id_trailer_url">Ou link do YouTube / Vimeo</label>
             {{ form.trailer_url }}
@@ -167,7 +171,7 @@
                 {% if tipo == 'disco' %}
                 MP3, FLAC, WAV… (opcional — versão digital)
                 {% elif tipo == 'midia' %}
-                MP4, MKV, AVI, ISO… (opcional — filme/vídeo completo)
+                Opcional. MP4, MKV, AVI ou ISO do filme. Neste computador o arquivo fica salvo junto com a capa.
                 {% else %}
                 PDF, EPUB… (opcional — e-book)
                 {% endif %}
