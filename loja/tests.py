@@ -1163,6 +1163,35 @@ class FilmesAssistirEDvdTests(TestCase):
         self.assertContains(resposta, f'href="{link}"')
         self.assertContains(resposta, 'Assistir agora na minha biblioteca')
 
+    def test_remover_filme_da_biblioteca(self):
+        pedido = Pedido.objects.create(
+            cliente=self.user, valor_total=Decimal('9.90'), status=Pedido.STATUS_APROVADO,
+        )
+        item = ItemPedido.objects.create(
+            pedido=pedido, produto=self.filme, modalidade='assistir',
+            quantidade=1, preco_unitario=Decimal('9.90'),
+        )
+        url_remover = reverse('biblioteca_remover', kwargs={'item_id': item.pk})
+        self.assertContains(self.client.get(reverse('biblioteca')), url_remover)
+        self.assertEqual(self.client.get(url_remover).status_code, 405)
+
+        outro = User.objects.create_user(username='intruso', password='senha')
+        self.client.force_login(outro)
+        self.assertEqual(self.client.post(url_remover).status_code, 404)
+
+        self.client.force_login(self.user)
+        resposta = self.client.post(url_remover)
+        self.assertRedirects(resposta, reverse('biblioteca') + '?aba=filmes')
+        item.refresh_from_db()
+        self.assertTrue(item.removido_da_biblioteca)
+        self.assertFalse(item.acesso_liberado)
+        biblioteca = self.client.get(reverse('biblioteca'))
+        self.assertEqual(biblioteca.context['total_filmes'], 0)
+        reproduzir = self.client.get(reverse('reproduzir_conteudo', kwargs={'item_id': item.pk}))
+        self.assertEqual(reproduzir.status_code, 404)
+        pedido.refresh_from_db()
+        self.assertEqual(pedido.status, Pedido.STATUS_APROVADO)
+
     def test_dvd_pede_endereco_antes_do_pix(self):
         self._adicionar('venda')
         resposta = self.client.post(reverse('finalizar_pedido'))

@@ -472,6 +472,7 @@ def biblioteca(request):
             pedido__cliente=request.user,
             pedido__status=Pedido.STATUS_APROVADO,
             modalidade__in=MODALIDADES_LOJA,
+            removido_da_biblioteca=False,
         )
         .select_related('produto', 'pedido')
         .order_by('-pedido__criado_em')
@@ -501,6 +502,22 @@ def biblioteca(request):
         'total_dvds': len(dvds),
         'continuar': _continuar_assistindo(request.user),
     })
+
+
+@login_required
+@require_POST
+def biblioteca_remover(request, item_id):
+    item = get_object_or_404(
+        ItemPedido.objects.select_related('produto'),
+        pk=item_id,
+        pedido__cliente=request.user,
+        removido_da_biblioteca=False,
+    )
+    item.removido_da_biblioteca = True
+    item.save(update_fields=['removido_da_biblioteca'])
+    messages.success(request, f'"{item.produto.titulo}" saiu da sua biblioteca.')
+    aba = 'filmes' if item.is_assistir else 'dvds'
+    return redirect(f"{reverse('biblioteca')}?aba={aba}")
 
 
 @login_required

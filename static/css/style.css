@@ -1631,7 +1631,12 @@ footer::before {
 .library-card-actions {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 8px;
+}
+
+.library-remover {
+    margin: 0;
 }
 
 .library-badge {

@@ -70,6 +70,11 @@
                     {% else %}
                     <span class="library-badge">Entrega em {{ item.pedido.entrega_cidade|default:"seu endereço" }}{% if item.pedido.entrega_uf %}/{{ item.pedido.entrega_uf }}{% endif %}</span>
                     {% endif %}
+                    <form method="post" action="{% url 'biblioteca_remover' item.id %}" class="library-remover"
+                          onsubmit="return confirm('{% if item.is_assistir %}Remover este filme da biblioteca? Você não vai mais conseguir assistir por este pedido.{% else %}Remover este DVD da biblioteca? O pedido continua em Meus pedidos.{% endif %}');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-ghost btn-sm" aria-label="Remover {{ produto.titulo }} da biblioteca">Remover</button>
+                    </form>
                 </div>
             </div>
         </article>

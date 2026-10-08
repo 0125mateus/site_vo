@@ -15,6 +15,7 @@ urlpatterns = [
     path('newsletter/inscrever/', views.inscrever_newsletter, name='inscrever_newsletter'),
     path('biblioteca/', views.biblioteca, name='biblioteca'),
     path('biblioteca/reproduzir/<int:item_id>/', views.reproduzir_conteudo, name='reproduzir_conteudo'),
+    path('biblioteca/remover/<int:item_id>/', views.biblioteca_remover, name='biblioteca_remover'),
     path('biblioteca/progresso/<int:item_id>/', views.salvar_progresso, name='salvar_progresso'),
     path('biblioteca/arquivo/<int:item_id>/', views.acessar_arquivo, name='acessar_arquivo'),
     path('carrinho/', views.carrinho, name='carrinho'),

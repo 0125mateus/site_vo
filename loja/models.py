@@ -479,6 +479,10 @@ class ItemPedido(models.Model):
     preco_unitario = models.DecimalField(max_digits=10, decimal_places=2)
     dias_aluguel = models.PositiveIntegerField(null=True, blank=True)
     data_devolucao = models.DateField(null=True, blank=True)
+    removido_da_biblioteca = models.BooleanField(
+        'removido da biblioteca pelo cliente',
+        default=False,
+    )
 
     class Meta:
         verbose_name = 'Item do pedido'
@@ -525,7 +529,7 @@ class ItemPedido(models.Model):
 
     @property
     def acesso_liberado(self) -> bool:
-        if not self.pedido_aprovado:
+        if not self.pedido_aprovado or self.removido_da_biblioteca:
             return False
         if self.modalidade == ModalidadeComercial.ASSISTIR:
             return True
