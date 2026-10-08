@@ -1146,6 +1146,23 @@ class FilmesAssistirEDvdTests(TestCase):
         self.filme.refresh_from_db()
         self.assertEqual(self.filme.estoque, 2)
 
+    def test_pedido_aprovado_leva_para_a_biblioteca(self):
+        self._adicionar('assistir')
+        self.client.post(reverse('finalizar_pedido'))
+        pedido = Pedido.objects.get(cliente=self.user)
+        url = reverse('processando_pedido', kwargs={'pedido_id': pedido.pk})
+        link = reverse('biblioteca') + '?aba=filmes'
+
+        resposta = self.client.get(url)
+        self.assertContains(resposta, 'id="acoes-aprovado" hidden')
+
+        pedido.status = Pedido.STATUS_APROVADO
+        pedido.save()
+        resposta = self.client.get(url)
+        self.assertNotContains(resposta, 'id="acoes-aprovado" hidden')
+        self.assertContains(resposta, f'href="{link}"')
+        self.assertContains(resposta, 'Assistir agora na minha biblioteca')
+
     def test_dvd_pede_endereco_antes_do_pix(self):
         self._adicionar('venda')
         resposta = self.client.post(reverse('finalizar_pedido'))

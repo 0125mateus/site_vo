@@ -1055,3 +1055,14 @@ body.site-with-bottom-nav main {
     gap: 8px;
     flex-wrap: wrap;
 }
+
+.processando-acoes {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 18px;
+}
+
+.processando-acoes[hidden] {
+    display: none;
+}

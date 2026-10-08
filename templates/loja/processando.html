@@ -9,6 +9,12 @@
         <p id="status-message">Aguardando confirmação do pagamento…</p>
         <p class="status-atual">Status atual: <strong id="status-value">{{ pedido.get_status_display }}</strong></p>
         <div class="spinner" aria-hidden="true"></div>
+        <div class="processando-acoes" id="acoes-aprovado"{% if pedido.status != 'aprovado' %} hidden{% endif %}>
+            <a href="{% url 'biblioteca' %}?aba={{ aba_biblioteca }}" class="btn btn-primary">{% if tem_assistir %}▶ Assistir agora na minha biblioteca{% else %}Ir para minha biblioteca{% endif %}</a>
+            {% if pedido.precisa_entrega %}
+            <a href="{% url 'pedido_acompanhar' pedido.id %}" class="btn btn-ghost">Acompanhar entrega do DVD</a>
+            {% endif %}
+        </div>
     </section>
 </div>
 {% endblock %}
@@ -42,6 +48,7 @@
             if (data.status === 'aprovado') {
                 statusMessage.textContent = 'Pagamento confirmado! Obrigado pela compra.';
                 document.querySelector('.spinner').style.display = 'none';
+                document.getElementById('acoes-aprovado').hidden = false;
                 return;
             }
 

@@ -854,7 +854,12 @@ def checkout(request, pedido_id):
 @login_required
 def processando_pedido(request, pedido_id):
     pedido = get_object_or_404(Pedido, pk=pedido_id, cliente=request.user)
-    return render(request, 'loja/processando.html', {'pedido': pedido})
+    tem_assistir = pedido.itens.filter(modalidade=ModalidadeComercial.ASSISTIR).exists()
+    return render(request, 'loja/processando.html', {
+        'pedido': pedido,
+        'tem_assistir': tem_assistir,
+        'aba_biblioteca': 'filmes' if tem_assistir else 'dvds',
+    })
 
 
 class CriarPreferenciaPagamentoView(APIView):
