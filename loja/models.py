@@ -647,3 +647,35 @@ class FraseTreinoAssistente(models.Model):
 
         labels = INTENT_LABELS_GESTOR if self.audiencia == self.AUDIENCIA_GESTOR else INTENT_LABELS_CLIENTE
         return labels.get(self.intencao, self.intencao)
+
+
+class ConfiguracaoPix(models.Model):
+    """Chave Pix da própria loja. Quando preenchida, o checkout gera o QR Code com ela."""
+
+    class TipoChave(models.TextChoices):
+        CPF = 'cpf', 'CPF'
+        CNPJ = 'cnpj', 'CNPJ'
+        TELEFONE = 'telefone', 'Celular'
+        EMAIL = 'email', 'E-mail'
+        ALEATORIA = 'aleatoria', 'Chave aleatória'
+
+    tipo_chave = models.CharField('tipo da chave', max_length=10, choices=TipoChave.choices)
+    chave = models.CharField('chave Pix', max_length=77)
+    nome_recebedor = models.CharField(
+        'nome de quem recebe', max_length=25,
+        help_text='Como aparece no banco do cliente. Até 25 letras.',
+    )
+    cidade = models.CharField('cidade', max_length=15, help_text='Até 15 letras.')
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Pix da loja'
+        verbose_name_plural = 'Pix da loja'
+
+    def __str__(self):
+        return f'{self.get_tipo_chave_display()}: {self.chave}'
+
+    @classmethod
+    def atual(cls):
+        config = cls.objects.order_by('-atualizado_em').first()
+        return config if config and config.chave and config.nome_recebedor and config.cidade else None

@@ -1,7 +1,40 @@
 from django import forms
 
 from .assistant_intent import get_intent_choices
-from .models import FraseTreinoAssistente, Livro, MidiaAudiovisual, Musica, PlanoClube
+import re
+
+from .models import ConfiguracaoPix, FraseTreinoAssistente, Livro, MidiaAudiovisual, Musica, PlanoClube
+
+
+class ConfiguracaoPixForm(forms.ModelForm):
+    class Meta:
+        model = ConfiguracaoPix
+        fields = ['tipo_chave', 'chave', 'nome_recebedor', 'cidade']
+        widgets = {
+            'chave': forms.TextInput(attrs={'placeholder': 'A chave cadastrada no seu banco'}),
+            'nome_recebedor': forms.TextInput(attrs={'placeholder': 'Ex.: Mateus Pereira'}),
+            'cidade': forms.TextInput(attrs={'placeholder': 'Ex.: Belo Horizonte'}),
+        }
+
+    def clean(self):
+        dados = super().clean()
+        tipo = dados.get('tipo_chave')
+        chave = (dados.get('chave') or '').strip()
+        digitos = re.sub(r'\D', '', chave)
+        erro = None
+        if tipo == ConfiguracaoPix.TipoChave.CPF and len(digitos) != 11:
+            erro = 'O CPF tem 11 números.'
+        elif tipo == ConfiguracaoPix.TipoChave.CNPJ and len(digitos) != 14:
+            erro = 'O CNPJ tem 14 números.'
+        elif tipo == ConfiguracaoPix.TipoChave.TELEFONE and not 10 <= len(digitos) <= 13:
+            erro = 'Informe o celular com DDD, como está cadastrado no banco.'
+        elif tipo == ConfiguracaoPix.TipoChave.EMAIL and '@' not in chave:
+            erro = 'Informe o e-mail cadastrado como chave.'
+        elif tipo == ConfiguracaoPix.TipoChave.ALEATORIA and len(chave) != 36:
+            erro = 'A chave aleatória tem 36 caracteres, com tracinhos.'
+        if erro:
+            self.add_error('chave', erro)
+        return dados
 
 
 class MusicaForm(forms.ModelForm):

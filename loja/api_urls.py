@@ -20,6 +20,11 @@ urlpatterns = [
         name='gerar_pix',
     ),
     path(
+        'pedidos/<int:pedido_id>/pix/paguei/',
+        views.InformarPixPagoView.as_view(),
+        name='informar_pix_pago',
+    ),
+    path(
         'pedidos/<int:pedido_id>/status/',
         views.PedidoStatusView.as_view(),
         name='pedido_status',

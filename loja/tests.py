@@ -888,6 +888,77 @@ class GestaoPainelTests(TestCase):
         self.assertEqual(filme.preco_assistir, Decimal('9.90'))
 
 
+class PixDaLojaTests(TestCase):
+    def setUp(self):
+        from .models import ConfiguracaoPix
+
+        self.config = ConfiguracaoPix.objects.create(
+            tipo_chave='email', chave='Loja@Exemplo.com',
+            nome_recebedor='Mateus Pereira', cidade='Belo Horizonte',
+        )
+        self.user = User.objects.create_user(username='comprador_pix', password='senha')
+        self.filme = MidiaAudiovisual.objects.create(
+            titulo='Filme Pix', ativo=True, disponivel_assistir=True, preco=Decimal('0'),
+            preco_assistir=Decimal('20.20'), filme_url='https://youtu.be/abcdefghijk',
+        )
+        self.pedido = Pedido.objects.create(cliente=self.user, valor_total=Decimal('20.20'))
+        ItemPedido.objects.create(
+            pedido=self.pedido, produto=self.filme, modalidade='assistir',
+            quantidade=1, preco_unitario=Decimal('20.20'),
+        )
+
+    def test_codigo_segue_o_exemplo_do_banco_central(self):
+        from .pix import montar_copia_e_cola
+
+        self.assertEqual(
+            montar_copia_e_cola('123e4567-e12b-12d1-a456-426655440000', 'Fulano de Tal', 'BRASILIA'),
+            '00020126580014br.gov.bcb.pix0136123e4567-e12b-12d1-a456-426655440000'
+            '5204000053039865802BR5913Fulano de Tal6008BRASILIA62070503***63041D3D',
+        )
+
+    @patch('loja.views.gerar_pix')
+    def test_checkout_gera_qr_e_copia_e_cola_com_a_chave_da_loja(self, mock_mp):
+        api = APIClient()
+        api.force_authenticate(user=self.user)
+        resposta = api.post(reverse('gerar_pix', kwargs={'pedido_id': self.pedido.pk}), {}, format='json')
+        self.assertEqual(resposta.status_code, 200)
+        mock_mp.assert_not_called()
+        codigo = resposta.data['pix']['qr_code']
+        self.assertIn('loja@exemplo.com', codigo)
+        self.assertIn('540520.20', codigo)
+        self.assertIn('Mateus Pereira', codigo)
+        self.assertIn('VP%d' % self.pedido.pk, codigo)
+        self.assertTrue(resposta.data['pix']['qr_code_base64'])
+        self.assertTrue(resposta.data['manual'])
+
+    def test_cliente_avisa_e_gestao_confirma(self):
+        api = APIClient()
+        api.force_authenticate(user=self.user)
+        api.post(reverse('informar_pix_pago', kwargs={'pedido_id': self.pedido.pk}))
+        self.pedido.refresh_from_db()
+        self.assertEqual(self.pedido.status, Pedido.STATUS_EM_ANALISE)
+
+        resposta = self.client.post(
+            reverse('gestao_pedido_pagamento', kwargs={'pk': self.pedido.pk}), {'acao': 'aprovar'},
+        )
+        self.assertRedirects(resposta, reverse('gestao_pedido_detalhe', kwargs={'pk': self.pedido.pk}))
+        self.pedido.refresh_from_db()
+        self.assertEqual(self.pedido.status, Pedido.STATUS_APROVADO)
+        self.assertTrue(self.pedido.itens.get().acesso_liberado)
+
+    def test_gestao_salva_chave_e_mostra_qr_de_teste(self):
+        resposta = self.client.post(reverse('gestao_configuracao_pix'), {
+            'tipo_chave': 'cpf', 'chave': '123', 'nome_recebedor': 'Mateus', 'cidade': 'BH',
+        })
+        self.assertContains(resposta, 'O CPF tem 11 números.')
+        self.client.post(reverse('gestao_configuracao_pix'), {
+            'tipo_chave': 'cpf', 'chave': '123.456.789-09', 'nome_recebedor': 'Mateus', 'cidade': 'BH',
+        })
+        pagina = self.client.get(reverse('gestao_configuracao_pix'))
+        self.assertContains(pagina, 'QR Code de teste')
+        self.assertContains(pagina, '0111' + '12345678909')
+
+
 class RegistroClienteTests(TestCase):
     def test_senha_fraca_mostra_todas_as_regras(self):
         resposta = self.client.post(reverse('registrar'), {

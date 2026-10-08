@@ -1,0 +1,46 @@
+{% extends "gestao/base_gestao.html" %}
+
+{% block title %}Pix da loja — Gestão{% endblock %}
+
+{% block content %}
+<div class="gestao-page-head">
+    <div>
+        <a href="{% url 'gestao_configuracoes' %}" class="gestao-back">← Configurações</a>
+        <h1>Pix da loja</h1>
+        <p class="gestao-page-desc">O cliente paga direto na sua chave, sem taxa. Ele recebe o QR Code e o Pix copia e cola com o valor exato do pedido. Depois, confira o dinheiro no seu banco e clique em "Confirmar pagamento" no pedido.</p>
+    </div>
+</div>
+
+<form method="post" class="gestao-form">
+    {% csrf_token %}
+    <label for="id_tipo_chave">Tipo da chave</label>
+    {{ form.tipo_chave }}
+
+    <label for="id_chave">Chave Pix</label>
+    {{ form.chave }}
+    {% if form.chave.errors %}<span class="field-error">{{ form.chave.errors.0 }}</span>{% endif %}
+
+    <label for="id_nome_recebedor">Nome de quem recebe</label>
+    {{ form.nome_recebedor }}
+    {% if form.nome_recebedor.errors %}<span class="field-error">{{ form.nome_recebedor.errors.0 }}</span>{% endif %}
+    <p class="gestao-field-hint">Até 25 letras. Use o nome do titular da conta.</p>
+
+    <label for="id_cidade">Cidade</label>
+    {{ form.cidade }}
+    {% if form.cidade.errors %}<span class="field-error">{{ form.cidade.errors.0 }}</span>{% endif %}
+    <p class="gestao-field-hint">Até 15 letras.</p>
+
+    <div class="gestao-form-actions">
+        <button type="submit" class="btn btn-primary">Salvar chave</button>
+    </div>
+</form>
+
+{% if teste %}
+<section class="gestao-pedido-card" style="max-width:420px;margin-top:1.5rem;text-align:center;">
+    <h2>QR Code de teste (R$ 1,00)</h2>
+    <img src="data:image/png;base64,{{ teste.qr_code_base64 }}" alt="QR Code de teste" style="width:220px;background:#fff;padding:8px;border-radius:8px;">
+    <p class="gestao-field-hint">Leia no app do seu banco só para conferir se aparece o seu nome. Não precisa pagar.</p>
+    <textarea readonly rows="4" style="width:100%;">{{ teste.qr_code }}</textarea>
+</section>
+{% endif %}
+{% endblock %}

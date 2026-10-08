@@ -8,6 +8,10 @@
     <p>Atalhos do que a loja já administra hoje. Nada aqui cria uma opção fictícia.</p>
 </section>
 <div class="saas-links">
+    <a class="gestao-panel" href="{% url 'gestao_configuracao_pix' %}">
+        <h2>Pix da loja</h2>
+        <p>{% if config_pix %}Recebendo na chave {{ config_pix.get_tipo_chave_display }}: {{ config_pix.chave }}{% else %}Cadastre a sua chave Pix para receber os pagamentos.{% endif %}</p>
+    </a>
     <a class="gestao-panel" href="{% url 'gestao_planos_clube_lista' %}">
         <h2>Planos do clube</h2>
         <p>Preço, desconto e ordem dos planos.</p>

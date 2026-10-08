@@ -41,9 +41,11 @@ from .mercadopago_service import (
     sincronizar_pedido_com_mercadopago,
     validar_assinatura_webhook,
 )
+from .pix import pix_da_loja, txid_do_pedido
 from .models import (
     AssinaturaClube,
     Avaliacao,
+    ConfiguracaoPix,
     Favorito,
     InscricaoNewsletter,
     ItemPedido,
@@ -816,6 +818,7 @@ def checkout(request, pedido_id):
     ):
         return redirect('pedido_entrega', pedido_id=pedido.pk)
     promos = calcular_promocoes_pedido(pedido)
+    pix_proprio = ConfiguracaoPix.atual() is not None
     subtotal_bruto = promos['subtotal_produtos']
     if pedido.plano_clube_id:
         subtotal_bruto += pedido.plano_clube.preco_mensal
@@ -823,8 +826,8 @@ def checkout(request, pedido_id):
         'pedido': pedido,
         'promos': promos,
         'subtotal_bruto': subtotal_bruto,
-        'mercadopago_sandbox': settings.MERCADOPAGO_SANDBOX,
-        'pedir_email': not request.user.email,
+        'mercadopago_sandbox': settings.MERCADOPAGO_SANDBOX and not pix_proprio,
+        'pedir_email': not request.user.email and not pix_proprio,
     })
 
 
@@ -942,6 +945,18 @@ class GerarPixView(APIView):
         if pedido.status == Pedido.STATUS_AGUARDANDO:
             pedido.recalcular_valor_total()
 
+        config_pix = ConfiguracaoPix.atual()
+        if config_pix:
+            return Response({
+                'status': pedido.status,
+                'pedido_id': pedido.pk,
+                'payment_id': '',
+                'valor': format(pedido.valor_total, 'f'),
+                'expira_em': '',
+                'manual': True,
+                'pix': pix_da_loja(config_pix, pedido.valor_total, txid_do_pedido(pedido.pk)),
+            })
+
         email = str(request.data.get('email') or '').strip()
         if email and not request.user.email:
             request.user.email = email
@@ -969,6 +984,19 @@ class GerarPixView(APIView):
         })
 
 
+class InformarPixPagoView(APIView):
+    """O cliente avisa que pagou o Pix da chave da loja; a Gestão confere e confirma."""
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pedido_id):
+        pedido = get_object_or_404(Pedido, pk=pedido_id, cliente=request.user)
+        if pedido.status == Pedido.STATUS_AGUARDANDO:
+            pedido.status = Pedido.STATUS_EM_ANALISE
+            pedido.save(update_fields=['status'])
+        return Response({'status': pedido.status, 'pedido_id': pedido.pk})
+
+
 class PedidoStatusView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -978,7 +1006,7 @@ class PedidoStatusView(APIView):
         if pedido.status in (
             Pedido.STATUS_AGUARDANDO,
             Pedido.STATUS_EM_ANALISE,
-        ):
+        ) and not ConfiguracaoPix.atual():
             try:
                 pedido = sincronizar_pedido_com_mercadopago(pedido)
             except MercadoPagoAPIError:

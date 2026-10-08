@@ -16,6 +16,7 @@ from django.views.decorators.http import require_POST
 from .assistant_intent import INTENT_LABELS_CLIENTE, INTENT_LABELS_GESTOR, classify_intent
 from .forms_gestao import (
     AcessoClienteForm,
+    ConfiguracaoPixForm,
     FraseTreinoForm,
     ImportarCatalogoForm,
     LivroForm,
@@ -26,6 +27,7 @@ from .forms_gestao import (
 )
 from .gestao_services import ESTOQUE_BAIXO_LIMITE, gerar_descricao_produto, importar_catalogo_csv
 from .models import (
+    ConfiguracaoPix,
     FraseTreinoAssistente,
     ItemPedido,
     Livro,
@@ -406,6 +408,29 @@ def pedido_detalhe(request, pk):
 
 @gestor_required
 @require_POST
+def pedido_pagamento(request, pk):
+    pedido = get_object_or_404(Pedido, pk=pk)
+    acao = request.POST.get('acao')
+    if pedido.status not in (Pedido.STATUS_AGUARDANDO, Pedido.STATUS_EM_ANALISE):
+        messages.warning(request, 'Este pedido não está esperando pagamento.')
+    elif acao == 'aprovar':
+        from .email_service import enviar_email_pedido_aprovado
+        from .promocoes import ativar_assinatura_clube
+
+        pedido.status = Pedido.STATUS_APROVADO
+        pedido.save(update_fields=['status'])
+        enviar_email_pedido_aprovado(pedido)
+        ativar_assinatura_clube(pedido)
+        messages.success(request, f'Pagamento do pedido #{pedido.pk} confirmado. O cliente já tem acesso.')
+    elif acao == 'recusar':
+        pedido.status = Pedido.STATUS_RECUSADO
+        pedido.save(update_fields=['status'])
+        messages.info(request, f'Pedido #{pedido.pk} marcado como recusado.')
+    return redirect('gestao_pedido_detalhe', pk=pedido.pk)
+
+
+@gestor_required
+@require_POST
 def gerar_descricao_ia(request):
     titulo = (request.POST.get('titulo') or '').strip()
     tipo = (request.POST.get('tipo') or 'livro').strip()
@@ -687,7 +712,24 @@ def relatorios(request):
 
 @gestor_required
 def configuracoes(request):
-    return render(request, 'gestao/configuracoes.html')
+    return render(request, 'gestao/configuracoes.html', {'config_pix': ConfiguracaoPix.atual()})
+
+
+@gestor_required
+def configuracao_pix(request):
+    from .pix import pix_da_loja
+
+    config = ConfiguracaoPix.objects.order_by('-atualizado_em').first()
+    form = ConfiguracaoPixForm(request.POST or None, instance=config)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Chave Pix salva. Confira o QR Code de teste abaixo no app do seu banco.')
+        return redirect('gestao_configuracao_pix')
+    pronta = ConfiguracaoPix.atual()
+    return render(request, 'gestao/config_pix.html', {
+        'form': form,
+        'teste': pix_da_loja(pronta, '1.00', 'TESTE') if pronta else None,
+    })
 
 
 @gestor_required

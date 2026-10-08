@@ -12,6 +12,21 @@
     <span class="gestao-badge gestao-badge--{{ pedido.status }}">{{ pedido.get_status_display }}</span>
 </div>
 
+{% if pedido.status == 'aguardando_pagamento' or pedido.status == 'em_analise' %}
+<section class="gestao-pedido-card" style="margin-bottom:1.25rem;">
+    <h2>Pagamento por Pix</h2>
+    <p>
+        {% if pedido.status == 'em_analise' %}O cliente avisou que já pagou.{% else %}O cliente ainda não avisou que pagou.{% endif %}
+        Confira no seu banco se entrou um Pix de <strong class="mono">R$ {{ pedido.valor_total }}</strong> (identificação <span class="mono">VP{{ pedido.id }}</span>).
+    </p>
+    <form method="post" action="{% url 'gestao_pedido_pagamento' pedido.id %}" class="gestao-form-actions">
+        {% csrf_token %}
+        <button type="submit" name="acao" value="aprovar" class="btn btn-primary">Confirmar pagamento</button>
+        <button type="submit" name="acao" value="recusar" class="btn btn-ghost" onclick="return confirm('Marcar este pedido como recusado?')">Recusar</button>
+    </form>
+</section>
+{% endif %}
+
 <div class="gestao-pedido-grid">
     <section class="gestao-pedido-card">
         <h2>Itens</h2>

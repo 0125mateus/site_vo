@@ -56,7 +56,7 @@
 
         <div class="pix-on-page" id="pix-area">
             <h2>Pagar com Pix</h2>
-            <p class="checkout-mp-hint">A loja aceita somente Pix. O pedido é confirmado assim que o pagamento cair.</p>
+            <p class="checkout-mp-hint">A loja aceita somente Pix. O pedido é liberado assim que o pagamento for confirmado.</p>
 
             <form id="pix-email-form" class="pix-email-form"{% if not pedir_email %} hidden{% endif %}>
                 <label class="pix-copy-label" for="pix-email">Seu e-mail (o Mercado Pago pede para gerar o Pix)</label>
@@ -73,6 +73,10 @@
                 <button type="button" id="pix-copiar" class="btn btn-primary">Copiar código Pix</button>
                 <p class="pix-wait" id="pix-expira"></p>
                 <p class="pix-wait">Abra o app do seu banco, escolha Pix e leia o QR Code ou cole o código. Esta página atualiza sozinha quando o pagamento for confirmado.</p>
+                <div id="pix-manual" hidden>
+                    <button type="button" id="pix-paguei" class="btn btn-ghost">Já paguei</button>
+                    <p class="pix-wait" id="pix-aviso-enviado" hidden>Recebemos seu aviso. Assim que a loja conferir o Pix, o pedido é liberado e esta página muda sozinha.</p>
+                </div>
             </div>
 
             <button type="button" id="pix-novo" class="btn btn-ghost" hidden>Gerar novo Pix</button>
@@ -98,8 +102,16 @@
     const copiarBtn = document.getElementById('pix-copiar');
     const expiraEl = document.getElementById('pix-expira');
     const novoBtn = document.getElementById('pix-novo');
+    const manualEl = document.getElementById('pix-manual');
+    const pagueiBtn = document.getElementById('pix-paguei');
+    const avisoEl = document.getElementById('pix-aviso-enviado');
     let consultaTimer = 0;
     let expiraEm = 0;
+
+    function mostrarAvisoEnviado() {
+        pagueiBtn.hidden = true;
+        avisoEl.hidden = false;
+    }
 
     function showFeedback(message, isError) {
         feedbackEl.hidden = !message;
@@ -179,6 +191,8 @@
             }
             codeEl.value = pix.qr_code;
             mostrarExpiracao(data.expira_em);
+            manualEl.hidden = !data.manual;
+            if (data.manual && data.status === 'em_analise') mostrarAvisoEnviado();
             emailForm.hidden = true;
             prontoEl.hidden = false;
             consultaTimer = window.setTimeout(consultarStatus, 4000);
@@ -199,6 +213,23 @@
         }
         copiarBtn.textContent = 'Código copiado!';
         window.setTimeout(() => { copiarBtn.textContent = 'Copiar código Pix'; }, 2500);
+    });
+
+    pagueiBtn.addEventListener('click', async () => {
+        pagueiBtn.disabled = true;
+        try {
+            const response = await fetch(`/api/pedidos/${pedidoId}/pix/paguei/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCsrfToken() },
+                credentials: 'same-origin',
+            });
+            if (!response.ok) throw new Error();
+            mostrarAvisoEnviado();
+        } catch (erro) {
+            showFeedback('Não foi possível enviar o aviso. Tente de novo.', true);
+        } finally {
+            pagueiBtn.disabled = false;
+        }
     });
 
     emailForm.addEventListener('submit', (event) => {
