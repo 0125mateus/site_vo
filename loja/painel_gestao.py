@@ -141,7 +141,12 @@ def alertas_contagem():
     ).count()
     aguardando = Pedido.objects.filter(status=Pedido.STATUS_AGUARDANDO).count()
     em_analise = Pedido.objects.filter(status=Pedido.STATUS_EM_ANALISE).count()
-    tipos = [estoque, sem_estoque, atrasados, vencendo, aguardando, em_analise]
+    dvds_para_enviar = Pedido.objects.filter(
+        status=Pedido.STATUS_APROVADO,
+        status_entrega__in=('', Pedido.StatusEntrega.PREPARANDO),
+        itens__modalidade=ModalidadeComercial.VENDA,
+    ).distinct().count()
+    tipos = [estoque, sem_estoque, atrasados, vencendo, aguardando, em_analise, dvds_para_enviar]
     return {
         'estoque_baixo': estoque,
         'sem_estoque': sem_estoque,
@@ -150,6 +155,7 @@ def alertas_contagem():
         'pedidos_aguardando': aguardando,
         'pedidos_analise': em_analise,
         'pedidos_pendentes': aguardando + em_analise,
+        'dvds_para_enviar': dvds_para_enviar,
         'total': sum(1 for valor in tipos if valor),
     }
 

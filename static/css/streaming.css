@@ -915,3 +915,143 @@ body.site-with-bottom-nav main {
         grid-template-columns: 1fr;
     }
 }
+
+/* Acompanhar pedido: linha do tempo do pagamento e da entrega */
+.acomp {
+    margin: 12px 0 24px;
+    padding: 24px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--card, #171A20);
+}
+
+.acomp-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+.acomp-head h1 {
+    margin: 6px 0 0;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+}
+
+.acomp-total {
+    font-size: 1.2rem;
+    color: var(--gold-soft, #F2D58A);
+}
+
+.acomp-timeline {
+    list-style: none;
+    margin: 0 0 18px;
+    padding: 0;
+}
+
+.acomp-step {
+    position: relative;
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 14px;
+    padding-bottom: 22px;
+    color: var(--ink-soft, #A7ACB5);
+}
+
+.acomp-step:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    left: 13px;
+    top: 28px;
+    bottom: 0;
+    width: 2px;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.acomp-step.is-done:not(:last-child)::before {
+    background: #2fbf71;
+}
+
+.acomp-dot {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.acomp-step.is-done {
+    color: #fff;
+}
+
+.acomp-step.is-done .acomp-dot {
+    border-color: #2fbf71;
+    background: #2fbf71;
+    color: #08090B;
+}
+
+.acomp-step.is-current strong {
+    color: #2fbf71;
+}
+
+.acomp-step.is-failed .acomp-dot {
+    border-color: #e5484d;
+    background: #e5484d;
+}
+
+.acomp-step.is-failed strong {
+    color: #ff8a80;
+}
+
+.acomp-step strong {
+    display: block;
+    margin-top: 3px;
+}
+
+.acomp-date {
+    font-size: 0.82rem;
+    color: var(--ink-soft, #A7ACB5);
+}
+
+.acomp-step p {
+    margin: 6px 0 0;
+}
+
+.acomp-rastreio {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.acomp-nota {
+    margin: 8px 0 0;
+    color: var(--ink-soft, #A7ACB5);
+}
+
+.acomp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.acomp-card {
+    padding: 20px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+}
+
+.acomp-card h2 {
+    margin: 0 0 10px;
+    font-size: 1.05rem;
+}
+
+.pedido-card-acoes {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}

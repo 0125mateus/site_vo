@@ -299,6 +299,19 @@ class Pedido(models.Model):
     entrega_cidade = models.CharField('cidade', max_length=100, blank=True)
     entrega_uf = models.CharField('estado (UF)', max_length=2, blank=True)
 
+    class StatusEntrega(models.TextChoices):
+        PREPARANDO = 'preparando', 'Preparando o envio'
+        ENVIADO = 'enviado', 'Enviado'
+        SAIU = 'saiu_para_entrega', 'Saiu para entrega'
+        ENTREGUE = 'entregue', 'Entregue'
+
+    status_entrega = models.CharField(
+        'andamento da entrega', max_length=20, choices=StatusEntrega.choices, blank=True,
+    )
+    transportadora = models.CharField(max_length=60, blank=True)
+    codigo_rastreio = models.CharField('código de rastreio', max_length=60, blank=True)
+    link_rastreio = models.URLField('link de rastreio', max_length=500, blank=True)
+
     CAMPOS_ENTREGA = (
         'entrega_nome', 'entrega_telefone', 'entrega_cep', 'entrega_logradouro',
         'entrega_numero', 'entrega_complemento', 'entrega_bairro', 'entrega_cidade', 'entrega_uf',
@@ -322,6 +335,65 @@ class Pedido(models.Model):
         ))
 
     @property
+    def url_rastreio(self) -> str:
+        if self.link_rastreio:
+            return self.link_rastreio
+        if self.codigo_rastreio and 'correios' in self.transportadora.lower():
+            return 'https://rastreamento.correios.com.br/app/index.php'
+        return ''
+
+    def registrar_evento(self, etapa: str, mensagem: str = ''):
+        return EventoPedido.objects.create(pedido=self, etapa=etapa, mensagem=mensagem[:255])
+
+    def linha_do_tempo(self) -> list:
+        """Etapas do pedido para o cliente acompanhar, como nas lojas grandes."""
+        datas = {}
+        mensagens = {}
+        for evento in self.eventos.all():
+            datas.setdefault(evento.etapa, evento.criado_em)
+            if evento.mensagem:
+                mensagens[evento.etapa] = evento.mensagem
+
+        etapas = [('pedido', 'Pedido feito', self.criado_em)]
+        if self.status in (self.STATUS_RECUSADO, self.STATUS_CANCELADO):
+            etapas.append((self.status, self.get_status_display(), datas.get(self.status)))
+            concluidas = len(etapas)
+        else:
+            aprovado = self.status == self.STATUS_APROVADO
+            etapas.append(('pagamento', 'Pagamento confirmado', datas.get('pagamento')))
+            concluidas = 2 if aprovado else 1
+            if self.precisa_entrega:
+                ordem = [valor for valor, _ in self.StatusEntrega.choices]
+                for valor, rotulo in self.StatusEntrega.choices:
+                    etapas.append((valor, rotulo, datas.get(valor)))
+                if aprovado and self.status_entrega:
+                    concluidas = 3 + ordem.index(self.status_entrega)
+            else:
+                etapas.append(('liberado', 'Filme liberado na Biblioteca', datas.get('pagamento')))
+                if aprovado:
+                    concluidas = 3
+
+        return [
+            {
+                'chave': chave,
+                'titulo': titulo,
+                'data': data,
+                'mensagem': mensagens.get(chave, ''),
+                'feita': indice < concluidas,
+                'atual': indice == concluidas - 1,
+            }
+            for indice, (chave, titulo, data) in enumerate(etapas)
+        ]
+
+    @property
+    def resumo_acompanhamento(self) -> str:
+        if self.status != self.STATUS_APROVADO:
+            return self.get_status_display()
+        if not self.precisa_entrega:
+            return 'Filme liberado'
+        return self.get_status_entrega_display() or 'Pagamento confirmado'
+
+    @property
     def endereco_entrega(self) -> str:
         if not self.tem_endereco:
             return ''
@@ -343,6 +415,31 @@ class Pedido(models.Model):
         self.valor_total = max(Decimal('0.00'), subtotal - self.desconto)
         self.save(update_fields=['valor_total'])
         return self.valor_total
+
+
+class EventoPedido(models.Model):
+    """Histórico do pedido: pagamento confirmado, enviado, entregue…"""
+
+    pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name='eventos')
+    etapa = models.CharField(max_length=20)
+    mensagem = models.CharField(max_length=255, blank=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['criado_em', 'pk']
+
+    def __str__(self):
+        return f'Pedido #{self.pedido_id} — {self.rotulo}'
+
+    @property
+    def rotulo(self) -> str:
+        rotulos = {
+            'pagamento': 'Pagamento confirmado',
+            Pedido.STATUS_RECUSADO: 'Pagamento recusado',
+            Pedido.STATUS_CANCELADO: 'Cancelado',
+            **dict(Pedido.StatusEntrega.choices),
+        }
+        return rotulos.get(self.etapa, self.etapa)
 
 
 class ItemPedido(models.Model):

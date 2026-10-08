@@ -106,6 +106,9 @@
                         {% if gestao_alertas.alugueis_vencendo %}
                         <a href="{% url 'gestao_alugueis' %}?situacao=vencendo">Aluguel vencendo: {{ gestao_alertas.alugueis_vencendo }}</a>
                         {% endif %}
+                        {% if gestao_alertas.dvds_para_enviar %}
+                        <a href="{% url 'gestao_pedidos_lista' %}?status=aprovado">DVD para enviar: {{ gestao_alertas.dvds_para_enviar }} pedido{{ gestao_alertas.dvds_para_enviar|pluralize }}</a>
+                        {% endif %}
                         {% if gestao_alertas.pedidos_analise %}
                         <a href="{% url 'gestao_pedidos_lista' %}?status=em_analise">Pagamento em análise: {{ gestao_alertas.pedidos_analise }}</a>
                         {% endif %}

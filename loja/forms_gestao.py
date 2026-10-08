@@ -3,7 +3,33 @@ from django import forms
 from .assistant_intent import get_intent_choices
 import re
 
-from .models import ConfiguracaoPix, FraseTreinoAssistente, Livro, MidiaAudiovisual, Musica, PlanoClube
+from .models import (
+    ConfiguracaoPix, FraseTreinoAssistente, Livro, MidiaAudiovisual, Musica, Pedido, PlanoClube,
+)
+
+
+class EntregaPedidoForm(forms.ModelForm):
+    mensagem = forms.CharField(
+        label='Recado para o cliente', required=False, max_length=255,
+        widget=forms.TextInput(attrs={'placeholder': 'Opcional. Ex.: Previsão de chegada em 5 dias úteis'}),
+    )
+
+    class Meta:
+        model = Pedido
+        fields = ['status_entrega', 'transportadora', 'codigo_rastreio', 'link_rastreio']
+        widgets = {
+            'transportadora': forms.TextInput(attrs={'placeholder': 'Ex.: Correios, Jadlog, motoboy'}),
+            'codigo_rastreio': forms.TextInput(attrs={'placeholder': 'Ex.: AA123456789BR'}),
+            'link_rastreio': forms.URLInput(attrs={'placeholder': 'Opcional: link da transportadora'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['status_entrega'].required = True
+        self.fields['status_entrega'].choices = Pedido.StatusEntrega.choices
+
+    def clean_codigo_rastreio(self):
+        return (self.cleaned_data.get('codigo_rastreio') or '').strip().upper()
 
 
 class ConfiguracaoPixForm(forms.ModelForm):

@@ -63,6 +63,44 @@
         <p class="gestao-field-hint">O cliente ainda não preencheu o endereço.</p>
         {% endif %}
     </section>
+
+    {% if pedido.status == 'aprovado' %}
+    <section class="gestao-pedido-card">
+        <h2>Andamento da entrega</h2>
+        <p>Agora: <strong>{{ pedido.get_status_entrega_display|default:"Pagamento confirmado" }}</strong>{% if pedido.codigo_rastreio %} · <span class="mono">{{ pedido.codigo_rastreio }}</span>{% endif %}</p>
+        <form method="post" action="{% url 'gestao_pedido_entrega' pedido.id %}" class="gestao-form">
+            {% csrf_token %}
+            <label for="id_status_entrega">Etapa</label>
+            {{ form_entrega.status_entrega }}
+            <label for="id_transportadora">Transportadora</label>
+            {{ form_entrega.transportadora }}
+            <label for="id_codigo_rastreio">Código de rastreio</label>
+            {{ form_entrega.codigo_rastreio }}
+            <label for="id_link_rastreio">Link de rastreio</label>
+            {{ form_entrega.link_rastreio }}
+            <label for="id_mensagem">Recado para o cliente</label>
+            {{ form_entrega.mensagem }}
+            <p class="gestao-field-hint">O cliente vê cada etapa em "Meus pedidos" e recebe um e-mail quando a etapa muda.</p>
+            <div class="gestao-form-actions">
+                <button type="submit" class="btn btn-primary">Atualizar entrega</button>
+            </div>
+        </form>
+    </section>
+    {% endif %}
+    {% endif %}
+
+    {% if pedido.eventos.all %}
+    <section class="gestao-pedido-card">
+        <h2>Histórico</h2>
+        <ul class="gestao-pedido-itens">
+            {% for evento in pedido.eventos.all %}
+            <li>
+                <strong>{{ evento.rotulo }}</strong>
+                <span class="mono">{{ evento.criado_em|date:"d/m/Y H:i" }}{% if evento.mensagem %} · {{ evento.mensagem }}{% endif %}</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </section>
     {% endif %}
 </div>
 {% endblock %}

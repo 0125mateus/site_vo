@@ -382,6 +382,20 @@ def meus_pedidos(request):
     return render(request, 'loja/meus_pedidos.html', {'pedidos': pedidos})
 
 
+@login_required
+def pedido_acompanhar(request, pedido_id):
+    pedido = get_object_or_404(
+        Pedido.objects.prefetch_related('itens__produto', 'eventos'),
+        pk=pedido_id,
+        cliente=request.user,
+    )
+    return render(request, 'loja/pedido_acompanhar.html', {
+        'pedido': pedido,
+        'etapas': pedido.linha_do_tempo(),
+        'tem_assistir': any(i.is_assistir for i in pedido.itens.all()),
+    })
+
+
 def produto_detalhe(request, produto_id):
     ctx = _resolver_produto(produto_id)
     if ctx['tipo'] != 'midia':

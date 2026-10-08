@@ -959,6 +959,70 @@ class PixDaLojaTests(TestCase):
         self.assertContains(pagina, '0111' + '12345678909')
 
 
+class AcompanharEntregaTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='espera_dvd', password='senha', email='dvd@example.com')
+        self.client.force_login(self.user)
+        self.filme = MidiaAudiovisual.objects.create(
+            titulo='Os Canhões de Navarone', ativo=True,
+            disponivel_venda=True, preco=Decimal('20.20'), estoque=3,
+        )
+        self.pedido = Pedido.objects.create(
+            cliente=self.user, valor_total=Decimal('20.20'),
+            status=Pedido.STATUS_EM_ANALISE, **ENDERECO_TESTE,
+        )
+        ItemPedido.objects.create(
+            pedido=self.pedido, produto=self.filme, modalidade='venda',
+            quantidade=1, preco_unitario=Decimal('20.20'),
+        )
+        self.url = reverse('pedido_acompanhar', kwargs={'pedido_id': self.pedido.pk})
+
+    def test_linha_do_tempo_acompanha_cada_etapa(self):
+        from django.core import mail
+
+        pagina = self.client.get(self.url)
+        self.assertContains(pagina, 'Pedido feito')
+        self.assertContains(pagina, 'Saiu para entrega')
+
+        self.client.post(
+            reverse('gestao_pedido_pagamento', kwargs={'pk': self.pedido.pk}), {'acao': 'aprovar'},
+        )
+        self.pedido.refresh_from_db()
+        self.assertEqual(self.pedido.status_entrega, 'preparando')
+
+        self.client.post(reverse('gestao_pedido_entrega', kwargs={'pk': self.pedido.pk}), {
+            'status_entrega': 'enviado', 'transportadora': 'Correios',
+            'codigo_rastreio': 'aa123456789br', 'mensagem': 'Chega em até 5 dias úteis',
+        })
+        self.pedido.refresh_from_db()
+        self.assertEqual(self.pedido.codigo_rastreio, 'AA123456789BR')
+        self.assertTrue(any('Enviado' in m.subject for m in mail.outbox))
+
+        pagina = self.client.get(self.url)
+        self.assertContains(pagina, '<h1>Enviado</h1>', html=True)
+        self.assertContains(pagina, 'AA123456789BR')
+        self.assertContains(pagina, 'Chega em até 5 dias úteis')
+        self.assertContains(pagina, 'rastreamento.correios.com.br')
+        etapas = {e['chave']: e for e in self.pedido.linha_do_tempo()}
+        self.assertTrue(etapas['enviado']['atual'])
+        self.assertFalse(etapas['entregue']['feita'])
+
+        lista = self.client.get(reverse('meus_pedidos'))
+        self.assertContains(lista, 'Acompanhar entrega')
+
+    def test_outro_cliente_nao_ve_o_pedido(self):
+        outro = User.objects.create_user(username='curioso', password='senha')
+        self.client.force_login(outro)
+        self.assertEqual(self.client.get(self.url).status_code, 404)
+
+    def test_entrega_so_depois_do_pagamento(self):
+        self.client.post(reverse('gestao_pedido_entrega', kwargs={'pk': self.pedido.pk}), {
+            'status_entrega': 'enviado',
+        })
+        self.pedido.refresh_from_db()
+        self.assertEqual(self.pedido.status_entrega, '')
+
+
 class RegistroClienteTests(TestCase):
     def test_senha_fraca_mostra_todas_as_regras(self):
         resposta = self.client.post(reverse('registrar'), {

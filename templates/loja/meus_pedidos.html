@@ -8,7 +8,7 @@
         <div>
             <span class="section-eyebrow">Sua conta</span>
             <h1>Meus pedidos</h1>
-            <p class="library-desc">Histórico de compras e aluguéis.</p>
+            <p class="library-desc">Acompanhe o pagamento e a entrega de cada pedido.</p>
         </div>
         <a href="{% url 'biblioteca' %}" class="btn btn-ghost">Minha biblioteca</a>
     </section>
@@ -22,7 +22,7 @@
                     <strong class="mono">Pedido #{{ pedido.id }}</strong>
                     <span class="pedido-data">{{ pedido.criado_em|date:"d/m/Y H:i" }}</span>
                 </div>
-                <span class="pedido-status pedido-status--{{ pedido.status }}">{{ pedido.get_status_display }}</span>
+                <span class="pedido-status pedido-status--{{ pedido.status }}">{{ pedido.resumo_acompanhamento }}</span>
             </header>
             <ul class="pedido-itens">
                 {% for item in pedido.itens.all %}
@@ -34,11 +34,12 @@
             </ul>
             <footer class="pedido-card-foot">
                 <span class="mono">Total: R$ {{ pedido.valor_total }}</span>
-                {% if pedido.status == 'aguardando_pagamento' %}
-                <a href="{% url 'checkout' pedido.id %}" class="btn btn-primary btn-sm">Pagar</a>
-                {% elif pedido.status == 'aprovado' %}
-                <a href="{% url 'biblioteca' %}" class="btn btn-ghost btn-sm">Acessar biblioteca</a>
-                {% endif %}
+                <span class="pedido-card-acoes">
+                    {% if pedido.status == 'aguardando_pagamento' %}
+                    <a href="{% url 'checkout' pedido.id %}" class="btn btn-primary btn-sm">Pagar</a>
+                    {% endif %}
+                    <a href="{% url 'pedido_acompanhar' pedido.id %}" class="btn btn-ghost btn-sm">{% if pedido.precisa_entrega %}Acompanhar entrega{% else %}Ver pedido{% endif %}</a>
+                </span>
             </footer>
         </article>
         {% endfor %}

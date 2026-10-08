@@ -33,6 +33,7 @@ urlpatterns = [
     path('pedidos/', views_gestao.pedidos_lista, name='gestao_pedidos_lista'),
     path('pedidos/<int:pk>/', views_gestao.pedido_detalhe, name='gestao_pedido_detalhe'),
     path('pedidos/<int:pk>/pagamento/', views_gestao.pedido_pagamento, name='gestao_pedido_pagamento'),
+    path('pedidos/<int:pk>/entrega/', views_gestao.pedido_entrega, name='gestao_pedido_entrega'),
     path('clube/', views_gestao.planos_clube_lista, name='gestao_planos_clube_lista'),
     path('clube/novo/', views_gestao.plano_clube_criar, name='gestao_plano_clube_criar'),
     path('clube/<int:pk>/editar/', views_gestao.plano_clube_editar, name='gestao_plano_clube_editar'),

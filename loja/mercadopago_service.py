@@ -341,6 +341,11 @@ def aplicar_pagamento_ao_pedido(pedido, payment):
         from loja.email_service import enviar_email_pedido_aprovado
         from loja.promocoes import ativar_assinatura_clube
 
+        pedido.registrar_evento('pagamento')
+        if pedido.precisa_entrega and not pedido.status_entrega:
+            pedido.status_entrega = pedido.StatusEntrega.PREPARANDO
+            pedido.save(update_fields=['status_entrega'])
+            pedido.registrar_evento(pedido.StatusEntrega.PREPARANDO)
         enviar_email_pedido_aprovado(pedido)
         ativar_assinatura_clube(pedido)
 

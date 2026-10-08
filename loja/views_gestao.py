@@ -17,6 +17,7 @@ from .assistant_intent import INTENT_LABELS_CLIENTE, INTENT_LABELS_GESTOR, class
 from .forms_gestao import (
     AcessoClienteForm,
     ConfiguracaoPixForm,
+    EntregaPedidoForm,
     FraseTreinoForm,
     ImportarCatalogoForm,
     LivroForm,
@@ -403,7 +404,36 @@ def pedido_detalhe(request, pk):
         Pedido.objects.select_related('cliente', 'plano_clube').prefetch_related('itens__produto'),
         pk=pk,
     )
-    return render(request, 'gestao/pedido_detalhe.html', {'pedido': pedido})
+    return render(request, 'gestao/pedido_detalhe.html', {
+        'pedido': pedido,
+        'form_entrega': EntregaPedidoForm(instance=pedido),
+    })
+
+
+@gestor_required
+@require_POST
+def pedido_entrega(request, pk):
+    from .email_service import enviar_email_entrega
+
+    pedido = get_object_or_404(Pedido, pk=pk)
+    if pedido.status != Pedido.STATUS_APROVADO or not pedido.precisa_entrega:
+        messages.warning(request, 'A entrega só pode ser atualizada depois do pagamento confirmado.')
+        return redirect('gestao_pedido_detalhe', pk=pedido.pk)
+
+    form = EntregaPedidoForm(request.POST, instance=pedido)
+    if not form.is_valid():
+        messages.error(request, ' '.join(e for erros in form.errors.values() for e in erros))
+        return redirect('gestao_pedido_detalhe', pk=pedido.pk)
+
+    etapa_anterior = Pedido.objects.values_list('status_entrega', flat=True).get(pk=pedido.pk)
+    pedido = form.save()
+    mensagem = form.cleaned_data.get('mensagem', '')
+    if pedido.status_entrega != etapa_anterior or mensagem:
+        pedido.registrar_evento(pedido.status_entrega, mensagem)
+    if pedido.status_entrega != etapa_anterior:
+        enviar_email_entrega(pedido)
+    messages.success(request, f'Entrega do pedido #{pedido.pk}: {pedido.get_status_entrega_display()}.')
+    return redirect('gestao_pedido_detalhe', pk=pedido.pk)
 
 
 @gestor_required
@@ -418,13 +448,19 @@ def pedido_pagamento(request, pk):
         from .promocoes import ativar_assinatura_clube
 
         pedido.status = Pedido.STATUS_APROVADO
-        pedido.save(update_fields=['status'])
+        if pedido.precisa_entrega and not pedido.status_entrega:
+            pedido.status_entrega = Pedido.StatusEntrega.PREPARANDO
+        pedido.save(update_fields=['status', 'status_entrega'])
+        pedido.registrar_evento('pagamento')
+        if pedido.status_entrega == Pedido.StatusEntrega.PREPARANDO:
+            pedido.registrar_evento(Pedido.StatusEntrega.PREPARANDO)
         enviar_email_pedido_aprovado(pedido)
         ativar_assinatura_clube(pedido)
         messages.success(request, f'Pagamento do pedido #{pedido.pk} confirmado. O cliente já tem acesso.')
     elif acao == 'recusar':
         pedido.status = Pedido.STATUS_RECUSADO
         pedido.save(update_fields=['status'])
+        pedido.registrar_evento(Pedido.STATUS_RECUSADO)
         messages.info(request, f'Pedido #{pedido.pk} marcado como recusado.')
     return redirect('gestao_pedido_detalhe', pk=pedido.pk)
 

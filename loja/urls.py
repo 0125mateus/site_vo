@@ -25,6 +25,7 @@ urlpatterns = [
     path('favoritos/toggle/<int:produto_id>/', views.toggle_favorito, name='toggle_favorito'),
     path('pedidos/', views.meus_pedidos, name='meus_pedidos'),
     path('pedidos/finalizar/', views.finalizar_pedido, name='finalizar_pedido'),
+    path('pedidos/<int:pedido_id>/', views.pedido_acompanhar, name='pedido_acompanhar'),
     path('pedidos/<int:pedido_id>/entrega/', views.pedido_entrega, name='pedido_entrega'),
     path('pedidos/<int:pedido_id>/checkout/', views.checkout, name='checkout'),
     path('pedidos/<int:pedido_id>/processando/', views.processando_pedido, name='processando_pedido'),

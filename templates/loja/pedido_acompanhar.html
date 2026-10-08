@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Pedido #{{ pedido.id }} — Vinil & Página{% endblock %}
+
+{% block content %}
+<div class="wrap">
+    <nav class="detail-breadcrumb mono">
+        <a href="{% url 'meus_pedidos' %}">Meus pedidos</a>
+        <span aria-hidden="true">/</span>
+        <span>Pedido #{{ pedido.id }}</span>
+    </nav>
+
+    <section class="acomp">
+        <header class="acomp-head">
+            <div>
+                <span class="section-eyebrow">Pedido #{{ pedido.id }} · {{ pedido.criado_em|date:"d/m/Y H:i" }}</span>
+                <h1>{{ pedido.resumo_acompanhamento }}</h1>
+            </div>
+            <strong class="mono acomp-total">R$ {{ pedido.valor_total }}</strong>
+        </header>
+
+        <ol class="acomp-timeline">
+            {% for etapa in etapas %}
+            <li class="acomp-step{% if etapa.feita %} is-done{% endif %}{% if etapa.atual %} is-current{% endif %}{% if etapa.chave == 'recusado' or etapa.chave == 'cancelado' %} is-failed{% endif %}">
+                <span class="acomp-dot" aria-hidden="true">{% if etapa.feita %}✓{% endif %}</span>
+                <div>
+                    <strong>{{ etapa.titulo }}</strong>
+                    {% if etapa.feita and etapa.data %}<span class="mono acomp-date">{{ etapa.data|date:"d/m/Y H:i" }}</span>{% endif %}
+                    {% if etapa.mensagem %}<p>{{ etapa.mensagem }}</p>{% endif %}
+                    {% if etapa.chave == 'enviado' and etapa.feita and pedido.codigo_rastreio %}
+                    <p class="acomp-rastreio">
+                        {% if pedido.transportadora %}{{ pedido.transportadora }} · {% endif %}código <strong class="mono" id="codigo-rastreio">{{ pedido.codigo_rastreio }}</strong>
+                        <button type="button" class="btn btn-ghost btn-sm" data-copiar="{{ pedido.codigo_rastreio }}">Copiar</button>
+                        {% if pedido.url_rastreio %}<a href="{{ pedido.url_rastreio }}" target="_blank" rel="noopener" class="btn btn-ghost btn-sm">Rastrear ↗</a>{% endif %}
+                    </p>
+                    {% endif %}
+                </div>
+            </li>
+            {% endfor %}
+        </ol>
+
+        {% if pedido.status == 'aguardando_pagamento' %}
+        <a href="{% url 'checkout' pedido.id %}" class="btn btn-primary">Pagar com Pix</a>
+        {% elif pedido.status == 'em_analise' %}
+        <p class="acomp-nota">Recebemos seu aviso de pagamento. Assim que a loja conferir o Pix, o pedido avança.</p>
+        {% endif %}
+        {% if pedido.status == 'aprovado' and tem_assistir %}
+        <p class="acomp-nota">Os filmes para assistir online já estão na sua <a href="{% url 'biblioteca' %}">Biblioteca</a>.</p>
+        {% endif %}
+    </section>
+
+    <div class="acomp-grid">
+        <section class="acomp-card">
+            <h2>Itens</h2>
+            <ul class="pedido-itens">
+                {% for item in pedido.itens.all %}
+                <li>
+                    <a href="{% url 'produto_detalhe' item.produto_id %}">{{ item.produto.titulo }}</a>
+                    <span class="mono">{{ item.modalidade_label }} · {{ item.quantidade }}x · R$ {{ item.subtotal }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </section>
+
+        {% if pedido.precisa_entrega %}
+        <section class="acomp-card">
+            <h2>Endereço de entrega</h2>
+            {% if pedido.tem_endereco %}
+            <p><strong>{{ pedido.entrega_nome }}</strong></p>
+            <p>{{ pedido.endereco_entrega }}</p>
+            {% else %}
+            <p>Endereço ainda não informado. <a href="{% url 'pedido_entrega' pedido.id %}">Preencher agora</a></p>
+            {% endif %}
+        </section>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('[data-copiar]').forEach((botao) => {
+    botao.addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(botao.dataset.copiar); } catch (erro) { return; }
+        botao.textContent = 'Copiado!';
+        setTimeout(() => { botao.textContent = 'Copiar'; }, 2000);
+    });
+});
+</script>
+{% endblock %}
