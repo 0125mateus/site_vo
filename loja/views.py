@@ -979,7 +979,11 @@ class GerarPixView(APIView):
         try:
             payment = gerar_pix(pedido, email)
         except MercadoPagoAPIError as exc:
-            return Response({'detail': str(exc)}, status=status.HTTP_502_BAD_GATEWAY)
+            logger.warning('Pix do pedido %s não gerado pelo Mercado Pago: %s', pedido.pk, exc)
+            return Response(
+                {'detail': 'O Pix ainda não está disponível: a loja precisa cadastrar a chave Pix. Tente de novo mais tarde.'},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
 
         pix = dados_pix_do_pagamento(payment)
         if not pix:
