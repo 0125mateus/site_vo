@@ -121,6 +121,19 @@ class LivroForm(forms.ModelForm):
         }
 
 
+class LinkOuCodigoIncorporarField(forms.URLField):
+    """Aceita o link ou o código <iframe> copiado do Bunny/YouTube/Vimeo."""
+
+    def to_python(self, value):
+        import html
+
+        texto = (value or '').strip()
+        src = re.search(r'src=["\']([^"\']+)["\']', texto)
+        if src:
+            texto = html.unescape(src.group(1))
+        return super().to_python(texto)
+
+
 class MidiaForm(forms.ModelForm):
     class Meta:
         model = MidiaAudiovisual
@@ -138,6 +151,7 @@ class MidiaForm(forms.ModelForm):
             'preco': 'Preço do DVD (R$)',
             'estoque': 'DVDs em estoque',
         }
+        field_classes = {'filme_url': LinkOuCodigoIncorporarField}
         widgets = {
             'titulo': forms.TextInput(attrs={'placeholder': 'Ex.: O Poderoso Chefão'}),
             'tipo': forms.Select(),
@@ -148,8 +162,8 @@ class MidiaForm(forms.ModelForm):
             'preco': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
             'preco_assistir': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
             'estoque': forms.NumberInput(attrs={'min': '0'}),
-            'filme_url': forms.URLInput(attrs={
-                'placeholder': 'https://iframe.mediadelivery.net/embed/…',
+            'filme_url': forms.TextInput(attrs={
+                'placeholder': 'Cole o link ou o código "Incorporar" do Bunny',
             }),
             'trailer': forms.ClearableFileInput(attrs={
                 'accept': 'video/mp4,video/webm,video/ogg,.mp4,.webm,.ogg',
@@ -172,6 +186,8 @@ class MidiaForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         for nome in self.CAMPOS_OPCIONAIS_ZERO:
             self.fields[nome].required = False
+        # o código <iframe> colado passa de 500 caracteres antes de virar link
+        self.fields['filme_url'].widget.attrs.pop('maxlength', None)
 
     def clean(self):
         dados = super().clean()

@@ -887,6 +887,29 @@ class GestaoPainelTests(TestCase):
         self.assertTrue(filme.pode_comprar)
         self.assertEqual(filme.preco_assistir, Decimal('9.90'))
 
+    def test_aceita_codigo_incorporar_do_bunny(self):
+        video = '0f6a7c1e-2b3d-4e5f-8a9b-0c1d2e3f4a5b'
+        codigo = (
+            '<div style="position:relative;padding-top:56.25%;">'
+            f'<iframe src="https://iframe.mediadelivery.net/embed/123456/{video}'
+            '?autoplay=true&amp;loop=false&amp;muted=true&amp;preload=true&amp;responsive=true" '
+            'loading="lazy" style="border:0;position:absolute;top:0;height:100%;width:100%;" '
+            'allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;" '
+            'allowfullscreen="true"></iframe></div>'
+        )
+        resposta = self.client.post(reverse('gestao_midia_criar'), {
+            'titulo': 'Nosferatu',
+            'tipo': 'filme',
+            'disponivel_assistir': 'on',
+            'preco_assistir': '5.00',
+            'filme_url': codigo,
+            'ativo': 'on',
+        })
+        self.assertEqual(resposta.status_code, 302)
+        filme = MidiaAudiovisual.objects.get(titulo='Nosferatu')
+        self.assertTrue(filme.filme_url.startswith(f'https://iframe.mediadelivery.net/embed/123456/{video}'))
+        self.assertEqual(filme.filme_embed_url, f'https://iframe.mediadelivery.net/embed/123456/{video}')
+
 
 class PixDaLojaTests(TestCase):
     def setUp(self):
