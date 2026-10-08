@@ -76,6 +76,41 @@
             </div>
             <p class="gestao-field-hint" id="gerar-descricao-status" hidden></p>
 
+            {% if tipo == 'midia' %}
+            <fieldset class="gestao-fieldset">
+                <legend>Assistir online</legend>
+                <label class="gestao-checkbox">
+                    {{ form.disponivel_assistir }}
+                    <span>Vender para assistir online</span>
+                </label>
+                <label for="id_preco_assistir">Preço para assistir (R$)</label>
+                {{ form.preco_assistir }}
+                {% if form.preco_assistir.errors %}<span class="field-error">{{ form.preco_assistir.errors.0 }}</span>{% endif %}
+                <label for="id_filme_url">Link do filme completo</label>
+                {{ form.filme_url }}
+                {% if form.filme_url.errors %}<span class="field-error">{{ form.filme_url.errors.0 }}</span>{% endif %}
+                <p class="gestao-field-hint">YouTube não listado, Vimeo ou Google Drive (compartilhado com "qualquer pessoa com o link"). O cliente só vê o filme na Biblioteca depois que o Pix é aprovado.</p>
+            </fieldset>
+
+            <fieldset class="gestao-fieldset">
+                <legend>DVD físico</legend>
+                <label class="gestao-checkbox">
+                    {{ form.disponivel_venda }}
+                    <span>Vender o DVD físico (entrega no endereço do cliente)</span>
+                </label>
+                <div class="gestao-form-row">
+                    <div>
+                        <label for="id_preco">Preço do DVD (R$)</label>
+                        {{ form.preco }}
+                        {% if form.preco.errors %}<span class="field-error">{{ form.preco.errors.0 }}</span>{% endif %}
+                    </div>
+                    <div>
+                        <label for="id_estoque">DVDs em estoque</label>
+                        {{ form.estoque }}
+                    </div>
+                </div>
+            </fieldset>
+            {% else %}
             <fieldset class="gestao-fieldset">
                 <legend>Venda</legend>
                 <label class="gestao-checkbox">
@@ -114,6 +149,7 @@
                 <label for="id_estoque_aluguel">Estoque aluguel</label>
                 {{ form.estoque_aluguel }}
             </fieldset>
+            {% endif %}
 
             <label class="gestao-checkbox">
                 {{ form.ativo }}
@@ -171,7 +207,7 @@
                 {% if tipo == 'disco' %}
                 MP3, FLAC, WAV… (opcional — versão digital)
                 {% elif tipo == 'midia' %}
-                Opcional. MP4, MKV, AVI ou ISO de até 48 MB.{% if MEDIA_NA_NUVEM %} Filme maior: use o link do YouTube. A capa continua na nuvem.{% else %} Neste computador o arquivo fica salvo junto com a capa.{% endif %}
+                Opcional. MP4 de até 48 MB. Filme inteiro é maior que isso: use o campo "Link do filme completo".
                 {% else %}
                 PDF, EPUB… (opcional — e-book)
                 {% endif %}

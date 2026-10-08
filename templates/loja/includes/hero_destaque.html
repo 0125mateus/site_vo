@@ -4,11 +4,11 @@
     <div class="hero-shade" aria-hidden="true"></div>
     <div class="wrap hero-copy">
         <div class="hero-badges">
-            {% if item.disponivel_venda and item.estoque > 0 %}
-            <span class="pill">Venda</span>
+            {% if item.pode_assistir %}
+            <span class="pill pill--rent">Assistir online</span>
             {% endif %}
-            {% if item.disponivel_aluguel and item.estoque_aluguel > 0 %}
-            <span class="pill pill--rent">Aluguel</span>
+            {% if item.pode_comprar %}
+            <span class="pill">DVD físico</span>
             {% endif %}
             {% if tipo == 'midia' %}
             <span class="pill">{{ item.get_tipo_display }}</span>
@@ -37,22 +37,22 @@
             {% if item.avaliacoes.count %}
             <span class="hero-rating">★ {{ item.avaliacoes.count }} avaliaç{{ item.avaliacoes.count|pluralize:"ão,ões" }}</span>
             {% endif %}
-            {% if item.disponivel_venda and item.preco > 0 %}
-            <strong class="hero-price mono">R$ {{ item.preco }}</strong>
-            {% elif item.disponivel_aluguel and item.preco_aluguel > 0 %}
-            <strong class="hero-price mono">Aluguel R$ {{ item.preco_aluguel }}</strong>
+            {% if item.pode_assistir %}
+            <strong class="hero-price mono">Online R$ {{ item.preco_assistir }}</strong>
+            {% endif %}
+            {% if item.pode_comprar %}
+            <strong class="hero-price mono">DVD R$ {{ item.preco }}</strong>
             {% endif %}
         </div>
         <div class="hero-actions">
-            {% if item.disponivel_venda and item.estoque > 0 and item.preco > 0 %}
+            {% if item.pode_assistir %}
             <form method="post" action="{% url 'adicionar_carrinho' item.id %}" class="js-add-cart">
                 {% csrf_token %}
-                <input type="hidden" name="modalidade" value="venda">
-                <button type="submit" class="btn btn-primary">▶ Comprar agora</button>
+                <input type="hidden" name="modalidade" value="assistir">
+                <button type="submit" class="btn btn-primary">▶ Assistir online</button>
             </form>
-            {% else %}
-            <a class="btn btn-primary" href="{% url 'produto_detalhe' item.id %}">Ver título</a>
             {% endif %}
+            <a class="btn {% if item.pode_assistir %}btn-ghost{% else %}btn-primary{% endif %}" href="{% url 'produto_detalhe' item.id %}">{% if item.pode_comprar %}Comprar o DVD{% else %}Ver filme{% endif %}</a>
             {% if user.is_authenticated %}
             <button
                 type="button"

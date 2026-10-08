@@ -55,36 +55,32 @@
             {% endif %}
 
             <div class="item-detail-commerce">
-                {% if pode_venda or pode_aluguel %}
-                <div class="modalidade-toggle" role="group" aria-label="Modalidade">
-                    {% if pode_venda %}
-                    <button type="button" class="modalidade-toggle-btn is-active" data-modalidade="venda">
-                        Comprar
-                        <span class="mono">R$ {{ produto.preco }}</span>
-                    </button>
+                {% if pode_assistir or pode_venda %}
+                <h2 class="item-opcoes-titulo">Como você quer este filme?</h2>
+                <div class="item-opcoes">
+                    {% if pode_assistir %}
+                    <form method="post" action="{% url 'adicionar_carrinho' produto.id %}" class="item-opcao js-add-cart">
+                        {% csrf_token %}
+                        <input type="hidden" name="modalidade" value="assistir">
+                        <input type="hidden" name="next" value="{{ request.path }}">
+                        <span class="item-opcao-nome">Assistir online</span>
+                        <strong class="item-opcao-preco mono">R$ {{ produto.preco_assistir }}</strong>
+                        <span class="item-opcao-info">Pague com Pix e assista na sua Biblioteca, sem esperar entrega.</span>
+                        <button type="submit" class="btn btn-primary">▶ Quero assistir</button>
+                    </form>
                     {% endif %}
-                    {% if pode_aluguel %}
-                    <button type="button" class="modalidade-toggle-btn{% if not pode_venda %} is-active{% endif %}" data-modalidade="aluguel">
-                        Alugar
-                        <span class="mono">R$ {{ produto.preco_aluguel }} / {{ produto.dias_aluguel }}d</span>
-                    </button>
+                    {% if pode_venda %}
+                    <form method="post" action="{% url 'adicionar_carrinho' produto.id %}" class="item-opcao js-add-cart">
+                        {% csrf_token %}
+                        <input type="hidden" name="modalidade" value="venda">
+                        <input type="hidden" name="next" value="{{ request.path }}">
+                        <span class="item-opcao-nome">DVD físico</span>
+                        <strong class="item-opcao-preco mono">R$ {{ produto.preco }}</strong>
+                        <span class="item-opcao-info">Entregue no seu endereço. Você informa o endereço antes do Pix.</span>
+                        <button type="submit" class="btn btn-ghost">Comprar o DVD</button>
+                    </form>
                     {% endif %}
                 </div>
-
-                <form method="post" action="{% url 'adicionar_carrinho' produto.id %}" class="item-detail-form js-add-cart" id="item-detail-form">
-                    {% csrf_token %}
-                    <input type="hidden" name="modalidade" id="item-modalidade" value="{% if pode_venda %}venda{% else %}aluguel{% endif %}">
-                    <input type="hidden" name="next" value="{{ request.path }}">
-                    <button type="submit" class="btn btn-primary btn-detail-cta" id="item-detail-cta">
-                        {% if pode_venda %}Adicionar compra ao carrinho{% else %}Adicionar aluguel ao carrinho{% endif %}
-                    </button>
-                </form>
-
-                <p class="item-detail-hint mono" id="item-detail-hint">
-                    {% if pode_venda %}Compra: o item é seu após o pagamento.{% endif %}
-                    {% if pode_venda and pode_aluguel %} · {% endif %}
-                    {% if pode_aluguel %}Aluguel: acesso por {{ produto.dias_aluguel }} dias após pagamento.{% endif %}
-                </p>
                 {% else %}
                 <p class="item-detail-unavailable">Indisponível no momento.</p>
                 {% endif %}

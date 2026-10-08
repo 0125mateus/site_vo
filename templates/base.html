@@ -24,14 +24,12 @@
             </a>
             <form class="header-search" action="{% url 'busca' %}" method="get" role="search">
                 {% include 'includes/icon.html' with icon='search' class='header-search-icon' %}
-                <input type="search" name="q" placeholder="Buscar discos, livros, filmes…" aria-label="Buscar no catálogo" value="{% if url_name == 'busca' %}{{ request.GET.q }}{% endif %}">
+                <input type="search" name="q" placeholder="Buscar filmes ou diretores…" aria-label="Buscar no catálogo" value="{% if url_name == 'busca' %}{{ request.GET.q }}{% endif %}">
             </form>
             <nav class="header-nav">
                 <ul>
                     <li><a href="{% url 'home' %}" class="{% if url_name == 'home' %}is-active{% endif %}">Início</a></li>
-                    <li><a href="{% url 'catalogo_discos' %}" class="{% if url_name == 'catalogo_discos' %}is-active{% endif %}">Música</a></li>
                     <li><a href="{% url 'catalogo_filmes' %}" class="{% if url_name == 'catalogo_filmes' %}is-active{% endif %}">Filmes</a></li>
-                    <li><a href="{% url 'catalogo_livros' %}" class="{% if url_name == 'catalogo_livros' %}is-active{% endif %}">Livros</a></li>
                     {% if user.is_authenticated %}
                     <li><a href="{% url 'biblioteca' %}" class="{% if url_name == 'biblioteca' or url_name == 'reproduzir_conteudo' %}is-active{% endif %}">Biblioteca</a></li>
                     <li><a href="{% url 'meus_pedidos' %}" class="{% if url_name == 'meus_pedidos' %}is-active{% endif %}">Pedidos</a></li>
@@ -94,14 +92,11 @@
                     <span class="mark" aria-hidden="true"></span>
                     Vinil &amp; Página
                 </a>
-                <p>Plataforma para descobrir discos, filmes e livros — e levá-los para casa ou por alguns dias.</p>
+                <p>Filmes para assistir online ou comprar em DVD físico, com pagamento por Pix.</p>
             </div>
             <nav class="footer-nav" aria-label="Rodapé">
                 <a href="{% url 'home' %}">Início</a>
-                <a href="{% url 'catalogo_discos' %}">Música</a>
                 <a href="{% url 'catalogo_filmes' %}">Filmes</a>
-                <a href="{% url 'catalogo_livros' %}">Livros</a>
-                <a href="{% url 'clube' %}">Clube</a>
             </nav>
             <form method="post" action="{% url 'inscrever_newsletter' %}" class="newsletter-form">
                 {% csrf_token %}
@@ -120,9 +115,9 @@
             {% include 'includes/icon.html' with icon='home' class='bottom-nav-icon' %}
             <span>Início</span>
         </a>
-        <a href="{% url 'catalogo_discos' %}" class="bottom-nav-item{% if url_name == 'catalogo_discos' %} is-active{% endif %}">
-            {% include 'includes/icon.html' with icon='music' class='bottom-nav-icon' %}
-            <span>Música</span>
+        <a href="{% url 'catalogo_filmes' %}" class="bottom-nav-item{% if url_name == 'catalogo_filmes' %} is-active{% endif %}">
+            {% include 'includes/icon.html' with icon='film' class='bottom-nav-icon' %}
+            <span>Filmes</span>
         </a>
         <a href="{% url 'busca' %}" class="bottom-nav-item{% if url_name == 'busca' %} is-active{% endif %}">
             {% include 'includes/icon.html' with icon='search' class='bottom-nav-icon' %}

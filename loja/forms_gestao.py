@@ -68,10 +68,17 @@ class MidiaForm(forms.ModelForm):
         fields = [
             'titulo', 'tipo', 'diretor', 'ano', 'duracao_min', 'descricao',
             'imagem', 'trailer', 'trailer_url', 'arquivo',
+            'disponivel_assistir', 'preco_assistir', 'filme_url',
             'disponivel_venda', 'preco', 'estoque',
-            'disponivel_aluguel', 'preco_aluguel', 'dias_aluguel', 'estoque_aluguel',
             'ativo',
         ]
+        labels = {
+            'disponivel_assistir': 'Vender para assistir online',
+            'preco_assistir': 'Preço para assistir (R$)',
+            'disponivel_venda': 'Vender o DVD físico',
+            'preco': 'Preço do DVD (R$)',
+            'estoque': 'DVDs em estoque',
+        }
         widgets = {
             'titulo': forms.TextInput(attrs={'placeholder': 'Ex.: O Poderoso Chefão'}),
             'tipo': forms.Select(),
@@ -80,10 +87,11 @@ class MidiaForm(forms.ModelForm):
             'duracao_min': forms.NumberInput(attrs={'min': '1', 'placeholder': '175'}),
             'descricao': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Sinopse ou detalhes'}),
             'preco': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
-            'preco_aluguel': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
-            'dias_aluguel': forms.NumberInput(attrs={'min': '1'}),
+            'preco_assistir': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
             'estoque': forms.NumberInput(attrs={'min': '0'}),
-            'estoque_aluguel': forms.NumberInput(attrs={'min': '0'}),
+            'filme_url': forms.URLInput(attrs={
+                'placeholder': 'https://youtu.be/… ou https://drive.google.com/file/d/…',
+            }),
             'trailer': forms.ClearableFileInput(attrs={
                 'accept': 'video/mp4,video/webm,video/ogg,.mp4,.webm,.ogg',
             }),
@@ -98,6 +106,27 @@ class MidiaForm(forms.ModelForm):
                 'data-capa-vertical': '1',
             }),
         }
+
+    CAMPOS_OPCIONAIS_ZERO = ('preco_assistir', 'preco', 'estoque')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for nome in self.CAMPOS_OPCIONAIS_ZERO:
+            self.fields[nome].required = False
+
+    def clean(self):
+        dados = super().clean()
+        for nome in self.CAMPOS_OPCIONAIS_ZERO:
+            if dados.get(nome) is None and nome not in self.errors:
+                dados[nome] = 0
+        if dados.get('disponivel_assistir'):
+            if not dados.get('preco_assistir') or dados['preco_assistir'] <= 0:
+                self.add_error('preco_assistir', 'Informe quanto custa para assistir online.')
+            if not dados.get('filme_url') and not dados.get('arquivo'):
+                self.add_error('filme_url', 'Coloque o link do filme completo para quem pagar conseguir assistir.')
+        if dados.get('disponivel_venda') and (not dados.get('preco') or dados['preco'] <= 0):
+            self.add_error('preco', 'Informe o preço do DVD físico.')
+        return dados
 
 
 class FraseTreinoForm(forms.ModelForm):

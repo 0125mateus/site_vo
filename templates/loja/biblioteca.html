@@ -8,20 +8,17 @@
         <div>
             <span class="section-eyebrow">Sua conta</span>
             <h1>Minha biblioteca</h1>
-            <p class="library-desc">Compras permanentes e aluguéis ativos — acesse o conteúdo digital aqui.</p>
+            <p class="library-desc">Os filmes que você pagou para assistir online e os DVDs que você comprou.</p>
         </div>
-        <a href="{% url 'home' %}" class="btn btn-ghost">Explorar catálogo</a>
+        <a href="{% url 'catalogo_filmes' %}" class="btn btn-ghost">Ver filmes</a>
     </section>
 
     <nav class="library-tabs" aria-label="Biblioteca">
-        <a href="?aba=compras" class="library-tab{% if aba == 'compras' %} is-active{% endif %}">
-            Compras <span class="mono">({{ total_compras }})</span>
+        <a href="?aba=filmes" class="library-tab{% if aba == 'filmes' %} is-active{% endif %}">
+            Assistir online <span class="mono">({{ total_filmes }})</span>
         </a>
-        <a href="?aba=alugueis" class="library-tab{% if aba == 'alugueis' %} is-active{% endif %}">
-            Aluguéis ativos <span class="mono">({{ total_alugueis }})</span>
-        </a>
-        <a href="?aba=expirados" class="library-tab{% if aba == 'expirados' %} is-active{% endif %}">
-            Expirados <span class="mono">({{ total_expirados }})</span>
+        <a href="?aba=dvds" class="library-tab{% if aba == 'dvds' %} is-active{% endif %}">
+            DVDs comprados <span class="mono">({{ total_dvds }})</span>
         </a>
     </nav>
 
@@ -60,22 +57,18 @@
             <div class="library-card-body">
                 <h2><a href="{% url 'produto_detalhe' produto.id %}">{{ produto.titulo }}</a></h2>
                 <p class="library-card-meta mono">
-                    {% if item.modalidade == 'venda' %}
-                    Compra · pedido #{{ item.pedido_id }}
-                    {% else %}
-                    Aluguel · {% if item.dias_restantes is not None %}{{ item.dias_restantes }} dia{{ item.dias_restantes|pluralize }} restante{{ item.dias_restantes|pluralize }}{% endif %}
-                    {% if item.data_devolucao %} · até {{ item.data_devolucao|date:"d/m/Y" }}{% endif %}
-                    {% endif %}
+                    {{ item.modalidade_label }} · pedido #{{ item.pedido_id }}
+                    {% if not item.is_assistir %}· {{ item.quantidade }}x{% endif %}
                 </p>
                 <div class="library-card-actions">
-                    {% if entry.tem_arquivo and item.acesso_liberado %}
-                    <a href="{% url 'reproduzir_conteudo' item.id %}" class="btn btn-primary btn-sm">
-                        {% if entry.tipo_midia == 'audio' %}▶ Ouvir{% elif entry.tipo_midia == 'video' %}▶ Assistir{% elif entry.tipo_midia == 'pdf' %}📖 Ler{% else %}Abrir{% endif %}
-                    </a>
-                    {% elif item.modalidade == 'aluguel' and not item.aluguel_ativo %}
-                    <span class="library-badge library-badge--expired">Aluguel encerrado</span>
-                    {% elif not entry.tem_arquivo %}
-                    <span class="library-badge">Item físico</span>
+                    {% if item.is_assistir %}
+                    {% if entry.pode_assistir %}
+                    <a href="{% url 'reproduzir_conteudo' item.id %}" class="btn btn-primary btn-sm">▶ Assistir</a>
+                    {% else %}
+                    <span class="library-badge">O filme será liberado em breve</span>
+                    {% endif %}
+                    {% else %}
+                    <span class="library-badge">Entrega em {{ item.pedido.entrega_cidade|default:"seu endereço" }}{% if item.pedido.entrega_uf %}/{{ item.pedido.entrega_uf }}{% endif %}</span>
                     {% endif %}
                 </div>
             </div>
@@ -85,14 +78,12 @@
     </div>
     {% else %}
     <div class="library-empty">
-        {% if aba == 'compras' %}
-        <p>Você ainda não comprou nada. Explore discos, livros e filmes no catálogo.</p>
-        {% elif aba == 'alugueis' %}
-        <p>Nenhum aluguel ativo. Alugue um título e ele aparecerá aqui após o pagamento.</p>
+        {% if aba == 'filmes' %}
+        <p>Você ainda não pagou para assistir nenhum filme. Escolha "Assistir online" na página do filme.</p>
         {% else %}
-        <p>Nenhum aluguel expirado.</p>
+        <p>Você ainda não comprou nenhum DVD.</p>
         {% endif %}
-        <a href="{% url 'home' %}" class="btn btn-primary">Ir ao catálogo</a>
+        <a href="{% url 'catalogo_filmes' %}" class="btn btn-primary">Ver filmes</a>
     </div>
     {% endif %}
 </div>

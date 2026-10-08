@@ -48,10 +48,6 @@
                     {% include 'includes/icon.html' with icon='box' class='gestao-side-icon' %}
                     <span class="gestao-side-text">Estoque</span>
                 </a>
-                <a href="{% url 'gestao_alugueis' %}" class="gestao-side-link{% if url_name == 'gestao_alugueis' %} is-active{% endif %}" title="Aluguéis">
-                    {% include 'includes/icon.html' with icon='rent' class='gestao-side-icon' %}
-                    <span class="gestao-side-text">Aluguéis</span>
-                </a>
                 <a href="{% url 'gestao_relatorios' %}" class="gestao-side-link{% if url_name == 'gestao_relatorios' %} is-active{% endif %}" title="Relatórios">
                     {% include 'includes/icon.html' with icon='chart' class='gestao-side-icon' %}
                     <span class="gestao-side-text">Relatórios</span>
@@ -84,7 +80,7 @@
                 <form class="gestao-search" action="{% url 'gestao_busca' %}" method="get" role="search">
                     <label class="sr-only" for="gestao-busca">Buscar no painel</label>
                     {% include 'includes/icon.html' with icon='search' class='gestao-search-icon' %}
-                    <input type="search" id="gestao-busca" name="q" placeholder="Produtos, pedidos, clientes, aluguéis" autocomplete="off" data-busca-url="{% url 'gestao_busca' %}">
+                    <input type="search" id="gestao-busca" name="q" placeholder="Filmes, pedidos, clientes" autocomplete="off" data-busca-url="{% url 'gestao_busca' %}">
                     <div class="gestao-search-panel" id="gestao-busca-resultados" hidden></div>
                 </form>
                 <details class="gestao-notifs">

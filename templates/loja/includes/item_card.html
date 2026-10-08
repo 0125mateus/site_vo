@@ -2,11 +2,11 @@
 {# item: produto; tipo: musica|livro|midia #}
 <article class="item-card item-card--{{ tipo }}">
     <div class="item-card-badges">
-        {% if item.disponivel_aluguel and item.estoque_aluguel > 0 %}
-        <span class="item-badge item-badge--rent">Aluguel</span>
+        {% if item.pode_assistir %}
+        <span class="item-badge item-badge--rent">Online</span>
         {% endif %}
-        {% if item.disponivel_venda and item.estoque > 0 %}
-        <span class="item-badge item-badge--sale">Venda</span>
+        {% if item.pode_comprar %}
+        <span class="item-badge item-badge--sale">DVD</span>
         {% endif %}
     </div>
     {% include 'loja/includes/favorito_btn.html' with item=item %}
@@ -57,32 +57,15 @@
             {% endif %}
         </p>
         <div class="item-prices mono">
-            {% if item.disponivel_venda and item.preco > 0 %}
-            <span class="item-price item-price--sale">R$ {{ item.preco }}</span>
+            {% if item.pode_assistir %}
+            <span class="item-price item-price--rent">Online R$ {{ item.preco_assistir }}</span>
             {% endif %}
-            {% if item.disponivel_aluguel and item.preco_aluguel > 0 %}
-            <span class="item-price item-price--rent">Aluguel R$ {{ item.preco_aluguel }}/{{ item.dias_aluguel }}d</span>
+            {% if item.pode_comprar %}
+            <span class="item-price item-price--sale">DVD R$ {{ item.preco }}</span>
             {% endif %}
         </div>
         <div class="item-actions">
-            <a href="{% url 'produto_detalhe' item.id %}" class="btn btn-ghost btn-sm">Detalhes</a>
-            {% if item.disponivel_venda and item.estoque > 0 and item.preco > 0 %}
-            <form method="post" action="{% url 'adicionar_carrinho' item.id %}" class="js-add-cart">
-                {% csrf_token %}
-                <input type="hidden" name="modalidade" value="venda">
-                <button type="submit" class="btn btn-primary btn-sm btn-card-cart" aria-label="Comprar">
-                    {% include 'includes/icon.html' with icon='cart' class='btn-card-cart-icon' %}
-                    <span class="sr-only">Comprar</span>
-                </button>
-            </form>
-            {% endif %}
-            {% if item.disponivel_aluguel and item.estoque_aluguel > 0 and item.preco_aluguel > 0 %}
-            <form method="post" action="{% url 'adicionar_carrinho' item.id %}" class="js-add-cart">
-                {% csrf_token %}
-                <input type="hidden" name="modalidade" value="aluguel">
-                <button type="submit" class="btn btn-ghost btn-sm">Alugar</button>
-            </form>
-            {% endif %}
+            <a href="{% url 'produto_detalhe' item.id %}" class="btn btn-primary btn-sm">{% if item.pode_assistir or item.pode_comprar %}Escolher{% else %}Detalhes{% endif %}</a>
         </div>
     </div>
 </article>

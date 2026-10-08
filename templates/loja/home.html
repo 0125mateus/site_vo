@@ -1,24 +1,18 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Vinil & Página — venda e aluguel{% endblock %}
+{% block title %}Vinil & Página — filmes online e em DVD{% endblock %}
 
 {% block content %}
 {% if midias %}
 {% include 'loja/includes/hero_destaque.html' with item=midias.0 tipo='midia' %}
-{% elif musicas %}
-{% include 'loja/includes/hero_destaque.html' with item=musicas.0 tipo='musica' %}
-{% elif livros %}
-{% include 'loja/includes/hero_destaque.html' with item=livros.0 tipo='livro' %}
-{% elif novidades %}
-{% include 'loja/includes/hero_destaque.html' with item=novidades.0.produto tipo=novidades.0.tipo %}
 {% else %}
 <section class="hero hero--cinema hero--empty">
     <div class="hero-shade" aria-hidden="true"></div>
     <div class="wrap hero-copy">
         <div class="eyebrow mono">Vinil &amp; Página</div>
-        <h1>Onde a agulha encontra a lombada.</h1>
-        <p>Compre para ficar ou alugue por alguns dias. O catálogo aparece aqui assim que houver títulos ativos.</p>
+        <h1>Filmes para assistir agora ou guardar na estante.</h1>
+        <p>Assista online ou compre o DVD físico. Os filmes aparecem aqui assim que forem cadastrados.</p>
     </div>
 </section>
 {% endif %}
@@ -26,27 +20,27 @@
 <div class="wrap stream-home">
     {% include 'loja/includes/continue_row.html' %}
 
-    {% include 'loja/includes/shelf_row.html' with section_id='novidades' catalog_class='catalog--destaques' eyebrow='' titulo='Novidades' itens=novidades ver_todos_url='' %}
+    {% include 'loja/includes/shelf_row.html' with section_id='midias' catalog_class='catalog--midias' eyebrow='' titulo='Filmes' itens=midias tipo='midia' total=total_midias total_label='título' ver_todos_url='/filmes/' %}
 
-    {% include 'loja/includes/shelf_row.html' with section_id='para-alugar' catalog_class='catalog--aluguel' eyebrow='' titulo='Para alugar' itens=para_aluguel ver_todos_url='' %}
+    {% if para_assistir %}
+    {% include 'loja/includes/shelf_row.html' with section_id='assistir' catalog_class='catalog--midias' eyebrow='' titulo='Para assistir agora' itens=para_assistir tipo='midia' ver_todos_url='/filmes/?modalidade=assistir' %}
+    {% endif %}
 
-    {% include 'loja/includes/shelf_row.html' with section_id='discos' catalog_class='catalog--discos' eyebrow='' titulo='Vinis em destaque' itens=musicas tipo='musica' total=total_musicas total_label='título' ver_todos_url='/discos/' %}
-
-    {% include 'loja/includes/shelf_row.html' with section_id='livros' catalog_class='catalog--livros' eyebrow='' titulo='Livros para descobrir' itens=livros tipo='livro' total=total_livros total_label='título' ver_todos_url='/livros/' %}
-
-    {% include 'loja/includes/shelf_row.html' with section_id='midias' catalog_class='catalog--midias' eyebrow='' titulo='Filmes e DVDs' itens=midias tipo='midia' total=total_midias total_label='título' ver_todos_url='/filmes/' %}
+    {% if dvds %}
+    {% include 'loja/includes/shelf_row.html' with section_id='dvds' catalog_class='catalog--midias' eyebrow='' titulo='DVDs para levar para casa' itens=dvds tipo='midia' ver_todos_url='/filmes/?modalidade=venda' %}
+    {% endif %}
 
     <section class="featured featured--duo" id="curadoria">
         <div class="feat-card" id="destaques">
-            <div class="kicker mono">Como funciona</div>
-            <h3>Comprar ou alugar — você escolhe.</h3>
-            <p>Na venda, o item é seu. No aluguel, você paga o período e devolve. Tudo pelo mesmo carrinho e pagamento.</p>
+            <div class="kicker mono">Assistir online</div>
+            <h3>Pague com Pix e assista na hora.</h3>
+            <p>Escolha "Assistir online" na página do filme. Assim que o Pix cair, o filme fica na sua Biblioteca.</p>
         </div>
         <div class="feat-card">
-            <div class="kicker mono">Combo &amp; Clube</div>
-            <h3>Livro + disco com desconto.</h3>
-            <p>Leve um vinil e um livro juntos e ganhe 10% off. Assine o clube e tenha desconto extra em todas as compras.</p>
-            <a href="{% url 'clube' %}" class="btn btn-ghost">Conhecer o clube</a>
+            <div class="kicker mono">DVD físico</div>
+            <h3>O filme na sua estante.</h3>
+            <p>Escolha "Comprar o DVD", informe o endereço de entrega e pague com Pix.</p>
+            <a href="{% url 'catalogo_filmes' %}" class="btn btn-ghost">Ver filmes</a>
         </div>
     </section>
 </div>

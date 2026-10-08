@@ -29,7 +29,12 @@
         </div>
 
         <div class="player-stage-media" id="player-stage" data-item-id="{{ item.id }}" data-progresso="{{ progresso_segundos }}" data-save-url="{% url 'salvar_progresso' item.id %}">
-            {% if tipo_midia == 'video' %}
+            {% if tipo_midia == 'embed' %}
+            <div class="player-embed">
+                <iframe src="{{ embed_url }}" title="{{ produto.titulo }}" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+            </div>
+            <p class="player-embed-hint">Se o filme não abrir aqui, <a href="{{ filme_url }}" target="_blank" rel="noopener">abra em outra aba</a>.</p>
+            {% elif tipo_midia == 'video' %}
             <video class="player-video" id="player-main" controls playsinline src="{{ arquivo_url }}"></video>
             {% elif tipo_midia == 'audio' %}
             <div class="player-audio-shell">

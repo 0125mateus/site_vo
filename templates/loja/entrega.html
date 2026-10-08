@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Endereço de entrega — Pedido #{{ pedido.id }}{% endblock %}
+
+{% block content %}
+<div class="wrap">
+    <section class="page-panel page-panel--checkout entrega">
+        <span class="section-eyebrow">Pedido #{{ pedido.id }} · etapa 1 de 2</span>
+        <h1>Onde entregar o DVD?</h1>
+        <p class="checkout-mp-hint">
+            {% for item in dvds %}{% if not forloop.first %}, {% endif %}<strong>{{ item.quantidade }}× {{ item.produto.titulo }}</strong>{% endfor %}
+            {% if dvds|length == 1 %}será entregue{% else %}serão entregues{% endif %} neste endereço. Depois você vai para o pagamento por Pix.
+        </p>
+
+        <form method="post" class="entrega-form" novalidate>
+            {% csrf_token %}
+            {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
+
+            <div class="entrega-grid">
+                <label class="entrega-field entrega-field--wide">
+                    <span>Nome de quem recebe</span>
+                    {{ form.entrega_nome }}
+                    {% if form.entrega_nome.errors %}<small class="field-error">{{ form.entrega_nome.errors.0 }}</small>{% endif %}
+                </label>
+                <label class="entrega-field">
+                    <span>Telefone com DDD</span>
+                    {{ form.entrega_telefone }}
+                    {% if form.entrega_telefone.errors %}<small class="field-error">{{ form.entrega_telefone.errors.0 }}</small>{% endif %}
+                </label>
+                <label class="entrega-field">
+                    <span>CEP</span>
+                    {{ form.entrega_cep }}
+                    <small class="entrega-cep-status" id="entrega-cep-status" aria-live="polite"></small>
+                    {% if form.entrega_cep.errors %}<small class="field-error">{{ form.entrega_cep.errors.0 }}</small>{% endif %}
+                </label>
+                <label class="entrega-field entrega-field--wide">
+                    <span>Rua</span>
+                    {{ form.entrega_logradouro }}
+                    {% if form.entrega_logradouro.errors %}<small class="field-error">{{ form.entrega_logradouro.errors.0 }}</small>{% endif %}
+                </label>
+                <label class="entrega-field">
+                    <span>Número</span>
+                    {{ form.entrega_numero }}
+                    {% if form.entrega_numero.errors %}<small class="field-error">{{ form.entrega_numero.errors.0 }}</small>{% endif %}
+                </label>
+                <label class="entrega-field">
+                    <span>Complemento</span>
+                    {{ form.entrega_complemento }}
+                </label>
+                <label class="entrega-field">
+                    <span>Bairro</span>
+                    {{ form.entrega_bairro }}
+                    {% if form.entrega_bairro.errors %}<small class="field-error">{{ form.entrega_bairro.errors.0 }}</small>{% endif %}
+                </label>
+                <label class="entrega-field">
+                    <span>Cidade</span>
+                    {{ form.entrega_cidade }}
+                    {% if form.entrega_cidade.errors %}<small class="field-error">{{ form.entrega_cidade.errors.0 }}</small>{% endif %}
+                </label>
+                <label class="entrega-field">
+                    <span>Estado</span>
+                    {{ form.entrega_uf }}
+                    {% if form.entrega_uf.errors %}<small class="field-error">{{ form.entrega_uf.errors.0 }}</small>{% endif %}
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Continuar para o Pix</button>
+        </form>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/entrega-cep.js' %}?v={{ STATIC_VERSION }}"></script>
+{% endblock %}

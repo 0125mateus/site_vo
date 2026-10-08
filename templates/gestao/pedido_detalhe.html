@@ -19,7 +19,7 @@
             {% for item in pedido.itens.all %}
             <li>
                 <strong>{{ item.produto.titulo }}</strong>
-                <span class="mono">{{ item.get_modalidade_display }} · {{ item.quantidade }}x · R$ {{ item.subtotal }}</span>
+                <span class="mono">{{ item.modalidade_label }} · {{ item.quantidade }}x · R$ {{ item.subtotal }}</span>
             </li>
             {% endfor %}
         </ul>
@@ -34,5 +34,20 @@
         <p class="gestao-field-hint mono">MP: {{ pedido.mercadopago_preference_id|truncatechars:40 }}</p>
         {% endif %}
     </section>
+
+    {% if pedido.precisa_entrega %}
+    <section class="gestao-pedido-card">
+        <h2>Entrega do DVD</h2>
+        {% if pedido.tem_endereco %}
+        <p><strong>{{ pedido.entrega_nome }}</strong></p>
+        {% if pedido.entrega_telefone %}<p class="mono">{{ pedido.entrega_telefone }}</p>{% endif %}
+        <p>{{ pedido.entrega_logradouro }}, {{ pedido.entrega_numero }}{% if pedido.entrega_complemento %} — {{ pedido.entrega_complemento }}{% endif %}</p>
+        <p>{{ pedido.entrega_bairro }} · {{ pedido.entrega_cidade }}/{{ pedido.entrega_uf }}</p>
+        <p class="mono">CEP {{ pedido.entrega_cep }}</p>
+        {% else %}
+        <p class="gestao-field-hint">O cliente ainda não preencheu o endereço.</p>
+        {% endif %}
+    </section>
+    {% endif %}
 </div>
 {% endblock %}

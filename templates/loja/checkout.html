@@ -2,10 +2,6 @@
 
 {% block title %}Checkout — Pedido #{{ pedido.id }}{% endblock %}
 
-{% block extra_head %}
-<script src="https://sdk.mercadopago.com/js/v2"></script>
-{% endblock %}
-
 {% block content %}
 <div class="wrap">
     <section class="page-panel checkout page-panel--checkout">
@@ -16,7 +12,7 @@
             <ul class="checkout-items">
                 {% for item in pedido.itens.all %}
                 <li>
-                    <span>{{ item.quantidade }}× {{ item.produto.titulo }} ({{ item.get_modalidade_display }})</span>
+                    <span>{{ item.quantidade }}× {{ item.produto.titulo }} ({{ item.modalidade_label }})</span>
                     <span class="mono">R$ {{ item.subtotal }}</span>
                 </li>
                 {% endfor %}
@@ -43,15 +39,46 @@
             <p class="checkout-resumo">Pedido #{{ pedido.id }} — Total: <strong class="mono">R$ {{ pedido.valor_total }}</strong></p>
         </div>
 
+        {% if pedido.precisa_entrega and pedido.tem_endereco %}
+        <div class="checkout-entrega">
+            <h2>Entrega do DVD</h2>
+            <p><strong>{{ pedido.entrega_nome }}</strong>{% if pedido.entrega_telefone %} · {{ pedido.entrega_telefone }}{% endif %}</p>
+            <p>{{ pedido.endereco_entrega }}</p>
+            {% if pedido.status != 'aprovado' %}
+            <a href="{% url 'pedido_entrega' pedido.id %}" class="btn btn-ghost btn-sm">Alterar endereço</a>
+            {% endif %}
+        </div>
+        {% endif %}
+
         {% if mercadopago_sandbox %}
         <p class="checkout-mp-hint">Ambiente de teste: este pagamento não cobra de verdade.</p>
         {% endif %}
-        <div id="payment-brick-container" class="payment-brick-wrapper"></div>
-        <a id="mp-pay-link" class="btn btn-primary checkout-mp-link" hidden>Pagar com Pix ou cartão</a>
-        <div id="payment-feedback" class="payment-feedback" hidden></div>
-        <div id="payment-loading" class="payment-loading" hidden>
-            <p>Abrindo o pagamento…</p>
+
+        <div class="pix-on-page" id="pix-area">
+            <h2>Pagar com Pix</h2>
+            <p class="checkout-mp-hint">A loja aceita somente Pix. O pedido é confirmado assim que o pagamento cair.</p>
+
+            <form id="pix-email-form" class="pix-email-form"{% if not pedir_email %} hidden{% endif %}>
+                <label class="pix-copy-label" for="pix-email">Seu e-mail (o Mercado Pago pede para gerar o Pix)</label>
+                <input type="email" id="pix-email" class="pix-copy-code" required autocomplete="email" placeholder="voce@exemplo.com">
+                <button type="submit" class="btn btn-primary">Gerar Pix</button>
+            </form>
+
+            <div id="pix-loading" class="payment-loading"{% if pedir_email %} hidden{% endif %}>Gerando o Pix…</div>
+
+            <div id="pix-pronto" hidden>
+                <img id="pix-qr" class="pix-qr-img" alt="QR Code do Pix">
+                <label class="pix-copy-label" for="pix-code">Pix copia e cola</label>
+                <textarea id="pix-code" class="pix-copy-code" rows="3" readonly></textarea>
+                <button type="button" id="pix-copiar" class="btn btn-primary">Copiar código Pix</button>
+                <p class="pix-wait" id="pix-expira"></p>
+                <p class="pix-wait">Abra o app do seu banco, escolha Pix e leia o QR Code ou cole o código. Esta página atualiza sozinha quando o pagamento for confirmado.</p>
+            </div>
+
+            <button type="button" id="pix-novo" class="btn btn-ghost" hidden>Gerar novo Pix</button>
         </div>
+
+        <div id="payment-feedback" class="payment-feedback" hidden></div>
     </section>
 </div>
 {% endblock %}
@@ -60,14 +87,23 @@
 <script>
 (function () {
     const pedidoId = {{ pedido.id }};
-    const publicKey = "{{ mercadopago_public_key|escapejs }}";
+    const processandoUrl = "{% url 'processando_pedido' pedido.id %}";
     const feedbackEl = document.getElementById('payment-feedback');
-    const loadingEl = document.getElementById('payment-loading');
-    const payLink = document.getElementById('mp-pay-link');
+    const emailForm = document.getElementById('pix-email-form');
+    const emailInput = document.getElementById('pix-email');
+    const loadingEl = document.getElementById('pix-loading');
+    const prontoEl = document.getElementById('pix-pronto');
+    const qrEl = document.getElementById('pix-qr');
+    const codeEl = document.getElementById('pix-code');
+    const copiarBtn = document.getElementById('pix-copiar');
+    const expiraEl = document.getElementById('pix-expira');
+    const novoBtn = document.getElementById('pix-novo');
+    let consultaTimer = 0;
+    let expiraEm = 0;
 
     function showFeedback(message, isError) {
-        feedbackEl.hidden = false;
-        feedbackEl.textContent = message;
+        feedbackEl.hidden = !message;
+        feedbackEl.textContent = message || '';
         feedbackEl.className = 'payment-feedback ' + (isError ? 'is-error' : 'is-info');
     }
 
@@ -76,86 +112,105 @@
         return match ? decodeURIComponent(match[1]) : '';
     }
 
-    function ativarLinkPagamento(url) {
-        if (!url || !payLink) return;
-        payLink.href = url;
-        payLink.hidden = false;
+    function mostrarExpiracao(iso) {
+        expiraEm = 0;
+        if (!iso) { expiraEl.textContent = ''; return; }
+        const data = new Date(iso);
+        if (Number.isNaN(data.getTime())) { expiraEl.textContent = ''; return; }
+        expiraEm = data.getTime();
+        const hora = data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        expiraEl.textContent = `Este Pix vale até as ${hora}.`;
     }
 
-    async function iniciarCheckout() {
-        if (!publicKey) {
-            showFeedback('Pagamento indisponível no momento. Tente novamente mais tarde.', true);
+    async function consultarStatus() {
+        if (expiraEm && Date.now() > expiraEm) {
+            prontoEl.hidden = true;
+            novoBtn.hidden = false;
+            showFeedback('Este Pix venceu. Gere um novo para pagar.', true);
             return;
         }
-
         try {
-            const response = await fetch(`/api/pedidos/${pedidoId}/pagamento/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCsrfToken(),
-                },
-                credentials: 'same-origin',
-            });
-
-            if (!response.ok) {
-                const data = await response.json().catch(() => ({}));
-                throw new Error(data.detail || 'Não foi possível iniciar o pagamento.');
-            }
-
-            const data = await response.json();
-            const publicKeyFromApi = String(data.public_key || publicKey || '');
-            const preferenceId = data.preference_id ? String(data.preference_id) : '';
-            const checkoutUrl = data.checkout_url || (data.sandbox ? data.sandbox_init_point : data.init_point) || '';
-            const isSandbox = data.sandbox === true;
-            ativarLinkPagamento(checkoutUrl);
-
-            if (isSandbox && checkoutUrl) {
-                loadingEl.hidden = false;
-                window.location.href = checkoutUrl;
-                return;
-            }
-
-            if (!publicKeyFromApi || !preferenceId) {
-                if (checkoutUrl) {
-                    loadingEl.hidden = false;
-                    window.location.href = checkoutUrl;
+            const response = await fetch(`/api/pedidos/${pedidoId}/status/`, { credentials: 'same-origin' });
+            if (response.ok) {
+                const data = await response.json();
+                if (data.status === 'aprovado') {
+                    window.location.href = processandoUrl;
                     return;
                 }
-                throw new Error('Pagamento indisponível no momento. Tente novamente mais tarde.');
+                if (data.status === 'recusado' || data.status === 'cancelado') {
+                    prontoEl.hidden = true;
+                    novoBtn.hidden = false;
+                    showFeedback('O Pix não foi concluído. Gere um novo para pagar.', true);
+                    return;
+                }
             }
+        } catch (erro) {
+            /* tenta de novo no próximo ciclo */
+        }
+        consultaTimer = window.setTimeout(consultarStatus, 4000);
+    }
 
-            const mp = new MercadoPago(publicKeyFromApi, { locale: 'pt-BR' });
-            await mp.bricks().create('wallet', 'payment-brick-container', {
-                initialization: {
-                    preferenceId: preferenceId,
-                    redirectMode: 'self',
-                },
-                customization: {
-                    theme: 'default',
-                    customStyle: {
-                        valueProp: 'security_safety',
-                    },
-                },
-                callbacks: {
-                    onReady: () => {
-                        feedbackEl.hidden = true;
-                    },
-                    onError: () => {
-                        if (checkoutUrl) {
-                            window.location.href = checkoutUrl;
-                            return;
-                        }
-                        showFeedback('Não foi possível abrir o botão de pagamento. Use o botão abaixo.', true);
-                    },
-                },
+    async function gerarPix(email) {
+        window.clearTimeout(consultaTimer);
+        showFeedback('');
+        novoBtn.hidden = true;
+        prontoEl.hidden = true;
+        loadingEl.hidden = false;
+        try {
+            const response = await fetch(`/api/pedidos/${pedidoId}/pix/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+                credentials: 'same-origin',
+                body: JSON.stringify(email ? { email } : {}),
             });
-        } catch (error) {
-            showFeedback(error.message || 'Erro ao carregar o pagamento.', true);
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(data.detail || 'Não foi possível gerar o Pix.');
+            if (data.status === 'aprovado') {
+                window.location.href = processandoUrl;
+                return;
+            }
+            const pix = data.pix || {};
+            if (!pix.qr_code) throw new Error('Não foi possível gerar o Pix.');
+            if (pix.qr_code_base64) {
+                qrEl.src = `data:image/png;base64,${pix.qr_code_base64}`;
+                qrEl.hidden = false;
+            } else {
+                qrEl.hidden = true;
+            }
+            codeEl.value = pix.qr_code;
+            mostrarExpiracao(data.expira_em);
+            emailForm.hidden = true;
+            prontoEl.hidden = false;
+            consultaTimer = window.setTimeout(consultarStatus, 4000);
+        } catch (erro) {
+            novoBtn.hidden = false;
+            showFeedback(erro.message || 'Erro ao gerar o Pix.', true);
+        } finally {
+            loadingEl.hidden = true;
         }
     }
 
-    iniciarCheckout();
+    copiarBtn.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(codeEl.value);
+        } catch (erro) {
+            codeEl.select();
+            document.execCommand('copy');
+        }
+        copiarBtn.textContent = 'Código copiado!';
+        window.setTimeout(() => { copiarBtn.textContent = 'Copiar código Pix'; }, 2500);
+    });
+
+    emailForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        gerarPix(emailInput.value.trim());
+    });
+
+    novoBtn.addEventListener('click', () => {
+        gerarPix(emailInput.value.trim());
+    });
+
+    if (emailForm.hidden) gerarPix('');
 })();
 </script>
 {% endblock %}

@@ -28,7 +28,7 @@ from rest_framework.views import APIView
 
 from django.conf import settings
 
-from .forms import RegistroClienteForm
+from .forms import EnderecoEntregaForm, RegistroClienteForm
 from .mercadopago_service import (
     MercadoPagoAPIError,
     aplicar_pagamento_ao_pedido,
@@ -37,6 +37,7 @@ from .mercadopago_service import (
     criar_preferencia_pagamento,
     dados_pix_do_pagamento,
     escolher_url_checkout,
+    gerar_pix,
     sincronizar_pedido_com_mercadopago,
     validar_assinatura_webhook,
 )
@@ -60,6 +61,13 @@ from .promocoes import calcular_promocoes_carrinho, calcular_promocoes_pedido
 logger = logging.getLogger(__name__)
 
 CARRINHO_SESSION_KEY = 'carrinho'
+
+# Por enquanto a loja vende só filmes: assistir online ou DVD físico (sem aluguel, discos e livros).
+MODALIDADES_LOJA = (ModalidadeComercial.ASSISTIR, ModalidadeComercial.VENDA)
+
+
+def _filmes_ativos():
+    return MidiaAudiovisual.objects.filter(ativo=True)
 
 
 def _get_carrinho(request):
@@ -109,9 +117,11 @@ def _montar_itens_carrinho(request):
                 plano_clube = plano
             continue
 
-        produto = Produto.objects.filter(pk=entry['produto_id'], ativo=True).first()
         modalidade = entry.get('modalidade', ModalidadeComercial.VENDA)
-        quantidade = entry.get('quantidade', 1)
+        if modalidade not in MODALIDADES_LOJA:
+            continue
+        produto = _filmes_ativos().filter(pk=entry['produto_id']).first()
+        quantidade = 1 if modalidade == ModalidadeComercial.ASSISTIR else entry.get('quantidade', 1)
         if not produto or not produto.disponivel_para(modalidade):
             continue
         preco = produto.preco_para(modalidade)
@@ -120,7 +130,7 @@ def _montar_itens_carrinho(request):
             'key': key,
             'produto': produto,
             'modalidade': modalidade,
-            'modalidade_label': dict(ModalidadeComercial.choices).get(modalidade, modalidade),
+            'modalidade_label': produto.rotulo_modalidade(modalidade),
             'quantidade': quantidade,
             'preco_unitario': preco,
             'dias_aluguel': produto.dias_aluguel if modalidade == ModalidadeComercial.ALUGUEL else None,
@@ -259,9 +269,9 @@ def _aplicar_filtros_catalogo(qs, modalidade='', ordem='recentes'):
     qs = qs.filter(ativo=True)
 
     if modalidade == ModalidadeComercial.VENDA:
-        qs = qs.filter(disponivel_venda=True, estoque__gt=0)
-    elif modalidade == ModalidadeComercial.ALUGUEL:
-        qs = qs.filter(disponivel_aluguel=True, estoque_aluguel__gt=0)
+        qs = qs.filter(disponivel_venda=True, estoque__gt=0, preco__gt=0)
+    elif modalidade == ModalidadeComercial.ASSISTIR:
+        qs = qs.filter(disponivel_assistir=True, preco_assistir__gt=0)
 
     if ordem == 'titulo':
         qs = qs.order_by('titulo')
@@ -289,31 +299,11 @@ def busca(request):
     total = 0
 
     if q:
-        musicas = Musica.objects.filter(
-            Q(titulo__icontains=q) | Q(artista__icontains=q),
-        )
-        livros = Livro.objects.filter(
-            Q(titulo__icontains=q) | Q(autor__icontains=q) | Q(isbn__icontains=q),
-        )
         midias = MidiaAudiovisual.objects.filter(
             Q(titulo__icontains=q) | Q(diretor__icontains=q),
         )
-
-        musicas = _aplicar_filtros_catalogo(musicas, modalidade, ordem)
-        livros = _aplicar_filtros_catalogo(livros, modalidade, ordem)
         midias = _aplicar_filtros_catalogo(midias, modalidade, ordem)
-
-        if tipo == 'musica':
-            livros = Livro.objects.none()
-            midias = MidiaAudiovisual.objects.none()
-        elif tipo == 'livro':
-            musicas = Musica.objects.none()
-            midias = MidiaAudiovisual.objects.none()
-        elif tipo == 'midia':
-            musicas = Musica.objects.none()
-            livros = Livro.objects.none()
-
-        total = musicas.count() + livros.count() + midias.count()
+        total = midias.count()
 
     return render(request, 'loja/busca.html', {
         'q': q,
@@ -344,51 +334,38 @@ def _catalogo_response(request, secao, titulo, eyebrow, queryset, catalog_class,
 
 
 def catalogo_discos(request):
-    return _catalogo_response(
-        request, 'discos', 'Na prateleira dos discos', 'Vinil · Disqueira',
-        Musica.objects.all(), 'catalog--discos', 'título', 'musica',
-    )
+    return redirect('catalogo_filmes')
 
 
 def catalogo_livros(request):
-    return _catalogo_response(
-        request, 'livros', 'Na prateleira dos livros', 'Sebo · Lombadas',
-        Livro.objects.all(), 'catalog--livros', 'título', 'livro',
-    )
+    return redirect('catalogo_filmes')
 
 
 def catalogo_filmes(request):
     return _catalogo_response(
-        request, 'midias', 'Filmes, DVDs e vídeos', 'Cinema · DVD / Blu-ray',
+        request, 'midias', 'Filmes', 'Assista online ou leve o DVD',
         MidiaAudiovisual.objects.all(), 'catalog--midias', 'título', 'midia',
     )
 
 
 def home(request):
-    base = Produto.objects.filter(ativo=True)
-    novidades = list(base.order_by('-criado_em')[:8])
-    para_aluguel = list(
-        base.filter(disponivel_aluguel=True, estoque_aluguel__gt=0).order_by('-criado_em')[:8]
+    filmes = _filmes_ativos()
+    midias = list(filmes.order_by('-criado_em')[:12])
+    para_assistir = list(
+        filmes.filter(disponivel_assistir=True, preco_assistir__gt=0).order_by('-criado_em')[:12]
     )
-    novidades_rows = [{'produto': p, 'tipo': _tipo_de_produto(p)} for p in novidades]
-    aluguel_rows = [{'produto': p, 'tipo': _tipo_de_produto(p)} for p in para_aluguel]
-
-    musicas = Musica.objects.filter(ativo=True).order_by('-criado_em')[:8]
-    livros = Livro.objects.filter(ativo=True).order_by('-criado_em')[:8]
-    midias = MidiaAudiovisual.objects.filter(ativo=True).order_by('-criado_em')[:8]
+    dvds = list(
+        filmes.filter(disponivel_venda=True, estoque__gt=0, preco__gt=0).order_by('-criado_em')[:12]
+    )
 
     continuar = _continuar_assistindo(request.user) if request.user.is_authenticated else []
 
     return render(request, 'loja/home.html', {
-        'novidades': novidades_rows,
-        'para_aluguel': aluguel_rows,
-        'continuar': continuar,
-        'musicas': musicas,
-        'livros': livros,
         'midias': midias,
-        'total_musicas': Musica.objects.filter(ativo=True).count(),
-        'total_livros': Livro.objects.filter(ativo=True).count(),
-        'total_midias': MidiaAudiovisual.objects.filter(ativo=True).count(),
+        'para_assistir': para_assistir,
+        'dvds': dvds,
+        'continuar': continuar,
+        'total_midias': filmes.count(),
         'ModalidadeComercial': ModalidadeComercial,
     })
 
@@ -405,6 +382,8 @@ def meus_pedidos(request):
 
 def produto_detalhe(request, produto_id):
     ctx = _resolver_produto(produto_id)
+    if ctx['tipo'] != 'midia':
+        return redirect('catalogo_filmes')
     produto = ctx['produto']
     avaliacoes = produto.avaliacoes.select_related('usuario').order_by('-criado_em')[:20]
     media_nota = produto.avaliacoes.aggregate(m=Avg('nota'))['m']
@@ -414,8 +393,8 @@ def produto_detalhe(request, produto_id):
         minha_avaliacao = Avaliacao.objects.filter(usuario=request.user, produto=produto).first()
     ctx.update({
         'ModalidadeComercial': ModalidadeComercial,
-        'pode_venda': produto.disponivel_para(ModalidadeComercial.VENDA),
-        'pode_aluguel': produto.disponivel_para(ModalidadeComercial.ALUGUEL),
+        'pode_venda': produto.pode_comprar,
+        'pode_assistir': produto.pode_assistir,
         'relacionados': _produtos_relacionados(produto_id, ctx['tipo']),
         'avaliacoes': avaliacoes,
         'total_avaliacoes': total_avaliacoes,
@@ -463,52 +442,43 @@ def inscrever_newsletter(request):
 
 @login_required
 def biblioteca(request):
-    aba = request.GET.get('aba', 'compras')
-    if aba not in ('compras', 'alugueis', 'expirados'):
-        aba = 'compras'
+    aba = request.GET.get('aba', 'filmes')
+    if aba not in ('filmes', 'dvds'):
+        aba = 'filmes'
 
     itens = (
         ItemPedido.objects.filter(
             pedido__cliente=request.user,
             pedido__status=Pedido.STATUS_APROVADO,
+            modalidade__in=MODALIDADES_LOJA,
         )
         .select_related('produto', 'pedido')
         .order_by('-pedido__criado_em')
     )
 
-    compras = []
-    alugueis_ativos = []
-    expirados = []
+    filmes = []
+    dvds = []
 
     for item in itens:
+        ficha = item.produto.ficha_midia()
         entry = {
             'item': item,
             'produto': item.produto,
-            'tem_arquivo': item.produto.tem_arquivo,
-            'tipo_midia': _tipo_midia_arquivo(item.produto) if item.produto.tem_arquivo else None,
+            'pode_assistir': bool(ficha and ficha.tem_filme_online),
         }
-        if item.modalidade == ModalidadeComercial.VENDA:
-            compras.append(entry)
-        elif item.aluguel_ativo:
-            alugueis_ativos.append(entry)
+        if item.modalidade == ModalidadeComercial.ASSISTIR:
+            filmes.append(entry)
         else:
-            expirados.append(entry)
+            dvds.append(entry)
 
-    listas = {
-        'compras': compras,
-        'alugueis': alugueis_ativos,
-        'expirados': expirados,
-    }
-
-    continuar = _continuar_assistindo(request.user)
+    listas = {'filmes': filmes, 'dvds': dvds}
 
     return render(request, 'loja/biblioteca.html', {
         'aba': aba,
         'itens_aba': listas[aba],
-        'total_compras': len(compras),
-        'total_alugueis': len(alugueis_ativos),
-        'total_expirados': len(expirados),
-        'continuar': continuar,
+        'total_filmes': len(filmes),
+        'total_dvds': len(dvds),
+        'continuar': _continuar_assistindo(request.user),
     })
 
 
@@ -521,19 +491,28 @@ def reproduzir_conteudo(request, item_id):
     )
     if not item.acesso_liberado:
         raise Http404('Acesso não disponível.')
-    if not item.produto.arquivo:
+    ficha = item.produto.ficha_midia()
+    if not item.produto.arquivo and not (ficha and ficha.filme_url):
         raise Http404('Este item não possui arquivo digital.')
 
     ctx = _resolver_produto(item.produto_id)
-    tipo_midia = _tipo_midia_arquivo(item.produto)
     progresso = ProgressoReproducao.objects.filter(
         usuario=request.user,
         item_pedido=item,
     ).first()
+    if item.produto.arquivo:
+        ctx.update({
+            'tipo_midia': _tipo_midia_arquivo(item.produto),
+            'arquivo_url': reverse('acessar_arquivo', args=[item.id]),
+        })
+    else:
+        ctx.update({
+            'tipo_midia': 'embed',
+            'embed_url': ficha.filme_embed_url,
+            'filme_url': ficha.filme_url,
+        })
     ctx.update({
         'item': item,
-        'tipo_midia': tipo_midia,
-        'arquivo_url': reverse('acessar_arquivo', args=[item.id]),
         'progresso_segundos': progresso.segundos if progresso else 0,
     })
     return render(request, 'loja/reproduzir.html', ctx)
@@ -601,23 +580,26 @@ def carrinho_resumo(request):
 
 @require_POST
 def adicionar_ao_carrinho(request, produto_id):
-    produto = get_object_or_404(Produto, pk=produto_id, ativo=True)
+    produto = get_object_or_404(MidiaAudiovisual, pk=produto_id, ativo=True)
     modalidade = request.POST.get('modalidade', ModalidadeComercial.VENDA)
-    if modalidade not in (ModalidadeComercial.VENDA, ModalidadeComercial.ALUGUEL):
+    if modalidade not in MODALIDADES_LOJA:
         modalidade = ModalidadeComercial.VENDA
+    label = produto.rotulo_modalidade(modalidade)
 
     if not produto.disponivel_para(modalidade):
         if _wants_json(request):
             return JsonResponse({'ok': False, 'detail': 'Indisponível.'}, status=400)
-        messages.error(request, f'"{produto.titulo}" não está disponível para {modalidade}.')
-        return redirect('home')
+        messages.error(request, f'"{produto.titulo}" não está disponível como {label}.')
+        return redirect('produto_detalhe', produto_id=produto_id)
 
     carrinho = _get_carrinho(request)
     key = f'{produto_id}:{modalidade}'
     atual = carrinho.get(key, {'produto_id': produto_id, 'modalidade': modalidade, 'quantidade': 0})
-    nova_qtd = atual.get('quantidade', 0) + 1
-    estoque = produto.estoque_para(modalidade)
-    if nova_qtd > estoque:
+    if modalidade == ModalidadeComercial.ASSISTIR:
+        nova_qtd = 1
+    else:
+        nova_qtd = atual.get('quantidade', 0) + 1
+    if nova_qtd > produto.estoque_para(modalidade):
         if _wants_json(request):
             return JsonResponse({'ok': False, 'detail': 'Estoque insuficiente.'}, status=400)
         messages.warning(request, f'Estoque insuficiente para "{produto.titulo}".')
@@ -629,7 +611,6 @@ def adicionar_ao_carrinho(request, produto_id):
         'quantidade': nova_qtd,
     }
     _set_carrinho(request, carrinho)
-    label = 'aluguel' if modalidade == ModalidadeComercial.ALUGUEL else 'compra'
 
     if _wants_json(request):
         itens, total, _, promos = _montar_itens_carrinho(request)
@@ -708,21 +689,22 @@ def finalizar_pedido(request):
         desconto=promos['desconto_total'],
         plano_clube=plano_clube,
     )
-    hoje = timezone.localdate()
 
     for entry in carrinho.values():
         if entry.get('tipo') == 'clube':
             continue
-        produto = Produto.objects.select_for_update().filter(pk=entry['produto_id'], ativo=True).first()
         modalidade = entry.get('modalidade', ModalidadeComercial.VENDA)
-        quantidade = entry.get('quantidade', 1)
+        if modalidade not in MODALIDADES_LOJA:
+            continue
+        produto = (
+            MidiaAudiovisual.objects.select_for_update()
+            .filter(pk=entry['produto_id'], ativo=True).first()
+        )
+        quantidade = 1 if modalidade == ModalidadeComercial.ASSISTIR else entry.get('quantidade', 1)
         if not produto or not produto.disponivel_para(modalidade):
             continue
         if quantidade > produto.estoque_para(modalidade):
             continue
-
-        dias = produto.dias_aluguel if modalidade == ModalidadeComercial.ALUGUEL else None
-        data_devolucao = (hoje + timedelta(days=dias)) if dias else None
 
         ItemPedido.objects.create(
             pedido=pedido,
@@ -730,14 +712,9 @@ def finalizar_pedido(request):
             modalidade=modalidade,
             quantidade=quantidade,
             preco_unitario=produto.preco_para(modalidade),
-            dias_aluguel=dias,
-            data_devolucao=data_devolucao,
         )
 
-        if modalidade == ModalidadeComercial.ALUGUEL:
-            produto.estoque_aluguel = max(0, produto.estoque_aluguel - quantidade)
-            produto.save(update_fields=['estoque_aluguel'])
-        else:
+        if modalidade == ModalidadeComercial.VENDA:
             produto.estoque = max(0, produto.estoque - quantidade)
             produto.save(update_fields=['estoque'])
 
@@ -748,7 +725,46 @@ def finalizar_pedido(request):
 
     pedido.recalcular_valor_total()
     _set_carrinho(request, {})
+    if pedido.precisa_entrega:
+        return redirect('pedido_entrega', pedido_id=pedido.pk)
     return redirect('checkout', pedido_id=pedido.pk)
+
+
+@login_required
+def pedido_entrega(request, pedido_id):
+    pedido = get_object_or_404(
+        Pedido.objects.prefetch_related('itens__produto'),
+        pk=pedido_id,
+        cliente=request.user,
+    )
+    if not pedido.precisa_entrega or pedido.status == Pedido.STATUS_APROVADO:
+        return redirect('checkout', pedido_id=pedido.pk)
+
+    if request.method == 'POST':
+        form = EnderecoEntregaForm(request.POST, instance=pedido)
+        if form.is_valid():
+            form.save()
+            return redirect('checkout', pedido_id=pedido.pk)
+    else:
+        inicial = {}
+        if not pedido.tem_endereco:
+            anterior = (
+                Pedido.objects.filter(cliente=request.user)
+                .exclude(pk=pedido.pk).exclude(entrega_cep='')
+                .order_by('-criado_em').first()
+            )
+            if anterior:
+                inicial = {campo: getattr(anterior, campo) for campo in Pedido.CAMPOS_ENTREGA}
+            else:
+                inicial = {'entrega_nome': request.user.get_full_name()}
+        form = EnderecoEntregaForm(instance=pedido, initial=inicial)
+
+    dvds = [i for i in pedido.itens.all() if i.modalidade == ModalidadeComercial.VENDA]
+    return render(request, 'loja/entrega.html', {
+        'pedido': pedido,
+        'form': form,
+        'dvds': dvds,
+    })
 
 
 def clube(request):
@@ -793,6 +809,12 @@ def checkout(request, pedido_id):
         pk=pedido_id,
         cliente=request.user,
     )
+    if (
+        pedido.status != Pedido.STATUS_APROVADO
+        and pedido.precisa_entrega
+        and not pedido.tem_endereco
+    ):
+        return redirect('pedido_entrega', pedido_id=pedido.pk)
     promos = calcular_promocoes_pedido(pedido)
     subtotal_bruto = promos['subtotal_produtos']
     if pedido.plano_clube_id:
@@ -801,9 +823,8 @@ def checkout(request, pedido_id):
         'pedido': pedido,
         'promos': promos,
         'subtotal_bruto': subtotal_bruto,
-        'mercadopago_public_key': settings.MERCADOPAGO_PUBLIC_KEY,
         'mercadopago_sandbox': settings.MERCADOPAGO_SANDBOX,
-        'pedido_valor_js': format(pedido.valor_total, 'f'),
+        'pedir_email': not request.user.email,
     })
 
 
@@ -872,6 +893,15 @@ class ProcessarPagamentoBrickView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        metodo = str(
+            request.data.get('payment_method_id') or request.data.get('paymentMethodId') or ''
+        ).strip().lower()
+        if metodo != 'pix':
+            return Response(
+                {'detail': 'A loja aceita somente Pix.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         try:
             payment = criar_pagamento_com_brick(pedido, request.data)
         except MercadoPagoAPIError as exc:
@@ -882,6 +912,60 @@ class ProcessarPagamentoBrickView(APIView):
             'payment_id': str(payment.get('id') or ''),
             'pedido_id': pedido.pk,
             'pix': dados_pix_do_pagamento(payment),
+        })
+
+
+class GerarPixView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pedido_id):
+        pedido = get_object_or_404(Pedido, pk=pedido_id, cliente=request.user)
+
+        if pedido.status == Pedido.STATUS_APROVADO:
+            return Response({'status': pedido.status, 'pedido_id': pedido.pk, 'pix': None})
+        if pedido.status not in (Pedido.STATUS_AGUARDANDO, Pedido.STATUS_EM_ANALISE):
+            return Response(
+                {'detail': 'Este pedido não está aguardando pagamento.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not pedido.itens.exists() and not pedido.plano_clube_id:
+            return Response(
+                {'detail': 'O pedido não possui itens.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if pedido.precisa_entrega and not pedido.tem_endereco:
+            return Response(
+                {'detail': 'Preencha o endereço de entrega do DVD antes de pagar.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if pedido.status == Pedido.STATUS_AGUARDANDO:
+            pedido.recalcular_valor_total()
+
+        email = str(request.data.get('email') or '').strip()
+        if email and not request.user.email:
+            request.user.email = email
+            request.user.save(update_fields=['email'])
+
+        try:
+            payment = gerar_pix(pedido, email)
+        except MercadoPagoAPIError as exc:
+            return Response({'detail': str(exc)}, status=status.HTTP_502_BAD_GATEWAY)
+
+        pix = dados_pix_do_pagamento(payment)
+        if not pix:
+            return Response(
+                {'detail': 'O Mercado Pago não devolveu o código Pix. Tente novamente.'},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+        pedido.refresh_from_db(fields=['status'])
+        return Response({
+            'status': pedido.status,
+            'pedido_id': pedido.pk,
+            'payment_id': str(payment.get('id') or ''),
+            'valor': format(pedido.valor_total, 'f'),
+            'expira_em': payment.get('date_of_expiration') or '',
+            'pix': pix,
         })
 
 

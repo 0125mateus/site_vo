@@ -148,9 +148,10 @@ INTENT_LABELS_GESTOR = {
 INTENT_RESPONSES_CLIENTE: dict[str, str] = {
     'compra': (
         'Para comprar na Vinil & Página:\n\n'
-        '1. Clique em um disco ou livro na prateleira\n'
-        '2. Vá ao **carrinho** e faça login\n'
-        '3. **Finalize o pedido** e pague com Mercado Pago\n\n'
+        '1. Clique em um filme na prateleira\n'
+        '2. Escolha **Assistir online** ou **Comprar DVD físico** e vá ao **carrinho**\n'
+        '3. Faça login; se for DVD, preencha o endereço de entrega\n'
+        '4. Pague com **Pix** (QR Code ou copia e cola)\n\n'
         'Quer ajuda para escolher algo?'
     ),
     'discos': (
@@ -164,12 +165,13 @@ INTENT_RESPONSES_CLIENTE: dict[str, str] = {
         'Posso sugerir algo se você disser um autor ou tema!'
     ),
     'pagamento': (
-        'O pagamento é pelo **Mercado Pago** no checkout (cartão, Pix, etc.).\n'
-        'Após pagar, acompanhe o status na página de processamento.'
+        'A loja aceita somente **Pix** (via Mercado Pago).\n'
+        'No checkout aparece o QR Code e o código copia e cola; '
+        'a página confirma sozinha quando o pagamento cair.'
     ),
     'entrega': (
-        'Enviamos pelos **Correios** conforme disponibilidade.\n'
-        'Prazos e valores dependem do pedido — confira no checkout.'
+        'O **DVD físico** é enviado para o endereço que você preenche ao finalizar o pedido.\n'
+        'Quem escolhe **Assistir online** não precisa de entrega: o filme fica na Biblioteca após o Pix.'
     ),
     'recomendacao': (
         'Conte o que você curte — jazz, rock, ficção, biografia — '
@@ -204,7 +206,7 @@ INTENT_HINTS: dict[str, str] = {
     'compra': 'O usuário quer saber como comprar na loja.',
     'discos': 'O usuário busca discos/vinil no catálogo.',
     'livros': 'O usuário busca livros no catálogo.',
-    'pagamento': 'Dúvida sobre pagamento (Mercado Pago, Pix, cartão).',
+    'pagamento': 'Dúvida sobre pagamento (somente Pix via Mercado Pago).',
     'entrega': 'Dúvida sobre entrega e frete.',
     'recomendacao': 'Pedido de recomendação personalizada.',
     'cadastro': 'Gestor quer cadastrar produto no painel.',

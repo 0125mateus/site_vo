@@ -79,7 +79,7 @@
             <button type="submit" class="btn btn-primary">Finalizar pedido</button>
         </form>
         {% else %}
-        <p><a href="{% url 'login' %}?next={% url 'carrinho' %}">Faça login</a> para finalizar a compra ou o aluguel.</p>
+        <p><a href="{% url 'login' %}?next={% url 'carrinho' %}">Faça login</a> para finalizar o pedido.</p>
         {% endif %}
 
         {% else %}

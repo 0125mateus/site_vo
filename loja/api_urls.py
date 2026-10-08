@@ -15,6 +15,11 @@ urlpatterns = [
         name='processar_pagamento_brick',
     ),
     path(
+        'pedidos/<int:pedido_id>/pix/',
+        views.GerarPixView.as_view(),
+        name='gerar_pix',
+    ),
+    path(
         'pedidos/<int:pedido_id>/status/',
         views.PedidoStatusView.as_view(),
         name='pedido_status',

@@ -475,7 +475,7 @@ def importar_catalogo(request):
 
 
 def _produtos_filtrados(q):
-    qs = Produto.objects.order_by('titulo')
+    qs = Produto.objects.filter(midiaaudiovisual__isnull=False).order_by('titulo')
     if q:
         qs = qs.filter(titulo__icontains=q)
     mapas = mapas_categoria()

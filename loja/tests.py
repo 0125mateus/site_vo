@@ -13,6 +13,17 @@ from .models import ItemPedido, Livro, MidiaAudiovisual, Musica, Pagamento, Pedi
 
 User = get_user_model()
 
+ENDERECO_TESTE = {
+    'entrega_nome': 'Cliente Teste',
+    'entrega_telefone': '(11) 99999-0000',
+    'entrega_cep': '01310-100',
+    'entrega_logradouro': 'Avenida Paulista',
+    'entrega_numero': '1000',
+    'entrega_bairro': 'Bela Vista',
+    'entrega_cidade': 'São Paulo',
+    'entrega_uf': 'SP',
+}
+
 
 def _build_signature(secret, data_id, request_id, ts):
     manifest = f'id:{data_id};request-id:{request_id};ts:{ts};'
@@ -507,6 +518,7 @@ class CheckoutPagamentoJsTests(TestCase):
         self.pedido = Pedido.objects.create(
             cliente=self.user,
             valor_total=Decimal('1.00'),
+            **ENDERECO_TESTE,
         )
         ItemPedido.objects.create(
             pedido=self.pedido,
@@ -516,11 +528,88 @@ class CheckoutPagamentoJsTests(TestCase):
         )
         self.client.force_login(self.user)
 
-    def test_valor_no_javascript_usa_ponto(self):
+    def test_checkout_mostra_somente_pix(self):
         response = self.client.get(reverse('checkout', kwargs={'pedido_id': self.pedido.pk}))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "create('wallet', 'payment-brick-container'")
-        self.assertNotContains(response, 'amount: 1,00')
+        self.assertContains(response, 'Pagar com Pix')
+        self.assertContains(response, '/api/pedidos/${pedidoId}/pix/')
+        self.assertNotContains(response, 'payment-brick-container')
+        self.assertNotContains(response, 'sdk.mercadopago.com')
+
+
+class GerarPixViewTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            username='pixer', password='senha123', email='pixer@example.com',
+        )
+        self.client.force_authenticate(user=self.user)
+        self.produto = Produto.objects.create(
+            titulo='Filme Pix', preco=Decimal('20.00'), estoque=5,
+        )
+        self.pedido = Pedido.objects.create(
+            cliente=self.user, valor_total=Decimal('20.00'), **ENDERECO_TESTE,
+        )
+        ItemPedido.objects.create(
+            pedido=self.pedido, produto=self.produto, quantidade=1, preco_unitario=Decimal('20.00'),
+        )
+        self.url = reverse('gerar_pix', kwargs={'pedido_id': self.pedido.pk})
+
+    @patch('loja.views.gerar_pix')
+    def test_dvd_sem_endereco_nao_gera_pix(self, mock_pix):
+        Pedido.objects.filter(pk=self.pedido.pk).update(entrega_cep='')
+        response = self.client.post(self.url, {}, format='json')
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('endereço', response.data['detail'])
+        mock_pix.assert_not_called()
+
+    @patch('loja.views.gerar_pix')
+    def test_devolve_qr_code(self, mock_pix):
+        mock_pix.return_value = {
+            'id': 777,
+            'status': 'pending',
+            'date_of_expiration': '2026-10-06T12:30:00.000-03:00',
+            'point_of_interaction': {
+                'transaction_data': {
+                    'qr_code': '00020126pix',
+                    'qr_code_base64': 'base64img',
+                    'ticket_url': 'https://mp.example/ticket',
+                }
+            },
+        }
+        response = self.client.post(self.url, {}, format='json')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['pix']['qr_code'], '00020126pix')
+        self.assertEqual(response.data['pix']['qr_code_base64'], 'base64img')
+        self.assertEqual(response.data['payment_id'], '777')
+
+    @patch('loja.views.gerar_pix')
+    def test_salva_email_quando_usuario_nao_tem(self, mock_pix):
+        self.user.email = ''
+        self.user.save()
+        mock_pix.return_value = {
+            'id': 1, 'status': 'pending',
+            'point_of_interaction': {'transaction_data': {'qr_code': 'x', 'qr_code_base64': 'y'}},
+        }
+        response = self.client.post(self.url, {'email': 'novo@example.com'}, format='json')
+        self.assertEqual(response.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.email, 'novo@example.com')
+
+    def test_pedido_de_outro_cliente(self):
+        outro = User.objects.create_user(username='outro', password='senha123')
+        self.client.force_authenticate(user=outro)
+        response = self.client.post(self.url, {}, format='json')
+        self.assertEqual(response.status_code, 404)
+
+    @patch('loja.views.gerar_pix')
+    def test_pedido_aprovado_nao_gera_novo_pix(self, mock_pix):
+        self.pedido.status = Pedido.STATUS_APROVADO
+        self.pedido.save()
+        response = self.client.post(self.url, {}, format='json')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['status'], Pedido.STATUS_APROVADO)
+        mock_pix.assert_not_called()
 
 
 class ProcessarPagamentoBrickViewTests(TestCase):
@@ -545,19 +634,15 @@ class ProcessarPagamentoBrickViewTests(TestCase):
         self.url = reverse('processar_pagamento_brick', kwargs={'pedido_id': self.pedido.pk})
 
     @patch('loja.views.criar_pagamento_com_brick')
-    def test_processa_formdata_do_brick(self, mock_criar):
-        mock_criar.return_value = {'id': 999, 'status': 'approved'}
+    def test_recusa_cartao(self, mock_criar):
         response = self.client.post(self.url, {
             'token': 'tok_test',
             'payment_method_id': 'master',
             'installments': 1,
             'payer': {'email': 'comprador@example.com'},
         }, format='json')
-        self.assertEqual(response.status_code, 200)
-        mock_criar.assert_called_once()
-        pedido_arg, form_arg = mock_criar.call_args[0]
-        self.assertEqual(pedido_arg.pk, self.pedido.pk)
-        self.assertEqual(form_arg['token'], 'tok_test')
+        self.assertEqual(response.status_code, 400)
+        mock_criar.assert_not_called()
 
     @patch('loja.views.criar_pagamento_com_brick')
     def test_pix_devolve_qr_na_resposta(self, mock_criar):
@@ -772,3 +857,142 @@ class GestaoPainelTests(TestCase):
         self.assertTrue(midia.arquivo.name.endswith('poderoso-chefao.mkv'))
         self.assertTrue(midia.imagem.storage.exists(midia.imagem.name))
         self.assertTrue(midia.arquivo.storage.exists(midia.arquivo.name))
+
+    def test_filme_online_exige_preco_e_link(self):
+        resposta = self.client.post(reverse('gestao_midia_criar'), {
+            'titulo': 'Sem Link',
+            'tipo': 'filme',
+            'disponivel_assistir': 'on',
+            'preco_assistir': '',
+            'ativo': 'on',
+        })
+        self.assertEqual(resposta.status_code, 200)
+        self.assertContains(resposta, 'Informe quanto custa para assistir online.')
+        self.assertContains(resposta, 'Coloque o link do filme completo')
+
+        resposta = self.client.post(reverse('gestao_midia_criar'), {
+            'titulo': 'Com Link',
+            'tipo': 'filme',
+            'disponivel_assistir': 'on',
+            'preco_assistir': '9.90',
+            'filme_url': 'https://youtu.be/abcdefghijk',
+            'disponivel_venda': 'on',
+            'preco': '35.00',
+            'estoque': '3',
+            'ativo': 'on',
+        })
+        self.assertEqual(resposta.status_code, 302)
+        filme = MidiaAudiovisual.objects.get(titulo='Com Link')
+        self.assertTrue(filme.pode_assistir)
+        self.assertTrue(filme.pode_comprar)
+        self.assertEqual(filme.preco_assistir, Decimal('9.90'))
+
+
+class FilmesAssistirEDvdTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='cinefilo', password='senha', email='c@example.com')
+        self.client.force_login(self.user)
+        self.filme = MidiaAudiovisual.objects.create(
+            titulo='A Ponte do Rio Kwai', tipo='filme', ativo=True,
+            disponivel_assistir=True, preco_assistir=Decimal('9.90'),
+            filme_url='https://drive.google.com/file/d/1AbCdEfGhIjKlMnOp/view?usp=sharing',
+            disponivel_venda=True, preco=Decimal('39.90'), estoque=2,
+        )
+
+    def _adicionar(self, modalidade):
+        return self.client.post(
+            reverse('adicionar_carrinho', kwargs={'produto_id': self.filme.pk}),
+            {'modalidade': modalidade},
+        )
+
+    def test_pagina_do_filme_mostra_as_duas_opcoes(self):
+        resposta = self.client.get(reverse('produto_detalhe', kwargs={'produto_id': self.filme.pk}))
+        self.assertContains(resposta, 'Assistir online')
+        self.assertContains(resposta, 'R$ 9,90')
+        self.assertContains(resposta, 'DVD físico')
+        self.assertContains(resposta, 'R$ 39,90')
+        self.assertNotContains(resposta, 'Alugar')
+
+    def test_assistir_online_vai_direto_para_o_pix(self):
+        self._adicionar('assistir')
+        self._adicionar('assistir')
+        resposta = self.client.post(reverse('finalizar_pedido'))
+        pedido = Pedido.objects.get(cliente=self.user)
+        self.assertRedirects(resposta, reverse('checkout', kwargs={'pedido_id': pedido.pk}))
+        item = pedido.itens.get()
+        self.assertEqual(item.modalidade, 'assistir')
+        self.assertEqual(item.quantidade, 1)
+        self.assertEqual(pedido.valor_total, Decimal('9.90'))
+        self.filme.refresh_from_db()
+        self.assertEqual(self.filme.estoque, 2)
+
+    def test_dvd_pede_endereco_antes_do_pix(self):
+        self._adicionar('venda')
+        resposta = self.client.post(reverse('finalizar_pedido'))
+        pedido = Pedido.objects.get(cliente=self.user)
+        url_entrega = reverse('pedido_entrega', kwargs={'pedido_id': pedido.pk})
+        url_checkout = reverse('checkout', kwargs={'pedido_id': pedido.pk})
+        self.assertRedirects(resposta, url_entrega)
+        self.assertRedirects(self.client.get(url_checkout), url_entrega)
+
+        resposta = self.client.post(url_entrega, {**ENDERECO_TESTE, 'entrega_cep': '01310100'})
+        self.assertRedirects(resposta, url_checkout)
+        pedido.refresh_from_db()
+        self.assertEqual(pedido.entrega_cep, '01310-100')
+        self.assertTrue(pedido.tem_endereco)
+        self.assertContains(self.client.get(url_checkout), 'Avenida Paulista')
+        self.filme.refresh_from_db()
+        self.assertEqual(self.filme.estoque, 1)
+
+    def test_endereco_incompleto_nao_avanca(self):
+        self._adicionar('venda')
+        self.client.post(reverse('finalizar_pedido'))
+        pedido = Pedido.objects.get(cliente=self.user)
+        resposta = self.client.post(
+            reverse('pedido_entrega', kwargs={'pedido_id': pedido.pk}),
+            {**ENDERECO_TESTE, 'entrega_cep': '123', 'entrega_numero': ''},
+        )
+        self.assertEqual(resposta.status_code, 200)
+        self.assertContains(resposta, 'O CEP tem 8 números.')
+
+    def test_aluguel_nao_entra_no_carrinho(self):
+        self.filme.disponivel_aluguel = True
+        self.filme.preco_aluguel = Decimal('5.00')
+        self.filme.estoque_aluguel = 3
+        self.filme.save()
+        self._adicionar('aluguel')
+        carrinho = self.client.session.get('carrinho', {})
+        self.assertNotIn(f'{self.filme.pk}:aluguel', carrinho)
+
+    def test_quem_pagou_assiste_pelo_link_e_dvd_nao_libera(self):
+        pedido = Pedido.objects.create(
+            cliente=self.user, valor_total=Decimal('49.80'),
+            status=Pedido.STATUS_APROVADO, **ENDERECO_TESTE,
+        )
+        assistir = ItemPedido.objects.create(
+            pedido=pedido, produto=self.filme, modalidade='assistir',
+            quantidade=1, preco_unitario=Decimal('9.90'),
+        )
+        dvd = ItemPedido.objects.create(
+            pedido=pedido, produto=self.filme, modalidade='venda',
+            quantidade=1, preco_unitario=Decimal('39.90'),
+        )
+        self.assertTrue(assistir.acesso_liberado)
+        self.assertFalse(dvd.acesso_liberado)
+
+        resposta = self.client.get(reverse('reproduzir_conteudo', kwargs={'item_id': assistir.pk}))
+        self.assertContains(resposta, 'https://drive.google.com/file/d/1AbCdEfGhIjKlMnOp/preview')
+        self.assertEqual(
+            self.client.get(reverse('reproduzir_conteudo', kwargs={'item_id': dvd.pk})).status_code,
+            404,
+        )
+
+        biblioteca = self.client.get(reverse('biblioteca'))
+        self.assertContains(biblioteca, '▶ Assistir')
+
+    def test_discos_e_livros_saem_da_loja(self):
+        self.assertRedirects(self.client.get(reverse('catalogo_discos')), reverse('catalogo_filmes'))
+        self.assertRedirects(self.client.get(reverse('catalogo_livros')), reverse('catalogo_filmes'))
+        home = self.client.get(reverse('home'))
+        self.assertNotContains(home, 'Vinis em destaque')
+        self.assertContains(home, 'A Ponte do Rio Kwai')

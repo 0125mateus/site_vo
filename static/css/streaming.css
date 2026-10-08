@@ -776,3 +776,142 @@ body.site-with-bottom-nav main {
         transform: none;
     }
 }
+
+/* Página do filme: Assistir online ou DVD físico */
+.item-opcoes-titulo {
+    margin: 0 0 12px;
+    font-size: 1.05rem;
+}
+
+.item-opcoes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+}
+
+.item-opcao {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--card, #171A20);
+}
+
+.item-opcao-nome {
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.item-opcao-preco {
+    font-size: 1.5rem;
+    color: var(--gold-soft, #F2D58A);
+}
+
+.item-opcao-info {
+    flex: 1;
+    color: var(--ink-soft, #A7ACB5);
+    font-size: 0.9rem;
+}
+
+.item-opcao .btn {
+    margin-top: 8px;
+}
+
+/* Endereço de entrega do DVD */
+.entrega-form {
+    margin-top: 18px;
+}
+
+.entrega-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 16px;
+    margin-bottom: 22px;
+}
+
+.entrega-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.entrega-field--wide {
+    grid-column: 1 / -1;
+}
+
+.entrega-field > span {
+    font-size: 0.85rem;
+    color: var(--ink-soft, #A7ACB5);
+}
+
+.entrega-field input,
+.entrega-field select {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    color: inherit;
+    font: inherit;
+}
+
+.entrega-field select option {
+    color: #111;
+}
+
+.entrega-field .field-error {
+    color: #ff8a80;
+}
+
+.entrega-cep-status {
+    color: var(--ink-soft, #A7ACB5);
+    min-height: 1em;
+}
+
+.checkout-entrega {
+    margin-top: 18px;
+    padding: 16px 18px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+}
+
+.checkout-entrega h2 {
+    margin: 0 0 8px;
+    font-size: 1.05rem;
+}
+
+.checkout-entrega p {
+    margin: 0 0 6px;
+}
+
+/* Player do filme completo por link (YouTube, Vimeo, Drive) */
+.player-embed {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.player-embed iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+.player-embed-hint {
+    margin-top: 10px;
+    color: var(--ink-soft, #A7ACB5);
+    font-size: 0.9rem;
+}
+
+@media (max-width: 560px) {
+    .entrega-grid {
+        grid-template-columns: 1fr;
+    }
+}

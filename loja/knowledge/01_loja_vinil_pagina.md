@@ -1,38 +1,38 @@
 # Vinil & Página — conhecimento da loja
 
 ## Identidade
-- Loja curada de **discos (vinil)**, **livros** e **filmes/DVDs** em Poços de Caldas, MG.
+- No momento a loja trabalha **somente com filmes**: assistir online ou comprar o **DVD físico**.
+- Discos, livros e aluguel estão pausados (não aparecem na loja).
 - Tom: acolhedor, culto sem ser elitista, como uma conversa na prateleira.
 - Slogan: *Onde a agulha encontra a lombada.*
 
 ## Como comprar (cliente)
-1. Navegue pelas prateleiras de **Discos**, **Livros** e **Filmes** na home ou use a **busca**.
-2. Clique no item para ver detalhes, trailer (filmes) e **avaliações**.
-3. Adicione ao **carrinho** (compra ou aluguel).
+1. Navegue pela prateleira de **Filmes** na home ou use a **busca**.
+2. Clique no filme para ver detalhes, trailer e **avaliações**.
+3. Escolha uma opção:
+   - **Assistir online:** paga um valor definido pela loja e o filme fica na **Biblioteca**.
+   - **Comprar DVD físico:** paga o valor do DVD e recebe o disco em casa.
 4. Faça **login** ou crie conta.
-5. **Finalize o pedido** e pague com Mercado Pago (cartão, Pix, etc.).
-6. Acompanhe em **Meus pedidos** ou na página de processamento após o pagamento.
-7. Conteúdo digital fica na **Biblioteca** (compras e aluguéis ativos).
-
-## Promoções
-- **Combo livro + disco:** 10% de desconto automático no carrinho quando há 1 disco e 1 livro (venda).
-- **Clube de assinatura:** planos mensais em `/clube/` com desconto extra em compras enquanto a assinatura estiver ativa.
+5. Se houver DVD físico no pedido, preencha o **endereço de entrega**.
+6. Pague com **Pix** (QR Code ou copia e cola). A página confirma sozinha quando o pagamento cair.
+7. Acompanhe em **Meus pedidos**.
 
 ## Entrega
-- Curadoria física com envio pelos Correios (conforme disponibilidade do catálogo).
-- Itens digitais (arquivo/trailer) ficam disponíveis na biblioteca após pagamento aprovado.
+- O DVD físico é enviado para o endereço informado no pedido.
+- Filmes para assistir online não têm entrega: ficam na Biblioteca após o pagamento aprovado.
 
 ## Pagamento
-- Integração **Mercado Pago** (sandbox em desenvolvimento, produção com HTTPS).
-- Em caso de pagamento pendente, o pedido fica em "em análise" até confirmação.
+- A loja aceita **somente Pix**, pelo Mercado Pago.
+- O Pix gerado vale por 30 minutos; depois disso, é só gerar um novo no checkout.
+- Enquanto o Pix não é pago, o pedido fica aguardando/em análise.
 - E-mail de confirmação é enviado quando o pagamento é aprovado.
 
 ## Dúvidas frequentes
-- **Posso comprar só o livro ou só o disco?** Sim, cada item é independente.
-- **Como saber se está em estoque?** Itens ativos na loja refletem o estoque cadastrado.
-- **Posso alugar filmes?** Sim, quando o item estiver disponível para aluguel.
-- **Como funciona o clube?** Assine um plano, pague pelo carrinho; após aprovação, o desconto extra vale por 30 dias (renovável).
+- **Posso só assistir sem comprar o DVD?** Sim, escolha "Assistir online".
+- **Aceita cartão ou boleto?** Não, somente Pix.
+- **Como saber se o DVD está em estoque?** O botão de comprar DVD só aparece quando há estoque.
+- **Posso alugar?** O aluguel está pausado por enquanto.
 - **Newsletter:** inscrição no rodapé do site para receber novidades.
 
 ## Contato e suporte
-- Para problemas com pedido ou pagamento, oriente o cliente a aguardar a confirmação ou tentar novamente no checkout.
+- Para problemas com pedido ou pagamento, oriente o cliente a aguardar a confirmação ou gerar um novo Pix no checkout.

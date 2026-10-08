@@ -31,6 +31,7 @@ def produto_arquivo_upload_path(instance, filename):
 class ModalidadeComercial(models.TextChoices):
     VENDA = 'venda', 'Venda'
     ALUGUEL = 'aluguel', 'Aluguel'
+    ASSISTIR = 'assistir', 'Assistir online'
 
 
 class Produto(models.Model):
@@ -67,6 +68,14 @@ class Produto(models.Model):
     disponivel_aluguel = models.BooleanField('disponível para aluguel', default=False)
     estoque = models.PositiveIntegerField('estoque venda', default=0)
     estoque_aluguel = models.PositiveIntegerField('estoque aluguel', default=0)
+    disponivel_assistir = models.BooleanField('disponível para assistir online', default=False)
+    preco_assistir = models.DecimalField(
+        'preço para assistir',
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        help_text='Valor cobrado para assistir o filme online.',
+    )
     ativo = models.BooleanField(default=True)
     criado_em = models.DateTimeField(auto_now_add=True)
 
@@ -83,11 +92,15 @@ class Produto(models.Model):
     def preco_para(self, modalidade: str) -> Decimal:
         if modalidade == ModalidadeComercial.ALUGUEL:
             return self.preco_aluguel
+        if modalidade == ModalidadeComercial.ASSISTIR:
+            return self.preco_assistir
         return self.preco
 
     def estoque_para(self, modalidade: str) -> int:
         if modalidade == ModalidadeComercial.ALUGUEL:
             return self.estoque_aluguel
+        if modalidade == ModalidadeComercial.ASSISTIR:
+            return 1
         return self.estoque
 
     def disponivel_para(self, modalidade: str) -> bool:
@@ -95,7 +108,22 @@ class Produto(models.Model):
             return False
         if modalidade == ModalidadeComercial.ALUGUEL:
             return self.disponivel_aluguel and self.estoque_aluguel > 0 and self.preco_aluguel > 0
+        if modalidade == ModalidadeComercial.ASSISTIR:
+            return self.disponivel_assistir and self.preco_assistir > 0
         return self.disponivel_venda and self.estoque > 0 and self.preco > 0
+
+    @property
+    def pode_assistir(self) -> bool:
+        return self.disponivel_para(ModalidadeComercial.ASSISTIR)
+
+    @property
+    def pode_comprar(self) -> bool:
+        return self.disponivel_para(ModalidadeComercial.VENDA)
+
+    def rotulo_modalidade(self, modalidade: str) -> str:
+        if modalidade == ModalidadeComercial.VENDA and self.ficha_midia():
+            return 'DVD físico'
+        return dict(ModalidadeComercial.choices).get(modalidade, modalidade)
 
     def ficha_midia(self):
         """A ficha de filme, mesmo quando a prateleira entrega o produto genérico."""
@@ -164,6 +192,12 @@ class MidiaAudiovisual(Produto):
         blank=True,
         help_text='Opcional: link do YouTube ou Vimeo se preferir não enviar arquivo.',
     )
+    filme_url = models.URLField(
+        'link do filme completo',
+        blank=True,
+        max_length=500,
+        help_text='YouTube não listado, Vimeo ou Google Drive. Só quem pagou para assistir vê.',
+    )
 
     class Meta:
         verbose_name = 'Mídia audiovisual'
@@ -179,21 +213,38 @@ class MidiaAudiovisual(Produto):
     @property
     def trailer_embed_url(self) -> str:
         """Converte YouTube/Vimeo em URL de embed; vazio se for arquivo local."""
-        url = (self.trailer_url or '').strip()
-        if not url:
-            return ''
-        import re
-        yt = re.search(
-            r'(?:youtube\.com/(?:watch\?v=|embed/|shorts/)|youtu\.be/)([A-Za-z0-9_-]{6,})',
-            url,
-        )
-        if yt:
-            # youtube-nocookie + rel=0; Referrer-Policy do site completa a config do player
-            return f'https://www.youtube-nocookie.com/embed/{yt.group(1)}?rel=0'
-        vm = re.search(r'vimeo\.com/(?:video/)?(\d+)', url)
-        if vm:
-            return f'https://player.vimeo.com/video/{vm.group(1)}'
-        return url
+        return embed_de_video(self.trailer_url)
+
+    @property
+    def filme_embed_url(self) -> str:
+        return embed_de_video(self.filme_url)
+
+    @property
+    def tem_filme_online(self) -> bool:
+        return bool(self.filme_url) or bool(self.arquivo)
+
+
+def embed_de_video(url) -> str:
+    """YouTube, Vimeo ou Google Drive viram endereço de player; outros links passam como vieram."""
+    import re
+
+    url = (url or '').strip()
+    if not url:
+        return ''
+    yt = re.search(
+        r'(?:youtube\.com/(?:watch\?v=|embed/|shorts/|live/)|youtu\.be/)([A-Za-z0-9_-]{6,})',
+        url,
+    )
+    if yt:
+        # youtube-nocookie + rel=0; Referrer-Policy do site completa a config do player
+        return f'https://www.youtube-nocookie.com/embed/{yt.group(1)}?rel=0'
+    vm = re.search(r'vimeo\.com/(?:video/)?(\d+)', url)
+    if vm:
+        return f'https://player.vimeo.com/video/{vm.group(1)}'
+    drive = re.search(r'drive\.google\.com/(?:file/d/|open\?id=)([A-Za-z0-9_-]{10,})', url)
+    if drive:
+        return f'https://drive.google.com/file/d/{drive.group(1)}/preview'
+    return url
 
 
 class Pedido(models.Model):
@@ -238,11 +289,49 @@ class Pedido(models.Model):
     )
     mercadopago_preference_id = models.CharField(max_length=255, null=True, blank=True)
 
+    entrega_nome = models.CharField('nome de quem recebe', max_length=120, blank=True)
+    entrega_telefone = models.CharField('telefone', max_length=30, blank=True)
+    entrega_cep = models.CharField('CEP', max_length=9, blank=True)
+    entrega_logradouro = models.CharField('rua', max_length=200, blank=True)
+    entrega_numero = models.CharField('número', max_length=20, blank=True)
+    entrega_complemento = models.CharField('complemento', max_length=100, blank=True)
+    entrega_bairro = models.CharField('bairro', max_length=100, blank=True)
+    entrega_cidade = models.CharField('cidade', max_length=100, blank=True)
+    entrega_uf = models.CharField('estado (UF)', max_length=2, blank=True)
+
+    CAMPOS_ENTREGA = (
+        'entrega_nome', 'entrega_telefone', 'entrega_cep', 'entrega_logradouro',
+        'entrega_numero', 'entrega_complemento', 'entrega_bairro', 'entrega_cidade', 'entrega_uf',
+    )
+
     class Meta:
         ordering = ['-criado_em']
 
     def __str__(self):
         return f'Pedido #{self.pk} — {self.cliente}'
+
+    @property
+    def precisa_entrega(self) -> bool:
+        return self.itens.filter(modalidade=ModalidadeComercial.VENDA).exists()
+
+    @property
+    def tem_endereco(self) -> bool:
+        return all(getattr(self, campo) for campo in (
+            'entrega_nome', 'entrega_cep', 'entrega_logradouro', 'entrega_numero',
+            'entrega_bairro', 'entrega_cidade', 'entrega_uf',
+        ))
+
+    @property
+    def endereco_entrega(self) -> str:
+        if not self.tem_endereco:
+            return ''
+        linha = f'{self.entrega_logradouro}, {self.entrega_numero}'
+        if self.entrega_complemento:
+            linha += f' — {self.entrega_complemento}'
+        return (
+            f'{linha} · {self.entrega_bairro} · {self.entrega_cidade}/{self.entrega_uf} · '
+            f'CEP {self.entrega_cep}'
+        )
 
     def recalcular_valor_total(self):
         subtotal = sum(
@@ -274,7 +363,15 @@ class ItemPedido(models.Model):
         verbose_name_plural = 'Itens do pedido'
 
     def __str__(self):
-        return f'{self.quantidade}x {self.produto.titulo} ({self.get_modalidade_display()})'
+        return f'{self.quantidade}x {self.produto.titulo} ({self.modalidade_label})'
+
+    @property
+    def modalidade_label(self) -> str:
+        return self.produto.rotulo_modalidade(self.modalidade)
+
+    @property
+    def is_assistir(self) -> bool:
+        return self.modalidade == ModalidadeComercial.ASSISTIR
 
     @property
     def subtotal(self):
@@ -308,8 +405,11 @@ class ItemPedido(models.Model):
     def acesso_liberado(self) -> bool:
         if not self.pedido_aprovado:
             return False
-        if self.modalidade == ModalidadeComercial.VENDA:
+        if self.modalidade == ModalidadeComercial.ASSISTIR:
             return True
+        if self.modalidade == ModalidadeComercial.VENDA:
+            # Comprar o DVD físico não libera o filme online; para isso existe "Assistir online".
+            return not self.produto.ficha_midia()
         return self.aluguel_ativo
 
 

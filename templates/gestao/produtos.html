@@ -6,12 +6,10 @@
 <div class="gestao-page-head">
     <div>
         <h1>Produtos</h1>
-        <p class="gestao-page-desc">{{ linhas|length }} item{{ linhas|length|pluralize }} no catálogo. Discos, livros e filmes continuam nos formulários de sempre.</p>
+        <p class="gestao-page-desc">{{ linhas|length }} filme{{ linhas|length|pluralize }} no catálogo. Em cada filme você define o preço para assistir online e o preço do DVD físico.</p>
     </div>
     <div class="gestao-quick-actions">
-        <a href="{% url 'gestao_disco_criar' %}" class="btn btn-primary btn-sm">+ Disco</a>
-        <a href="{% url 'gestao_livro_criar' %}" class="btn btn-primary btn-sm">+ Livro</a>
-        <a href="{% url 'gestao_midia_criar' %}" class="btn btn-primary btn-sm">+ Filme / DVD</a>
+        <a href="{% url 'gestao_midia_criar' %}" class="btn btn-primary btn-sm">+ Filme</a>
     </div>
 </div>
 
@@ -31,9 +29,9 @@
                 <th>Capa</th>
                 <th>Produto</th>
                 <th>Categoria</th>
-                <th>Preço</th>
-                <th>Aluguel</th>
-                <th>Estoque</th>
+                <th>Assistir online</th>
+                <th>DVD físico</th>
+                <th>DVDs em estoque</th>
                 <th>Status</th>
                 <th></th>
             </tr>
@@ -50,8 +48,8 @@
                 </td>
                 <td><strong>{{ linha.produto.titulo }}</strong></td>
                 <td>{{ linha.categoria }}</td>
-                <td class="mono">R$ {{ linha.produto.preco }}</td>
-                <td class="mono">R$ {{ linha.produto.preco_aluguel }}</td>
+                <td class="mono">{% if linha.produto.pode_assistir %}R$ {{ linha.produto.preco_assistir }}{% else %}—{% endif %}</td>
+                <td class="mono">{% if linha.produto.disponivel_venda %}R$ {{ linha.produto.preco }}{% else %}—{% endif %}</td>
                 <td class="mono">{{ linha.estoque_atual }}</td>
                 <td>
                     {% if linha.ativo %}

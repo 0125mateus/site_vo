@@ -28,7 +28,7 @@
                 {% for item in pedido.itens.all %}
                 <li>
                     <a href="{% url 'produto_detalhe' item.produto_id %}">{{ item.produto.titulo }}</a>
-                    <span class="mono">{{ item.get_modalidade_display }} · {{ item.quantidade }}x · R$ {{ item.subtotal }}</span>
+                    <span class="mono">{{ item.modalidade_label }} · {{ item.quantidade }}x · R$ {{ item.subtotal }}</span>
                 </li>
                 {% endfor %}
             </ul>

@@ -2,13 +2,18 @@ import hashlib
 import hmac
 import logging
 import uuid
+from datetime import datetime, timedelta
 from decimal import Decimal
 
 import mercadopago
 from django.conf import settings
+from django.utils import timezone
 from mercadopago.config import RequestOptions
 
 logger = logging.getLogger(__name__)
+
+PIX_VALIDADE = timedelta(minutes=30)
+TIPOS_SEM_PIX = ('credit_card', 'debit_card', 'ticket', 'prepaid_card', 'atm')
 
 
 def get_mercadopago_sdk():
@@ -62,6 +67,10 @@ def criar_preferencia_pagamento(pedido):
         'binary_mode': False,
         'external_reference': str(pedido.pk),
         'notification_url': f'{site_url}/api/webhooks/mercadopago/',
+        'payment_methods': {
+            'excluded_payment_types': [{'id': tipo} for tipo in TIPOS_SEM_PIX],
+            'installments': 1,
+        },
     }
 
     logger.info('Criando preferência Mercado Pago para pedido %s', pedido.pk)
@@ -133,6 +142,8 @@ def montar_payload_pagamento_brick(pedido, form_data):
     ).strip().lower()
     if not method:
         raise MercadoPagoAPIError('Forma de pagamento não informada.')
+    if method != 'pix':
+        raise MercadoPagoAPIError('A loja aceita somente Pix.')
 
     raw_payer = form_data.get('payer') if isinstance(form_data.get('payer'), dict) else {}
     email = str(raw_payer.get('email') or getattr(pedido.cliente, 'email', '') or '').strip()
@@ -180,6 +191,55 @@ def dados_pix_do_pagamento(payment):
         'qr_code_base64': tx.get('qr_code_base64') or '',
         'ticket_url': tx.get('ticket_url') or '',
     }
+
+
+def _pix_ainda_vale(payment, pedido):
+    if payment.get('payment_method_id') != 'pix' or payment.get('status') != 'pending':
+        return False
+    valor = Decimal(str(payment.get('transaction_amount') or 0))
+    if abs(valor - pedido.valor_total) >= Decimal('0.01'):
+        return False
+    if not dados_pix_do_pagamento(payment):
+        return False
+    expira = payment.get('date_of_expiration')
+    if expira:
+        try:
+            if datetime.fromisoformat(expira) <= timezone.now() + timedelta(minutes=1):
+                return False
+        except ValueError:
+            pass
+    return True
+
+
+def gerar_pix(pedido, email=''):
+    """Devolve o Pix pendente do pedido, ou cria um novo se não houver um válido."""
+    for payment in buscar_pagamentos_por_pedido(pedido):
+        if _pix_ainda_vale(payment, pedido):
+            return payment
+
+    sdk = get_mercadopago_sdk()
+    payload = montar_payload_pagamento_brick(pedido, {
+        'payment_method_id': 'pix',
+        'payer': {'email': email or getattr(pedido.cliente, 'email', '') or ''},
+    })
+    expira = timezone.localtime(timezone.now() + PIX_VALIDADE)
+    payload['date_of_expiration'] = expira.isoformat(timespec='milliseconds')
+    options = RequestOptions(custom_headers={'X-Idempotency-Key': str(uuid.uuid4())})
+
+    logger.info('Gerando Pix para pedido %s', pedido.pk)
+    response = sdk.payment().create(payload, options)
+    if response.get('status') not in (200, 201):
+        logger.error(
+            'Erro ao gerar Pix do pedido %s: status=%s body=%s',
+            pedido.pk,
+            response.get('status'),
+            response.get('response'),
+        )
+        raise MercadoPagoAPIError(_mensagem_erro_mp(response))
+
+    payment = response['response']
+    aplicar_pagamento_ao_pedido(pedido, payment)
+    return payment
 
 
 def criar_pagamento_com_brick(pedido, form_data):
@@ -270,6 +330,9 @@ def aplicar_pagamento_ao_pedido(pedido, payment):
         pedido.status = pedido.STATUS_EM_ANALISE
     elif mp_status == 'rejected':
         pedido.status = pedido.STATUS_RECUSADO
+    elif mp_status == 'cancelled' and pedido.status == pedido.STATUS_EM_ANALISE:
+        # Pix vencido: o pedido volta a aguardar para o cliente gerar outro.
+        pedido.status = pedido.STATUS_AGUARDANDO
 
     pedido.save(update_fields=['status'])
     logger.info('Pedido %s sincronizado com MP — status %s', pedido.pk, pedido.status)
