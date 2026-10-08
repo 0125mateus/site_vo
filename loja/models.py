@@ -109,7 +109,12 @@ class Produto(models.Model):
         if modalidade == ModalidadeComercial.ALUGUEL:
             return self.disponivel_aluguel and self.estoque_aluguel > 0 and self.preco_aluguel > 0
         if modalidade == ModalidadeComercial.ASSISTIR:
-            return self.disponivel_assistir and self.preco_assistir > 0
+            ficha = self.ficha_midia()
+            return (
+                self.disponivel_assistir
+                and self.preco_assistir > 0
+                and bool(ficha and ficha.tem_filme_online)
+            )
         return self.disponivel_venda and self.estoque > 0 and self.preco > 0
 
     @property

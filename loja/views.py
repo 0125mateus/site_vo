@@ -268,13 +268,19 @@ def _tipo_de_produto(produto) -> str:
     return 'produto'
 
 
+def _com_filme_online(qs):
+    tem_link = ~Q(filme_url='')
+    tem_arquivo = Q(arquivo__isnull=False) & ~Q(arquivo='')
+    return qs.filter(disponivel_assistir=True, preco_assistir__gt=0).filter(tem_link | tem_arquivo)
+
+
 def _aplicar_filtros_catalogo(qs, modalidade='', ordem='recentes'):
     qs = qs.filter(ativo=True)
 
     if modalidade == ModalidadeComercial.VENDA:
         qs = qs.filter(disponivel_venda=True, estoque__gt=0, preco__gt=0)
     elif modalidade == ModalidadeComercial.ASSISTIR:
-        qs = qs.filter(disponivel_assistir=True, preco_assistir__gt=0)
+        qs = _com_filme_online(qs)
 
     if ordem == 'titulo':
         qs = qs.order_by('titulo')
@@ -354,9 +360,7 @@ def catalogo_filmes(request):
 def home(request):
     filmes = _filmes_ativos()
     midias = list(filmes.order_by('-criado_em')[:12])
-    para_assistir = list(
-        filmes.filter(disponivel_assistir=True, preco_assistir__gt=0).order_by('-criado_em')[:12]
-    )
+    para_assistir = list(_com_filme_online(filmes).order_by('-criado_em')[:12])
     dvds = list(
         filmes.filter(disponivel_venda=True, estoque__gt=0, preco__gt=0).order_by('-criado_em')[:12]
     )

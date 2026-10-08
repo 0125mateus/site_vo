@@ -1099,6 +1099,17 @@ class FilmesAssistirEDvdTests(TestCase):
         self.assertContains(resposta, 'R$ 39,90')
         self.assertNotContains(resposta, 'Alugar')
 
+    def test_sem_link_nao_vende_assistir_online(self):
+        self.filme.filme_url = ''
+        self.filme.save()
+        resposta = self.client.get(reverse('produto_detalhe', kwargs={'produto_id': self.filme.pk}))
+        self.assertNotContains(resposta, 'R$ 9,90')
+        self.assertContains(resposta, 'DVD físico')
+        self._adicionar('assistir')
+        self.assertFalse(self.client.session.get('carrinho'))
+        catalogo = self.client.get(reverse('catalogo_filmes'), {'modalidade': 'assistir'})
+        self.assertEqual(catalogo.context['total'], 0)
+
     def test_assistir_online_vai_direto_para_o_pix(self):
         self._adicionar('assistir')
         self._adicionar('assistir')
