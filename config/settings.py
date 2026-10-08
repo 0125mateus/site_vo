@@ -123,6 +123,8 @@ CLOUDINARY_URL = env('CLOUDINARY_URL', default='')
 SUPABASE_URL = env('SUPABASE_URL', default='')
 SUPABASE_SERVICE_ROLE_KEY = env('SUPABASE_SERVICE_ROLE_KEY', default='')
 SUPABASE_BUCKET = env('SUPABASE_BUCKET', default='midia')
+# Bunny Stream → Library → Security → "Embed view token authentication"
+BUNNY_STREAM_TOKEN_KEY = env('BUNNY_STREAM_TOKEN_KEY', default='')
 USAR_SUPABASE = bool(SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY) and not _rodando_testes
 if USAR_SUPABASE:
     STORAGES['default'] = {

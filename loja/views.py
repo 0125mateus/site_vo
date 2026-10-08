@@ -43,6 +43,7 @@ from .mercadopago_service import (
 )
 from .pix import pix_da_loja, txid_do_pedido
 from .models import (
+    assinar_embed_bunny,
     AssinaturaClube,
     Avaliacao,
     ConfiguracaoPix,
@@ -522,10 +523,11 @@ def reproduzir_conteudo(request, item_id):
             'arquivo_url': reverse('acessar_arquivo', args=[item.id]),
         })
     else:
+        embed_url = assinar_embed_bunny(ficha.filme_embed_url)
         ctx.update({
             'tipo_midia': 'embed',
-            'embed_url': ficha.filme_embed_url,
-            'filme_url': ficha.filme_url,
+            'embed_url': embed_url,
+            'filme_url': embed_url if 'mediadelivery.net' in embed_url else ficha.filme_url,
         })
     ctx.update({
         'item': item,

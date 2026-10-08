@@ -244,7 +244,27 @@ def embed_de_video(url) -> str:
     drive = re.search(r'drive\.google\.com/(?:file/d/|open\?id=)([A-Za-z0-9_-]{10,})', url)
     if drive:
         return f'https://drive.google.com/file/d/{drive.group(1)}/preview'
+    bunny = re.search(r'(?:iframe|player)\.mediadelivery\.net/(?:embed|play)/(\d+)/([0-9a-fA-F-]{36})', url)
+    if bunny:
+        return f'https://iframe.mediadelivery.net/embed/{bunny.group(1)}/{bunny.group(2)}'
     return url
+
+
+def assinar_embed_bunny(embed_url: str, validade_segundos: int = 4 * 3600) -> str:
+    """Link do Bunny Stream que só abre por algumas horas (token de embed da biblioteca)."""
+    import hashlib
+    import re
+    import time
+
+    from django.conf import settings
+
+    chave = getattr(settings, 'BUNNY_STREAM_TOKEN_KEY', '')
+    bunny = re.match(r'https://iframe\.mediadelivery\.net/embed/\d+/([0-9a-fA-F-]{36})$', embed_url or '')
+    if not chave or not bunny:
+        return embed_url
+    expira = int(time.time()) + validade_segundos
+    token = hashlib.sha256(f'{chave}{bunny.group(1)}{expira}'.encode()).hexdigest()
+    return f'{embed_url}?token={token}&expires={expira}'
 
 
 class Pedido(models.Model):

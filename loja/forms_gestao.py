@@ -149,7 +149,7 @@ class MidiaForm(forms.ModelForm):
             'preco_assistir': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
             'estoque': forms.NumberInput(attrs={'min': '0'}),
             'filme_url': forms.URLInput(attrs={
-                'placeholder': 'https://youtu.be/… ou https://drive.google.com/file/d/…',
+                'placeholder': 'https://iframe.mediadelivery.net/embed/…',
             }),
             'trailer': forms.ClearableFileInput(attrs={
                 'accept': 'video/mp4,video/webm,video/ogg,.mp4,.webm,.ogg',

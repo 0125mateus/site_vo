@@ -1023,6 +1023,37 @@ class AcompanharEntregaTests(TestCase):
         self.assertEqual(self.pedido.status_entrega, '')
 
 
+class BunnyStreamTests(TestCase):
+    VIDEO = '3f2a9c1e-1111-4222-8333-944455556666'
+
+    def test_link_play_vira_player_embed(self):
+        from .models import embed_de_video
+
+        self.assertEqual(
+            embed_de_video(f'https://iframe.mediadelivery.net/play/123456/{self.VIDEO}'),
+            f'https://iframe.mediadelivery.net/embed/123456/{self.VIDEO}',
+        )
+
+    @override_settings(BUNNY_STREAM_TOKEN_KEY='chave-teste')
+    def test_player_do_cliente_sai_assinado(self):
+        import hashlib
+        import re
+
+        from .models import assinar_embed_bunny
+
+        url = assinar_embed_bunny(f'https://iframe.mediadelivery.net/embed/123456/{self.VIDEO}')
+        partes = re.search(r'\?token=([0-9a-f]{64})&expires=(\d+)$', url)
+        self.assertIsNotNone(partes)
+        esperado = hashlib.sha256(f'chave-teste{self.VIDEO}{partes.group(2)}'.encode()).hexdigest()
+        self.assertEqual(partes.group(1), esperado)
+
+    def test_sem_chave_o_link_fica_igual(self):
+        from .models import assinar_embed_bunny
+
+        url = f'https://iframe.mediadelivery.net/embed/123456/{self.VIDEO}'
+        self.assertEqual(assinar_embed_bunny(url), url)
+
+
 class RegistroClienteTests(TestCase):
     def test_senha_fraca_mostra_todas_as_regras(self):
         resposta = self.client.post(reverse('registrar'), {
