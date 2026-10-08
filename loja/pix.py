@@ -23,7 +23,7 @@ def _crc16(payload: str) -> str:
 
 def _sem_acento(texto: str, limite: int) -> str:
     texto = unicodedata.normalize('NFKD', texto or '').encode('ascii', 'ignore').decode('ascii')
-    texto = re.sub(r'[^A-Za-z0-9 .\-]', '', texto)
+    texto = re.sub(r'[^A-Za-z0-9 .&\-]', '', texto)
     return re.sub(r'\s+', ' ', texto).strip()[:limite]
 
 
