@@ -270,6 +270,13 @@ body.auth-page main {
     color: var(--gold-soft);
 }
 
+.auth-field-hint {
+    margin: -6px 0 14px;
+    font-size: var(--fs-eyebrow);
+    line-height: 1.45;
+    opacity: 0.75;
+}
+
 .auth-actions {
     display: flex;
     align-items: center;

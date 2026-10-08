@@ -888,6 +888,26 @@ class GestaoPainelTests(TestCase):
         self.assertEqual(filme.preco_assistir, Decimal('9.90'))
 
 
+class RegistroClienteTests(TestCase):
+    def test_senha_fraca_mostra_todas_as_regras(self):
+        resposta = self.client.post(reverse('registrar'), {
+            'username': 'mateus', 'email': '0125mateus@gmail.com',
+            'password1': '123', 'password2': '123',
+        })
+        self.assertEqual(resposta.status_code, 200)
+        self.assertContains(resposta, 'pelo menos 8 caracteres')
+        self.assertContains(resposta, 'inteiramente numérica')
+        self.assertFalse(User.objects.exists())
+
+    def test_cadastro_com_senha_boa_entra_na_loja(self):
+        resposta = self.client.post(reverse('registrar'), {
+            'username': 'mateus', 'email': '0125mateus@gmail.com',
+            'password1': 'Cinema-2026', 'password2': 'Cinema-2026',
+        })
+        self.assertRedirects(resposta, reverse('home'))
+        self.assertTrue(User.objects.filter(username='mateus').exists())
+
+
 class FilmesAssistirEDvdTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='cinefilo', password='senha', email='c@example.com')

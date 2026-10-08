@@ -117,8 +117,9 @@
                             <button type="button" class="auth-password-toggle" data-password-toggle="id_reg_password1" aria-label="Mostrar senha">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
                             </button>
-                            {% if register_form.password1.errors %}<span class="auth-field-error">{{ register_form.password1.errors.0 }}</span>{% endif %}
+                            {% if register_form.password1.errors %}<span class="auth-field-error">{{ register_form.password1.errors|join:" " }}</span>{% endif %}
                         </div>
+                        <p class="auth-field-hint">A senha precisa ter pelo menos 8 caracteres, misturar letras e números, e não pode ser parecida com o nome de usuário ou o e-mail.</p>
 
                         <div class="auth-field auth-field--password">
                             <input type="password" name="password2" id="id_reg_password2" class="auth-input" autocomplete="new-password" required placeholder=" ">
@@ -126,7 +127,7 @@
                             <button type="button" class="auth-password-toggle" data-password-toggle="id_reg_password2" aria-label="Mostrar senha">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
                             </button>
-                            {% if register_form.password2.errors %}<span class="auth-field-error">{{ register_form.password2.errors.0 }}</span>{% endif %}
+                            {% if register_form.password2.errors %}<span class="auth-field-error">{{ register_form.password2.errors|join:" " }}</span>{% endif %}
                         </div>
 
                         <div class="auth-actions auth-actions--stack">
