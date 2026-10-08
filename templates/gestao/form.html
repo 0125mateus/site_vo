@@ -167,7 +167,7 @@
             {% endif %}
             {{ form.imagem }}
             {% if form.imagem.errors %}<span class="field-error">{{ form.imagem.errors.0 }}</span>{% endif %}
-            <p class="gestao-field-hint">JPG, PNG ou WebP. Envie direto do seu PC.{% if tipo == 'midia' %} Se a imagem for horizontal, ela vira capa vertical sozinha, sem cortar a foto.{% endif %}</p>
+            <p class="gestao-field-hint">JPG, PNG ou WebP. Envie direto do seu PC.{% if tipo == 'midia' %} A capa vira 1000 x 1500 sozinha. Depois de escolher, decida entre a foto inteira ou preencher o card.{% endif %}</p>
             {% if MEDIA_NA_NUVEM %}
             <p class="gestao-field-hint">A capa fica salva na nuvem.</p>
             {% elif ARQUIVOS_NO_COMPUTADOR %}

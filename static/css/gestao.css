@@ -668,6 +668,17 @@
     color: var(--ink-soft);
 }
 
+.gestao-capa-modos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.gestao-capa-modos[hidden] {
+    display: none;
+}
+
 .gestao-field-hint {
     font-size: var(--fs-eyebrow);
     color: var(--ink-soft);
